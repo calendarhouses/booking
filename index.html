@@ -895,7 +895,6 @@ function getCabinConfig(cabinId) {
     return CABIN_CONFIG[cabinId] || CABIN_CONFIG.default;
 }
 
-// ─── INIT ──────────────────────────────────────────────────────────────────
 async function init() {
     try {
         const t = Date.now();
@@ -910,28 +909,14 @@ async function init() {
         if (sd.customPrices) customPrices = sd.customPrices;
     } catch(e) {
         console.error(e);
-        // Fallback demo data
-        roomsList = [
-            { id:1, name:"Номер 1", short:"Номер 1", desc:"Двомісний", capacity:2, maxCapacity:4, priceWeekday:4000, priceWeekend:5000, active:true },
-            { id:2, name:"Номер 2", short:"Номер 2", desc:"Сімейний",  capacity:4, maxCapacity:7, priceWeekday:6500, priceWeekend:7500, active:true },
-            { id:3, name:"Номер 3", short:"Номер 3", desc:"Люкс",      capacity:4, maxCapacity:7, priceWeekday:6500, priceWeekend:7500, active:true },
-        ];
-        discountsList = [
-            { condition:"Діб в бронюванні: 2", discount:"15%", roomsIds:["all"] },
-            { condition:"Діб в бронюванні: 3", discount:"20%", roomsIds:["all"] },
-            { condition:"Діб в бронюванні: 7", discount:"43%", roomsIds:["all"] },
-            { condition:"Діб в бронюванні: 14", discount:"57%", roomsIds:["all"] },
-        ];
+        // Fallback demo data...
     }
     
-    // ОСЬ ТУТ ВСТАВЛЕНО НОВИЙ БЛОК:
-    // Ховаємо скелетони (якщо вони є)
     const skeleton = document.getElementById('skeletonLoader');
     if (skeleton) skeleton.style.display = 'none';
     
     renderCabinList();
 
-    // Прілоадер тримаємо трохи довше для ефекту
     setTimeout(() => {
         const preloader = document.getElementById('preloader');
         if(preloader) {
