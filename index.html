@@ -129,17 +129,17 @@
         .screen { display: none; }
         .screen.active { display: block; }
 
-        /* ── КОНТЕЙНЕР КАРТОК ── */
+        /* ── КОНТЕЙНЕР КАРТОК (Full Width як банер) ── */
         #cabinsContainer {
-            max-width: 1200px;
+            max-width: 1400px; /* РОЗШИРИЛИ ДО РОЗМІРУ БАНЕРА */
             width: calc(100% - 40px);
             margin: 0 auto 100px;
             display: flex;
             flex-direction: column; 
-            gap: 60px; 
+            gap: 80px; /* Збільшили відступ між картками для повітря */
         }
 
-        /* ── ПРЕМІУМ КАРТКА КОТЕДЖУ (Шаховий порядок) ── */
+        /* ── ПРЕМІУМ КАРТКА (Анімація та Шаховий порядок) ── */
         .cabin-card {
             display: flex;
             flex-direction: row; 
@@ -148,26 +148,33 @@
             overflow: hidden;
             border: 1px solid var(--border);
             box-shadow: 0 16px 40px rgba(18, 26, 18, 0.05);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
-            height: 520px; 
+            min-height: 520px; height: auto; /* Дозволяємо картці тягнутися під текст */
+            
+            /* ПОЧАТКОВИЙ СТАН АНІМАЦІЇ: Картинка зліва -> виїжджає зліва */
+            opacity: 0;
+            transform: translateX(-120px);
+            transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.5s ease, box-shadow 0.4s;
         }
+        
         .cabin-card:nth-child(even) {
             flex-direction: row-reverse;
+            /* ПОЧАТКОВИЙ СТАН АНІМАЦІЇ: Картинка справа -> виїжджає справа */
+            transform: translateX(120px);
         }
-        .cabin-card:hover {
+
+        /* КЛАС, ЯКИЙ ЗАПУСКАЄ АНІМАЦІЮ ПРИ СКРОЛЛІ */
+        .cabin-card.is-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .cabin-card.is-visible:hover {
             transform: translateY(-5px);
             box-shadow: 0 24px 60px rgba(18, 26, 18, 0.12);
         }
 
-        /* ── СЛАЙДЕР В КАРТЦІ ── */
-        .slider-wrap { 
-            position: relative; 
-            width: 55%; 
-            height: 100%; 
-            overflow: hidden; 
-            background: #E5E1DC; 
-            cursor: pointer; 
-        }
+        /* Слайдер */
+        .slider-wrap { position: relative; width: 55%; height: auto; min-height: 100%; overflow: hidden; background: #E5E1DC; cursor: pointer; }
         .slider-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
         .slide { min-width: 100%; height: 100%; position: relative; overflow: hidden; }
         .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -197,12 +204,10 @@
             z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .slider-counter { display: none; /* У великій картці залишаємо тільки крапки для мінімалізму */ }
-
-        /* ── ІНФОРМАЦІЯ В КАРТЦІ ── */
+        /* ── ІНФОРМАЦІЯ ТА НОВІ ФІЧІ ── */
         .cabin-body { 
             width: 45%; 
-            padding: 50px 50px; 
+            padding: 50px 60px; 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
@@ -210,37 +215,38 @@
         }
         .cabin-name {
             font-family: 'Inter', sans-serif; 
-            font-size: 32px; font-weight: 700; color: var(--text); 
+            font-size: 36px; font-weight: 700; color: var(--text); 
             margin-bottom: 12px; line-height: 1.2; letter-spacing: -0.5px;
         }
         .cabin-subtitle {
             font-family: 'Inter', sans-serif; font-size: 15px; color: var(--muted);
-            margin-bottom: 32px; font-weight: 400; line-height: 1.6;
+            margin-bottom: 24px; font-weight: 400; line-height: 1.6;
+        }
+
+        /* СПИСОК ПРЕМІУМ-ФІЧ (Заповнює порожнечу) */
+        .premium-features {
+            display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px;
+        }
+        .feature-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            font-family: 'Inter', sans-serif; font-size: 14px; color: var(--text); line-height: 1.5; font-weight: 500;
+        }
+        .feature-item svg {
+            width: 22px; height: 22px; stroke: #3A4F35; fill: none; stroke-width: 1.5; flex-shrink: 0; margin-top: -1px;
         }
         
-        /* Чіпи з інфою */
-        .cabin-meta { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .cabin-meta { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
         .cabin-meta-item { 
-            background: #F7F5F2; 
-            border: 1px solid #E5E1DC; 
-            border-radius: 12px; 
-            padding: 10px 16px;
-            display: flex; align-items: center; gap: 8px; 
+            background: #F7F5F2; border: 1px solid #E5E1DC; border-radius: 12px; 
+            padding: 10px 16px; display: flex; align-items: center; gap: 8px; 
             font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #4B5563; 
         }
         .cabin-meta-item svg { width: 16px; height: 16px; stroke: #3A4F35; fill: none; stroke-width: 2; }
         .cabin-next-free { color: #3A4F35; font-weight: 700; }
 
-        /* Підвал з ціною та кнопкою */
         .cabin-footer-block {
-            background: #F8FAF7; 
-            border: 1px solid rgba(85, 107, 47, 0.15);
-            border-radius: 20px;
-            padding: 20px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto; 
+            background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 20px;
+            padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; margin-top: auto; 
         }
         .price-info { display: flex; flex-direction: column; }
         .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
@@ -248,17 +254,13 @@
         .price-val strong { font-family: 'Inter', sans-serif; font-size: 24px; color: #1A1A1A; font-weight: 700; }
 
         .btn-book {
-            background: #3A4F35; 
-            color: #fff;
-            border: none; border-radius: 14px;
-            padding: 16px 28px;
-            font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif;
-            text-transform: uppercase; letter-spacing: 1.5px;
-            cursor: pointer; transition: 0.3s;
+            background: #3A4F35; color: #fff; border: none; border-radius: 14px;
+            padding: 16px 28px; font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif;
+            text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; transition: 0.3s;
             box-shadow: 0 8px 24px rgba(58, 79, 53, 0.25);
         }
         .btn-book:hover { background: #2C3D28; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(58, 79, 53, 0.35); }
-
+       
         /* Адаптація для мобілок */
         @media (max-width: 960px) {
             .cabin-card, .cabin-card:nth-child(even) { flex-direction: column; height: auto; }
@@ -905,7 +907,46 @@ function showList() { showScreen('list'); currentCabinId = null; }
 function showCalendar() { showScreen('calendar'); renderCalendar(); updateProceedBtn(); }
 function showCheckout() { showScreen('checkout'); renderCheckout(); }
 
-// ─── CABIN LIST ────────────────────────────────────────────────────────────
+// ─── ХЕЛПЕР ДЛЯ ПРЕМІУМ-ФІЧ З SVG-ІКОНКАМИ ───
+function getCabinFeaturesHTML(name) {
+    // Іконки (Ліжко, Панорамне вікно, Гриль, Ванна)
+    const iconBed = '<svg viewBox="0 0 24 24"><path d="M3 12h18M3 16h18M5 8h4a2 2 0 012 2v2M13 8h4a2 2 0 012 2v2M4 20v-4m16 4v-4"/></svg>';
+    const iconWin = '<svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm8 0v12M4 12h16"/></svg>';
+    const iconGrill = '<svg viewBox="0 0 24 24"><path d="M17 8c0-3.3-2.2-6-5-6S7 4.7 7 8m-2 0h14v2H5V8zm2 2v6a3 3 0 006 0v-6M9 20h6M12 16v4"/></svg>';
+    const iconBath = '<svg viewBox="0 0 24 24"><path d="M4 17V8a2 2 0 012-2h12a2 2 0 012 2v9m-8-5h.01M6 21h12a2 2 0 002-2v-2H4v2a2 2 0 002 2z"/></svg>';
+
+    let features = '';
+    
+    if (name.includes("JUNIOR") || name.includes("1")) {
+        features = `
+            <div class="feature-item">${iconBed}<span>Затишна спальня для солодких снів під звуки природи</span></div>
+            <div class="feature-item">${iconWin}<span>Неймовірний панорамний вид на озеро, що надихає щоранку</span></div>
+            <div class="feature-item">${iconGrill}<span>Власна BBQ-зона з газовим грилем прямо на терасі</span></div>
+        `;
+    } else if (name.includes("№2") || name.includes("2")) {
+        features = `
+            <div class="feature-item">${iconWin}<span>Простора вітальня з великими панорамними вікнами</span></div>
+            <div class="feature-item">${iconBed}<span>Дві окремі спальні (одна з персональним виходом)</span></div>
+            <div class="feature-item">${iconGrill}<span>Тераса під навісом із мангалом (дрова та вугілля включено)</span></div>
+        `;
+    } else if (name.includes("№4") || name.includes("4")) {
+        features = `
+            <div class="feature-item">${iconWin}<span>Спальня з ліжком, крізь яке можна милуватися нічним зоряним небом</span></div>
+            <div class="feature-item">${iconBath}<span>Розкішна ванна кімната з дзеркалом та тропічним душем</span></div>
+            <div class="feature-item">${iconGrill}<span>Власна BBQ-зона на терасі, де вже є все для смаження</span></div>
+        `;
+    } else {
+        // Для Family 3 або інших
+        features = `
+            <div class="feature-item">${iconWin}<span>Світла вітальня, де ви зможете збиратися всією родиною</span></div>
+            <div class="feature-item">${iconBed}<span>Окремі спальні з ортопедичними матрацами для кращого сну</span></div>
+            <div class="feature-item">${iconGrill}<span>Велика тераса з мангалом для ідеального пікніка під дахом</span></div>
+        `;
+    }
+    return `<div class="premium-features">${features}</div>`;
+}
+
+// ─── CABIN LIST ТА АНІМАЦІЯ ────────────────────────────────────────────────
 function renderCabinList() {
     const cont = document.getElementById('cabinsContainer');
     if (!roomsList.length) {
@@ -917,12 +958,10 @@ function renderCabinList() {
         const minPrice = Math.min(r.priceWeekday, r.priceWeekend);
         const nextFree = getNextFreeDate(r.name);
         const imgs = cfg.images;
-        
-        // Беремо перше речення з опису для підзаголовку
         const shortDesc = cfg.description.split('.')[0] + '.';
 
         return `
-        <div class="cabin-card fade-in">
+        <div class="cabin-card">
             <div class="slider-wrap" id="card-slider-${r.id}" onclick="showDetail(${r.id})">
                 <div class="cabin-badge">${r.desc}</div>
                 <div class="slider-track" id="track-${r.id}">
@@ -942,6 +981,8 @@ function renderCabinList() {
             <div class="cabin-body">
                 <div class="cabin-name">${r.name}</div>
                 <div class="cabin-subtitle">${shortDesc}</div>
+                
+                ${getCabinFeaturesHTML(r.name)}
                 
                 <div class="cabin-meta">
                     <div class="cabin-meta-item">
@@ -964,6 +1005,20 @@ function renderCabinList() {
             </div>
         </div>`;
     }).join('');
+
+    // МАГІЯ: Observer для запуску анімації виїзду карток при скролі
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                obs.unobserve(entry.target); // Анімуємо тільки 1 раз
+            }
+        });
+    }, { threshold: 0.15 }); // Запуск, коли картка з'явилась на 15%
+
+    document.querySelectorAll('.cabin-card').forEach(card => {
+        observer.observe(card);
+    });
 }
 
 // ─── SLIDER LOGIC ──────────────────────────────────────────────────────────
