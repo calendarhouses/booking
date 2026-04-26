@@ -46,15 +46,16 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             font-family: 'Playfair Display', serif; 
-            /* ЗБІЛЬШЕНО З 12vw ДО 25vw */
             font-size: 25vw;
-            color: #fff;
+            /* 🟢 МАГІЯ ТУТ: rgba замість чистого #fff. 0.35 — це 35% видимості */
+            color: rgba(255, 255, 255, 0.35); 
             font-weight: 700;
             letter-spacing: 0.1em;
             opacity: 0; 
             transition: opacity 2s ease; 
             z-index: 2;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            /* Пом'якшили тінь, щоб текст не здавався брудним */
+            text-shadow: 0 10px 40px rgba(0,0,0,0.15);
         }
         
         .zoom-svg {
