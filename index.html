@@ -41,44 +41,43 @@
                 #F7F5F2;
         }
 
-        /* ── HEADER ── */
-        .site-header {
-            position: sticky; top: 0; z-index: 100;
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 0 40px;
-            height: 64px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .site-logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 22px; font-weight: 700; letter-spacing: 2px; color: var(--text);
-            text-decoration: none;
-        }
-        .site-logo span { color: var(--accent); }
-        .header-tagline { font-size: 13px; color: var(--muted); font-weight: 400; }
-
-        /* ── HERO ── */
+        /* ── HERO (PREMIUM GLASS CARD) ── */
         .hero {
             text-align: center;
-            padding: 60px 20px 48px;
+            padding: 80px 20px 50px;
+            display: flex;
+            justify-content: center;
         }
-        .hero-label {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: var(--accent-light);
-            border: 1px solid rgba(85,107,47,0.2);
-            color: var(--accent); font-size: 12px; font-weight: 600;
-            padding: 6px 14px; border-radius: 20px; letter-spacing: 0.5px;
-            text-transform: uppercase; margin-bottom: 20px;
+        
+        .hero-glass-card {
+            background: rgba(255, 255, 255, 0.45); /* Напівпрозорий фон */
+            backdrop-filter: blur(16px); /* Ефект матового скла */
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8); /* Легкий відблиск по краях */
+            box-shadow: 0 16px 40px rgba(85, 107, 47, 0.08), inset 0 2px 0 rgba(255, 255, 255, 0.6);
+            border-radius: 28px;
+            padding: 40px 40px 50px;
+            max-width: 540px;
+            width: 100%;
         }
-        .hero h1 {
+
+        .hero-brand {
+            display: inline-block;
             font-family: 'Playfair Display', serif;
-            font-size: 48px; font-weight: 700; line-height: 1.15;
-            color: var(--text); margin-bottom: 16px; letter-spacing: -0.5px;
+            font-size: 28px; font-weight: 800; letter-spacing: 4px;
+            color: var(--text);
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(85, 107, 47, 0.15); /* Делікатна лінія під лого */
         }
-        .hero h1 em { color: var(--accent); font-style: normal; }
-        .hero p { font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto; line-height: 1.6; }
+        .hero-brand span { color: var(--accent); }
+        
+        .hero-glass-card h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px; font-weight: 700; line-height: 1.2;
+            color: var(--text); letter-spacing: -0.5px;
+        }
+        .hero-glass-card h1 em { color: var(--accent); font-style: italic; }
 
         /* ── LAYOUT ── */
         .page-wrap {
@@ -412,17 +411,12 @@
 </head>
 <body>
 
-<header class="site-header">
-    <a class="site-logo" href="#">BOSO<span>.</span></a>
-    <span class="header-tagline">Котеджний комплекс · Карпати</span>
-</header>
-
-<!-- ── SCREEN: LIST ── -->
 <div id="screen-list" class="screen active">
     <div class="hero">
-        <div class="hero-label">🌲 Карпатський відпочинок</div>
-        <h1>Оберіть свій<br><em>ідеальний котедж</em></h1>
-        <p>Комфортний відпочинок серед карпатських лісів. Свіже повітря, тиша і затишок.</p>
+        <div class="hero-glass-card">
+            <div class="hero-brand">BOSO<span>.</span></div>
+            <h1>Оберіть свій<br><em>ідеальний котедж</em></h1>
+        </div>
     </div>
 
     <div class="page-wrap" id="cabinsContainer">
