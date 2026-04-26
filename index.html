@@ -129,71 +129,136 @@
         .screen { display: none; }
         .screen.active { display: block; }
 
-        /* ── CABIN CARD ── */
+        /* ── КОНТЕЙНЕР КАРТОК (Широкий) ── */
+        #cabinsContainer {
+            max-width: 1400px;
+            width: calc(100% - 40px);
+            margin: 0 auto;
+        }
+
+        /* ── ПРЕМІУМ КАРТКА КОТЕДЖУ (Горизонтальна) ── */
         .cabin-card {
+            display: flex;
+            flex-direction: row;
             background: var(--white);
-            border-radius: var(--radius);
+            border-radius: 32px;
             overflow: hidden;
             border: 1px solid var(--border);
-            margin-bottom: 20px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 50px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+            height: 480px; /* Фіксована розкішна висота */
         }
-        .cabin-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+        .cabin-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.12);
+        }
 
-        /* Slider */
-        .slider-wrap { position: relative; height: 280px; overflow: hidden; background: #E5E1DC; cursor: pointer; }
-        .slider-track { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); }
+        /* Ліва частина - Фото */
+        .slider-wrap { 
+            position: relative; 
+            width: 55%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: #E5E1DC; 
+            cursor: pointer; 
+        }
+        .slider-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
         .slide { min-width: 100%; height: 100%; position: relative; overflow: hidden; }
         .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .slide-placeholder {
-            width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 48px;
-        }
+        
         .slider-btn {
             position: absolute; top: 50%; transform: translateY(-50%);
-            width: 36px; height: 36px; border-radius: 50%;
-            background: rgba(255,255,255,0.9); border: none; cursor: pointer;
+            width: 48px; height: 48px; border-radius: 50%;
+            background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
+            border: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: 0.2s; z-index: 5;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15); transition: 0.3s; z-index: 5;
         }
-        .slider-btn:hover { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .slider-btn svg { width: 16px; height: 16px; stroke: #374151; fill: none; stroke-width: 2.5; }
-        .slider-prev { left: 12px; }
-        .slider-next { right: 12px; }
-        .slider-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
-        .sdot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.6); transition: 0.2s; }
-        .sdot.active { background: #fff; width: 18px; border-radius: 3px; }
-        .slider-counter { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.5); color: #fff; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 8px; }
+        .slider-btn:hover { background: #fff; transform: translateY(-50%) scale(1.05); }
+        .slider-btn svg { width: 20px; height: 20px; stroke: #1A1A1A; fill: none; stroke-width: 2; }
+        .slider-prev { left: 24px; }
+        .slider-next { right: 24px; }
+        
+        .slider-dots { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 5;}
+        .sdot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: 0.3s; cursor: pointer; }
+        .sdot.active { background: #fff; width: 24px; border-radius: 4px; }
+        
         .cabin-badge {
-            position: absolute; top: 12px; left: 12px;
-            background: rgba(255,255,255,0.92); backdrop-filter: blur(4px);
-            font-size: 11px; font-weight: 700; color: var(--accent);
-            padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+            position: absolute; top: 24px; left: 24px;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
+            font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #3A4F35;
+            padding: 8px 16px; border-radius: 12px; text-transform: uppercase; letter-spacing: 1.5px;
+            z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* Card body */
-        .cabin-body { padding: 20px 24px; }
+        /* Права частина - Інформація */
+        .cabin-body { 
+            width: 45%; 
+            padding: 40px 48px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
         .cabin-name {
             font-family: 'Playfair Display', serif;
-            font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 10px;
+            font-size: 38px; font-weight: 700; color: #1A1A1A; 
+            margin-bottom: 12px; line-height: 1.15;
         }
-        .cabin-meta { display: flex; gap: 20px; margin-bottom: 16px; }
-        .cabin-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
-        .cabin-meta-item svg { width: 15px; height: 15px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
-        .cabin-next-free { color: var(--accent); font-weight: 600; }
-        .btn-book {
-            display: block; width: 100%;
-            padding: 15px;
-            background: var(--text); color: #fff;
-            border: none; border-radius: 12px;
-            font-size: 15px; font-weight: 600; font-family: inherit;
-            cursor: pointer; transition: 0.25s;
-            letter-spacing: 0.3px;
+        .cabin-subtitle {
+            font-family: 'Inter', sans-serif; font-size: 15px; color: #6B7280;
+            margin-bottom: 32px; font-weight: 400; line-height: 1.6;
         }
-        .btn-book:hover { background: #2d2d2d; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+        
+        /* Блоки з інформацією (Чіпи) */
+        .cabin-meta { display: flex; gap: 12px; margin-bottom: auto; flex-wrap: wrap; }
+        .cabin-meta-item { 
+            background: #F7F5F2; 
+            border: 1px solid #E5E1DC; 
+            border-radius: 12px; 
+            padding: 10px 16px;
+            display: flex; align-items: center; gap: 8px; 
+            font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #4B5563; 
+        }
+        .cabin-meta-item svg { width: 16px; height: 16px; stroke: #3A4F35; fill: none; stroke-width: 2; }
+        .cabin-next-free { color: #3A4F35; font-weight: 700; }
 
+        /* Блок ціни та кнопки (Виділений контейнер) */
+        .cabin-footer-block {
+            background: #F8FAF7; /* Дуже легкий відтінок зелені */
+            border: 1px solid rgba(85, 107, 47, 0.15);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 24px;
+        }
+        .price-info { display: flex; flex-direction: column; }
+        .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
+        .price-val { font-family: 'Inter', sans-serif; font-size: 15px; color: #4B5563; font-weight: 500; }
+        .price-val strong { font-family: 'Inter', sans-serif; font-size: 26px; color: #1A1A1A; font-weight: 700; }
+
+        .btn-book {
+            background: #3A4F35; /* Розкішний лісовий зелений */
+            color: #fff;
+            border: none; border-radius: 14px;
+            padding: 16px 32px;
+            font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            cursor: pointer; transition: 0.3s;
+            box-shadow: 0 8px 24px rgba(58, 79, 53, 0.25);
+        }
+        .btn-book:hover { background: #2C3D28; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(58, 79, 53, 0.35); }
+
+        /* Адаптація для мобільних */
+        @media (max-width: 900px) {
+            .cabin-card { flex-direction: column; height: auto; border-radius: 24px; }
+            .slider-wrap { width: 100%; height: 320px; }
+            .cabin-body { width: 100%; padding: 24px; }
+            .cabin-footer-block { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
+            .btn-book { width: 100%; text-align: center; }
+        }
         /* ── DETAIL SCREEN ── */
         .back-btn {
             display: inline-flex; align-items: center; gap: 8px;
@@ -842,9 +907,13 @@ function renderCabinList() {
         const minPrice = Math.min(r.priceWeekday, r.priceWeekend);
         const nextFree = getNextFreeDate(r.name);
         const imgs = cfg.images;
+        
+        // Беремо перше речення з опису для підзаголовку
+        const shortDesc = cfg.description.split('.')[0] + '.';
+
         return `
         <div class="cabin-card fade-in">
-            <div class="slider-wrap" id="card-slider-${r.id}">
+            <div class="slider-wrap" id="card-slider-${r.id}" onclick="showDetail(${r.id})">
                 <div class="cabin-badge">${r.desc}</div>
                 <div class="slider-track" id="track-${r.id}">
                     ${imgs.map(url => `<div class="slide"><img src="${url}" alt="${r.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'slide-placeholder\\'>🏡</div>'"></div>`).join('')}
@@ -858,22 +927,30 @@ function renderCabinList() {
                 <div class="slider-dots" id="dots-${r.id}">
                     ${imgs.map((_,i) => `<div class="sdot ${i===0?'active':''}" onclick="goSlide(event,'${r.id}',${i})"></div>`).join('')}
                 </div>
-                <div class="slider-counter" id="counter-${r.id}">1 / ${imgs.length}</div>
             </div>
+            
             <div class="cabin-body">
-                <div class="cabin-name">${r.name} <span style="font-size:14px;font-weight:400;color:var(--muted);">(${r.desc})</span></div>
+                <div class="cabin-name">${r.name}</div>
+                <div class="cabin-subtitle">${shortDesc}</div>
+                
                 <div class="cabin-meta">
                     <div class="cabin-meta-item">
                         <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-                        ${r.capacity}–${r.maxCapacity || r.capacity} гостей
+                        До ${r.maxCapacity || r.capacity} гостей
                     </div>
                     <div class="cabin-meta-item">
                         <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75"/></svg>
-                        <span>Вільний: <span class="cabin-next-free">${nextFree}</span></span>
+                        Вільний: <span class="cabin-next-free">${nextFree}</span>
                     </div>
                 </div>
-                <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">від <strong style="font-size:16px;color:var(--text);">${minPrice.toLocaleString('uk-UA')}</strong> грн / ніч</div>
-                <button class="btn-book" onclick="showDetail(${r.id})">Забронювати</button>
+                
+                <div class="cabin-footer-block">
+                    <div class="price-info">
+                        <span class="price-label">Вартість</span>
+                        <span class="price-val">від <strong>${minPrice.toLocaleString('uk-UA')}</strong> грн / ніч</span>
+                    </div>
+                    <button class="btn-book" onclick="showDetail(${r.id})">Забронювати</button>
+                </div>
             </div>
         </div>`;
     }).join('');
