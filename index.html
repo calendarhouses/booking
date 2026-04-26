@@ -39,7 +39,22 @@
             pointer-events: none; /* Щоб не блокувати кліки після зуму */
             transition: opacity 0.5s ease;
         }
-
+/* Текст BOSO на задньому фоні (після зуму) */
+        .bg-boso-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Playfair Display', serif; /* Преміальний шрифт */
+            font-size: 12vw;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            opacity: 0; /* Прихований на початку */
+            transition: opacity 2s ease; /* Дуже плавне з'явлення */
+            z-index: 2;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
         .zoom-svg {
             width: 100%; height: 100%;
             /* Той самий приціл 46%, який підійшов! */
@@ -610,10 +625,10 @@
                 <mask id="textMask">
                     <rect width="100%" height="100%" fill="white" />
                     <g fill="black" font-family="'Inter', sans-serif" font-weight="900" font-size="25vw" text-anchor="middle">
-                        <g id="fl-B"><text x="26%" y="50%" dominant-baseline="central">B</text></g>
-                        <g id="fl-O1"><text x="42%" y="50%" dominant-baseline="central">O</text></g>
-                        <g id="fl-S"><text x="58%" y="50%" dominant-baseline="central">S</text></g>
-                        <g id="fl-O2"><text x="74%" y="50%" dominant-baseline="central">O</text></g>
+                        <g id="fl-B"><text x="50%" y="50%" dx="-1.05em" dominant-baseline="central">B</text></g>
+                        <g id="fl-O1"><text x="50%" y="50%" dx="-0.35em" dominant-baseline="central">O</text></g>
+                        <g id="fl-S"><text x="50%" y="50%" dx="0.35em" dominant-baseline="central">S</text></g>
+                        <g id="fl-O2"><text x="50%" y="50%" dx="1.05em" dominant-baseline="central">O</text></g>
                     </g>
                 </mask>
             </defs>
@@ -623,6 +638,7 @@
 
     <div class="clean-hero">
         <img src="hero.jpg" alt="BOSO bg" class="hero-bg-img">
+        <div id="bgBosoText" class="bg-boso-text">BOSO</div>
     </div>
 
     <div class="page-wrap" id="cabinsContainer">
@@ -938,33 +954,52 @@ async function init() {
             preloader.style.opacity = '0';
             
             setTimeout(() => {
+        const preloader = document.getElementById('preloader');
+        const introOverlay = document.getElementById('introOverlay');
+
+        if(preloader) {
+            // 1. Ховаємо прелоадер
+            preloader.style.opacity = '0';
+            
+            setTimeout(() => {
                 preloader.style.display = 'none';
                 
                 if(introOverlay) {
-                    // 2. Команда "Мотор!": Літери злітаються з різних боків (тривалість 1 сек)
+                    // 2. Команда "Мотор!": Літери злітаються
                     introOverlay.classList.add('start-fly');
                     
-                    // 3. Пауза 1.3 секунди (щоб юзер встиг прочитати BOSO), потім запускаємо ЗУМ
+                    // 3. Пауза 1.3 сек, запускаємо ЗУМ
                     setTimeout(() => {
                         introOverlay.classList.add('start-zoom');
                         
-                        // 4. Через 1.3 сек (коли ми майже пролетіли крізь О), плавно розчиняємо маску
+                        // 4. Через 1.3 сек (ми майже пролетіли крізь О), ховаємо маску
                         setTimeout(() => {
                             introOverlay.style.opacity = '0';
                             
-                            // 5. Повністю видаляємо маску, щоб вона не заважала
+                            // 5. МАГІЯ: Проявляємо фоновий текст BOSO
+                            const bgText = document.getElementById('bgBosoText');
+                            if(bgText) bgText.style.opacity = '1';
+                            
+                            // 6. МАГІЯ: Плавно скролимо вниз до першого котеджу!
+                            const cabins = document.getElementById('cabinsContainer');
+                            if (cabins) {
+                                const offset = cabins.getBoundingClientRect().top + window.scrollY;
+                                window.scrollTo({ top: offset - 40, behavior: 'smooth' });
+                            }
+                            
+                            // Повністю видаляємо маску
                             setTimeout(() => {
                                 introOverlay.style.display = 'none';
                             }, 500);
 
                         }, 1300);
 
-                   }, 1300);
+                    }, 1300);
                 }
             }, 600);
         }
     }, 1000);
-} 
+}
 
 // ─── SCREENS ───────────────────────────────────────────────────────────────
 function showScreen(name) {
