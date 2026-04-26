@@ -31,91 +31,53 @@
             min-height: 100vh;
         }
 
-        /* ── КІНЕМАТОГРАФІЧНА ТЕКСТ-МАСКА (EFFECT PROSVIT) ── */
+        /* ── КІНЕМАТОГРАФІЧНА ТЕКСТ-МАСКА (НАДІЙНИЙ ВАРІАНТ) ── */
+        .hero-mask-section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background-color: #0C110C; /* Глибокий Tech-Noir фон */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 1;
+        }
 
-/* Глибокий, Tech-Noir фон для всієї секції */
-.hero-mask-section {
-    position: relative;
-    width: 100%;
-    height: 100vh; /* Повний екран */
-    background-color: #0C110C; /* Суцільний майже чорний Tech-Noir зелений */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    z-index: 1;
-}
+        .mask-text {
+            font-family: 'Inter', sans-serif;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0;
+            line-height: 1;
+            letter-spacing: 0.05em;
+            font-size: 28vw; /* Величезний розмір */
+            text-align: center;
+            
+            /* МАГІЯ: Фотографія стає фоном для самого тексту */
+            background-image: url('hero.jpg'); /* Переконайся, що hero.jpg лежить в папці */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Робить крутий паралакс при скролі! */
+            
+            /* Вирізаємо текст */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
 
-/* Контейнер для маски */
-.mask-container {
-    position: relative;
-    width: 90vw; /* Майже на всю ширину екрану */
-    max-width: 1600px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* ЦЕ МАГІЯ: Робимо background-clip: text на контейнері, */
-    /* але нам потрібно, щоб відео було всередині. */
-    /* Використовуємо старіший, але надійніший метод з webkit-mask */
-}
+        /* Забезпечуємо, щоб після Hero блоку йшов нормальний фон */
+        #cabinsContainer {
+            position: relative;
+            z-index: 2;
+            background: var(--bg);
+            padding-top: 80px; 
+        }
 
-/* Текст BOSO, який стає трафаретом */
-.mask-text {
-    font-family: 'Inter', sans-serif;
-    font-weight: 900; /* Максимально жирний (Black) */
-    text-transform: uppercase;
-    color: #fff; /* Колір неважливий, він зникне */
-    margin: 0;
-    line-height: 1;
-    letter-spacing: 0.05em; /* Легке розрідження */
-    text-align: center;
-    
-    /* Розмір: дуже великий, залежить від ширини екрану (vw) */
-    font-size: 25vw; 
-    
-    /* ── СТВОРЕННЯ МАСКИ ── */
-    /* Літери стають прозорими, все інше затемнюється */
-    mix-blend-mode: destination-out; 
-}
-
-/* Оскільки ми використовуємо mix-blend-mode: destination-out, */
-/* нам потрібно обгорнути текст у контейнер із білим фоном */
-.mask-container {
-    background-color: #fff; /* Обов'язково білий для цього ефекту */
-    /* mix-blend-mode на контейнері, щоб вирізати текст з фону */
-}
-
-/* Відео або Фото, яке видно КРІЗЬ літери */
-.mask-video,
-.mask-image {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Заповнює літери */
-    transform: translate(-50%, -50%);
-    z-index: -1; /* Позаду тексту */
-    
-    /* Moody ефект: можна додати фільтр */
-    filter: brightness(0.7) contrast(1.2) saturate(0.8);
-}
-
-/* Забезпечуємо, щоб після Hero блоку йшов нормальний фон */
-#cabinsContainer {
-    position: relative;
-    z-index: 2; /* Вище Hero */
-    background: var(--bg); /* Повертаємо світлий фон */
-    padding-top: 80px; /* Відступ від Hero */
-}
-
-/* Адаптація для мобільних */
-@media (max-width: 768px) {
-    .mask-text {
-        font-size: 30vw; /* Ще більше на мобільних, щоб літери були читабельні */
-    }
-}
+        @media (max-width: 768px) {
+            .mask-text { font-size: 32vw; }
+        }
 
         /* ── LAYOUT ── */
         .page-wrap {
@@ -630,18 +592,8 @@
 <div id="screen-list" class="screen active">
     
     <div class="hero-mask-section">
-        
-        <div class="mask-container">
-            <h1 class="mask-text">BOSO</h1>
-            
-            <img src="hero.jpg" alt="BOSO moody scene" class="mask-image">
-        </div>
-
+        <h1 class="mask-text">BOSO</h1>
     </div>
-
-    <div class="page-wrap" id="cabinsContainer">
-        </div>
-</div>
 
     <div class="page-wrap" id="cabinsContainer">
         <div class="loading-state">
