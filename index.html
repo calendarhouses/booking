@@ -618,9 +618,9 @@
         .progress-bar-fill {
             width: 0%;
             height: 100%;
-            background: #5F746A; /* Твій фірмовий Tech-Noir зелений */
-            /* 2.5 секунди заповнення з реалістичною швидкістю */
-            animation: loadProgress 2.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            background: #5F746A; 
+            /* 🟢 Змінили на 4.5s, щоб маскувати затримку Гугла 🟢 */
+            animation: loadProgress 4.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
         }
 
         @keyframes loadProgress {
@@ -957,82 +957,73 @@ function getCabinConfig(cabinId) {
 }
 
 async function init() {
-    try {
-        const t = Date.now();
-        const [bRes, sRes] = await Promise.all([
-            fetch(API_URL + '?t=' + t),
-            fetch(API_URL + '?action=settings&t=' + t)
-        ]);
-        allBookings = await bRes.json();
-        const sd = await sRes.json();
-        if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
-        if (sd.discountsList) discountsList = sd.discountsList;
-        if (sd.customPrices) customPrices = sd.customPrices;
-    } catch(e) {
-        console.error(e);
-        discountsList = [
-            { condition:"Від 2 діб", discount:"15%", roomsIds:["all"] },
-            { condition:"Від 3 діб", discount:"20%", roomsIds:["all"] },
-            { condition:"Від 7 діб", discount:"43%", roomsIds:["all"] },
-            { condition:"Від 14 діб", discount:"57%", roomsIds:["all"] },
-            { condition:"Від 30 діб", discount:"73%", roomsIds:["all"] },
-        ];
-    }
+    // 1. Запускаємо таймер-мінімум (щоб смужка точно встигла красиво виїхати)
+    const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
+
+    // 2. ОДНОЧАСНО (в фоні) тягнемо дані з бази Гугла
+    const fetchPromise = (async () => {
+        try {
+            const t = Date.now();
+            const [bRes, sRes] = await Promise.all([
+                fetch(API_URL + '?t=' + t),
+                fetch(API_URL + '?action=settings&t=' + t)
+            ]);
+            allBookings = await bRes.json();
+            const sd = await sRes.json();
+            if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
+            if (sd.discountsList) discountsList = sd.discountsList;
+            if (sd.customPrices) customPrices = sd.customPrices;
+        } catch(e) {
+            console.error(e);
+            discountsList = [
+                { condition:"Від 2 діб", discount:"15%", roomsIds:["all"] },
+                { condition:"Від 3 діб", discount:"20%", roomsIds:["all"] },
+                { condition:"Від 7 діб", discount:"43%", roomsIds:["all"] },
+                { condition:"Від 14 діб", discount:"57%", roomsIds:["all"] },
+                { condition:"Від 30 діб", discount:"73%", roomsIds:["all"] },
+            ];
+        }
+    })();
+
+    // 3. МАГІЯ: Чекаємо, поки виконаються ОБИДВІ умови. Хто довший (зазвичай Гугл) - той і диктує час!
+    await Promise.all([fetchPromise, minLoadTime]);
     
+    // 4. Рендеримо котеджі
     const skeleton = document.getElementById('skeletonLoader');
     if (skeleton) skeleton.style.display = 'none';
-    
     renderCabinList();
 
-    // ─── РЕЖИСЕРСЬКИЙ СЦЕНАРІЙ (ІДЕАЛЬНИЙ ТАЙМІНГ) ───
-    // 1. Чекаємо 2.5 секунди, поки красиво повзе зелена смужка завантаження
-    setTimeout(() => {
-        const preloader = document.getElementById('preloader');
-        const introOverlay = document.getElementById('introOverlay');
-        const bgText = document.getElementById('bgBosoText');
-        const cabins = document.getElementById('cabinsContainer');
+    // 5. ОДРАЗУ гасимо прелоадер і запускаємо кіно (без додаткових черг)
+    const preloader = document.getElementById('preloader');
+    const introOverlay = document.getElementById('introOverlay');
+    const bgText = document.getElementById('bgBosoText');
+    const cabins = document.getElementById('cabinsContainer');
 
-        if(preloader) {
-            // Ховаємо прелоадер
-            preloader.style.opacity = '0';
-            
-            setTimeout(() => {
-                preloader.style.display = 'none';
-                
-                if(introOverlay) {
-                    // 2. Команда "Мотор!": Літери злітаються (триває 1.5 сек)
-                    introOverlay.classList.add('start-fly');
-                    
-                    // 3. Пауза 1.5 сек, щоб юзер побачив логотип
+    if(preloader) {
+        preloader.style.opacity = '0';
+        setTimeout(() => {
+            preloader.style.display = 'none';
+            if(introOverlay) {
+                introOverlay.classList.add('start-fly');
+                setTimeout(() => {
+                    introOverlay.classList.add('start-zoom');
                     setTimeout(() => {
-                        // 4. ПУСК ЗУМУ
-                        introOverlay.classList.add('start-zoom');
-                        
-                        // 5. СКРОЛ ПОЧИНАЄТЬСЯ В ПРОЦЕСІ ЗУМУ (через 600мс)
-                        setTimeout(() => {
-                            if (cabins) {
-                                const offset = cabins.getBoundingClientRect().top + window.scrollY;
-                                smoothScrollTo(offset, 1500); 
-                            }
-                            // Одразу починаємо розчиняти білу маску
-                            introOverlay.style.opacity = '0';
-                        }, 600);
-
-                        // 6. Фоновий напівпрозорий текст з'явиться в кінці
-                        setTimeout(() => {
-                            if(bgText) bgText.style.opacity = '1';
-                        }, 2000);
-
-                        // Остаточно прибираємо маску з коду
-                        setTimeout(() => {
-                            introOverlay.style.display = 'none';
-                        }, 2500);
-
-                    }, 1500);
-                }
-            }, 600);
-        }
-    }, 2500); /* 🟢 ОСЬ ЦІ 2.5 СЕКУНДИ ДЛЯ СМУЖКИ 🟢 */
+                        if (cabins) {
+                            const offset = cabins.getBoundingClientRect().top + window.scrollY;
+                            smoothScrollTo(offset, 1500); 
+                        }
+                        introOverlay.style.opacity = '0';
+                    }, 600);
+                    setTimeout(() => {
+                        if(bgText) bgText.style.opacity = '1';
+                    }, 2000);
+                    setTimeout(() => {
+                        introOverlay.style.display = 'none';
+                    }, 2500);
+                }, 1500);
+            }
+        }, 600);
+    }
 }
 
 // ─── КАСТОМНА ФУНКЦІЯ ПРЕМІУМ-СКРОЛУ ───
