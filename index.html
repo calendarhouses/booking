@@ -447,10 +447,48 @@
         .dates-display-dates { font-size: 15px; font-weight: 700; color: var(--accent); }
         .dates-display-nights { font-size: 12px; color: var(--muted); margin-top: 3px; }
         .dates-change { font-size: 12px; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; }
+    /* ── PRELOADER (Як в адмінці) ── */
+        #preloader { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg); z-index: 99999; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: opacity 0.6s ease; 
+        }
+        .pulse-logo { 
+            font-family: 'Playfair Display', serif;
+            font-size: 48px; font-weight: 800; letter-spacing: 4px; 
+            animation: pulseAnim 1.5s infinite; color: var(--primary); 
+        }
+        .pulse-logo span { color: var(--accent); }
+        @keyframes pulseAnim { 
+            0% { transform: scale(1); opacity: 1; } 
+            50% { transform: scale(1.05); opacity: 0.7; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+
+        /* ── ПІДГОТОВКА ДО АНІМАЦІЇ ── */
+        /* Початково картинка винесена за межі екрану зліва */
+        .hero-cinematic {
+            transform: translateX(-110%);
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Початково картка винесена вправо та прозора */
+        .hero-glass-card {
+            opacity: 0;
+            transform: translateX(100px);
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s ease;
+        }
+
+        /* Класи, які будуть запускати рух через JS */
+        .hero-cinematic.animate-in { transform: translateX(0); }
+        .hero-glass-card.animate-in { opacity: 1; transform: translateX(0); }
     </style>
 </head>
 <body>
-
+<div id="preloader">
+        <div class="pulse-logo">BOSO<span>.</span></div>
+    </div>
 <div id="screen-list" class="screen active">
     
     <div class="hero-cinematic">
@@ -750,7 +788,35 @@ async function init() {
             { condition:"Діб в бронюванні: 14", discount:"57%", roomsIds:["all"] },
         ];
     }
+    
+    // ОСЬ ТУТ ВСТАВЛЕНО НОВИЙ БЛОК:
+    // Ховаємо скелетони (якщо вони є)
+    const skeleton = document.getElementById('skeletonLoader');
+    if (skeleton) skeleton.style.display = 'none';
+    
     renderCabinList();
+
+    // Прілоадер тримаємо трохи довше для ефекту
+    setTimeout(() => {
+        const preloader = document.getElementById('preloader');
+        if(preloader) {
+            preloader.style.opacity = '0';
+            setTimeout(() => {
+                preloader.style.display = 'none';
+                
+                // 1) ЗАПУСКАЄМО КАРТИНКУ (зліва)
+                const hero = document.querySelector('.hero-cinematic');
+                if (hero) hero.classList.add('animate-in');
+
+                // 2) ЧЕРЕЗ 800мс ЗАПУСКАЄМО КАРТКУ (справа)
+                setTimeout(() => {
+                    const card = document.querySelector('.hero-glass-card');
+                    if (card) card.classList.add('animate-in');
+                }, 800);
+
+            }, 600);
+        }
+    }, 1000);
 }
 
 // ─── SCREENS ───────────────────────────────────────────────────────────────
