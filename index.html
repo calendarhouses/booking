@@ -74,16 +74,17 @@
             font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.8); font-weight: 500;
         }
 
-       /* ── ІДЕАЛЬНЕ ПРОЗОРЕ СКЛО (Широкий преміум) ── */
+       /* ── ІДЕАЛЬНЕ ПРОЗОРЕ СКЛО (Пропорційний преміум) ── */
         .hero-glass-card {
             position: relative; z-index: 2;
-            background: rgba(255, 255, 255, 0.06); /* Ще трохи прозоріше */
+            background: rgba(255, 255, 255, 0.06); 
             backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 24px;
-            padding: 50px 60px; /* Більше відступів по боках */
-            max-width: 620px; /* РОБИМО ШИРШОЮ, щоб текст ліг у 2 рядки */
+            /* ЗБІЛЬШИЛИ ВИСОТУ: 80px зверху/знизу, 60px по боках */
+            padding: 80px 60px; 
+            max-width: 620px; 
             width: 100%;
             box-shadow: 0 30px 60px rgba(0,0,0,0.2);
             
@@ -458,12 +459,12 @@
         <div class="hero-overlay"></div>
         
         <div class="hero-top">
-            <div class="hero-brand">BOSO<span>.</span></div>
+            <div class="hero-brand">BOSO</div>
             <div class="hero-location"></div>
         </div>
         
         <div class="hero-glass-card">
-            <div class="card-micro-label">The BOSO Experience</div>
+            <div class="card-micro-label">ВАШ ПРИВАТНИЙ ПРОСТІР</div>
             
             <h1>Оберіть свій<br>ідеальний котедж</h1>
             
