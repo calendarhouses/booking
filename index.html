@@ -1179,15 +1179,20 @@ function slideDetail(dir) {
 
 function renderAmenities(amenities) {
     const show = showAllAmenities ? amenities : amenities.slice(0, 6);
+    // Малюємо зручності з іконками
     document.getElementById('amenitiesList').innerHTML = show.map(a =>
-        `<div class="amenity-item"><span class="am-icon">${a.icon}</span>${a.label}</div>`
+        `<div class="amenity-item">${a.icon} ${a.label}</div>`
     ).join('');
+    
+    // Перевіряємо, чи існує кнопка, щоб скрипт не ламався
     const btn = document.getElementById('showMoreBtn');
-    if (amenities.length <= 6) { btn.style.display = 'none'; return; }
-    btn.style.display = 'block';
-    btn.innerText = showAllAmenities
-        ? 'Сховати зручності'
-        : `Показати всі ${amenities.length} зручності`;
+    if (btn) {
+        if (amenities.length <= 6) { btn.style.display = 'none'; return; }
+        btn.style.display = 'block';
+        btn.innerText = showAllAmenities
+            ? 'Сховати зручності'
+            : `Показати всі ${amenities.length} зручності`;
+    }
 }
 
 function toggleAmenities() {
