@@ -606,7 +606,19 @@
             width: 26px; height: 26px; border-radius: 50%; background: #F3F0EC; color: var(--muted); 
             display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; transition: 0.4s; 
         }
-        .step.active .step-num, .step.done .step-num { background: var(--accent); color: #fff; }
+        /* ── ПУЛЬСАЦІЯ АКТИВНОГО ЕТАПУ ── */
+        .step.active .step-num { 
+            background: #2C3D28; /* Темно-зелений */
+            color: #fff; 
+            box-shadow: 0 0 0 #556B2F; /* Тінь пульсу */
+            animation: premiumPulse 1.8s infinite; 
+        }
+        
+        @keyframes premiumPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(85, 107, 47, 0.4); }
+            70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(85, 107, 47, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(85, 107, 47, 0); }
+        }
         .step-label { font-size: 13px; font-weight: 600; color: var(--muted); transition: 0.4s; }
         .step.active .step-label, .step.done .step-label { color: var(--text); }
         
@@ -722,9 +734,18 @@
                 <div class="rules-grid">
                     <div class="rule-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div><span>Заселення</span>15:00 – 23:00</div></div>
                     <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><div><span>Виселення</span>до 11:00</div></div>
-                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 12c-2 0-4 1.5-4 4s2 6 4 6 4-3.5 4-6-2-4-4-4z"/><path d="M8.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/><path d="M15.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/></svg><div><span>Тварини</span>За узгодженням (+500 грн)</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 12c-2 0-4 1.5-4 4s2 6 4 6 4-3.5 4-6-2-4-4-4z"/><path d="M8.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/><path d="M15.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/></svg><div><span>Тварина</span>За узгодженням (+500 грн)</div></div>
                     <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6M4 22h16"/></svg><div><span>Куріння</span>Лише на вулиці</div></div>
                     <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><div><span>Тихий час</span>23:00 – 08:00</div></div>
+                </div>
+                
+                <div class="divider"></div>
+                <h3 class="section-title">Безпека на території</h3>
+                <div class="rules-grid" style="margin-bottom:40px;">
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><div>Камери на території</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M7 21h10M9 21V7a3 3 0 0 1 6 0v14M9 10h6M12 3v4M10 3h4"/></svg><div>Є вогнегасник</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 8v8M8 12h8"/></svg><div>Є аптечка</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><div>Датчик диму</div></div>
                 </div>
             </div>
             <div class="sticky-cta">
@@ -766,8 +787,8 @@
                         </div>
                     </div>
                     <div class="pets-toggle">
-                        <div class="pet-opt active" id="petNo" onclick="setPet(false)">🐾 Без тварин</div>
-                        <div class="pet-opt" id="petYes" onclick="setPet(true)">🐕 З тваринами (+500 грн)</div>
+                        <div class="pet-opt active" id="petNo" onclick="setPet(false)"></div>
+                        <div class="pet-opt" id="petYes" onclick="setPet(true)"></div>
                     </div>
                 </div>
             </div>
@@ -872,7 +893,10 @@ const iWin = '<svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v
 const iGrill = '<svg viewBox="0 0 24 24"><path d="M17 8c0-3.3-2.2-6-5-6S7 4.7 7 8m-2 0h14v2H5V8zm2 2v6a3 3 0 006 0v-6M9 20h6M12 16v4"/></svg>';
 const iBath = '<svg viewBox="0 0 24 24"><path d="M4 17V8a2 2 0 012-2h12a2 2 0 012 2v9m-8-5h.01M6 21h12a2 2 0 002-2v-2H4v2a2 2 0 002 2z"/></svg>';
 const iKit = '<svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>';
-
+// Преміум іконки для тварини ( paw)
+const iNoPet = '<svg viewBox="0 0 24 24"><path d="M12 2l-3 4-4 3 4 3 3 4 3-4 4-3-4-3-3-4z"/><circle cx="12" cy="12" r="10"/></svg>'; // Stylized No Paw
+const iPetDog = '<svg viewBox="0 0 24 24"><path d="M12 2l-3 4-4 3 4 3 3 4 3-4 4-3-4-3-3-4z"/></svg>'; // Stylized Paw
+    
 // ─── CABIN CONFIG ─────────────────────────────────────────────────────────
 const CABIN_CONFIG = {
     1: {
@@ -1275,14 +1299,14 @@ function renderCalendar() {
     const room = roomsList.find(r => r.id == currentCabinId);
     const bookedRanges = getBookedRanges(room ? room.name : '');
 
-    // МАГІЯ ТУТ: Цикл тепер лише на 1 місяць (m < 1)
+    // Рендер 1 місяця (m < 1)
     for (let m = 0; m < 1; m++) {
         const base = new Date(calBase.getFullYear(), calBase.getMonth() + m, 1);
         const year = base.getFullYear(), month = base.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const firstDay = (base.getDay() + 6) % 7; // Mon = 0
+        const firstDay = (base.getDay() + 6) % 7; 
         const today = new Date(); today.setHours(0,0,0,0);
-        const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+        const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Люпень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 
         let html = `<div class="cal-month"><div class="cal-month-title">${monthNames[month]} ${year}</div><div class="cal-grid">`;
         ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'].forEach(d => { html += `<div class="cal-day-header">${d}</div>`; });
@@ -1303,7 +1327,6 @@ function renderCalendar() {
             else if (isWeekend) cls += ' weekend';
             if (d.toDateString() === today.toDateString()) cls += ' today';
 
-            // Selection state
             const ds = dateStr(d);
             if (selectedCheckIn && ds === dateStr(selectedCheckIn)) cls += ' selected-start';
             if (selectedCheckOut && ds === dateStr(selectedCheckOut)) cls += ' selected-end';
@@ -1319,7 +1342,7 @@ function renderCalendar() {
         wrap.innerHTML += html;
     }
 
-    // Оновлення лімітів гостей
+    // Гості
     const r = roomsList.find(r => r.id == currentCabinId);
     if (r) {
         const btnPlus = document.getElementById('guestPlus');
@@ -1329,6 +1352,19 @@ function renderCalendar() {
         if(btnPlus) btnPlus.disabled = guestCount >= (r.maxCapacity || r.capacity);
         if(btnMinus) btnMinus.disabled = guestCount <= 1;
         if(cntVal) cntVal.innerText = guestCount;
+    }
+
+    // 🟢🟢 Ініціалізуємо ПЕТ-ОПЦІЇ преміальними іконками і складним текстом 🟢🟢
+    const petNo = document.getElementById('petNo');
+    const petYes = document.getElementById('petYes');
+    
+    if(petNo) petNo.innerHTML = `${iNoPet} Без тварини`; // Paw print No
+
+    if(petYes && selectedCheckIn && selectedCheckOut) {
+        const nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
+        petYes.innerHTML = `${iPetDog} ${complexPetPriceString(nights)}`; // Paw print Yes
+    } else if(petYes) {
+         petYes.innerHTML = `${iPetDog} З твариною (+500 грн + 200 грн/доба)`; // Заглушка, якщо дати не вибрано
     }
 }
 
@@ -1370,9 +1406,15 @@ function updateProceedBtn() {
         return;
     }
     
-    // Кнопка активна і має тільки текст (без ціни)
+    // Кнопка активна і має тільки текст "Продовжити" (без ціни)
     btn.disabled = false;
     btn.innerText = `Продовжити`;
+}
+
+// Хелпер для формування преміальної стрічки ціни за тварину
+function complexPetPriceString(nights) {
+    const dailyExtra = 200 * nights;
+    return `З твариною (+500 грн + ${dailyExtra} грн за ${nights} ${nightWord(nights)})`;
 }
 
 function changeGuests(dir) {
