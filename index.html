@@ -31,7 +31,7 @@
             min-height: 100vh;
         }
 
-        /* ── HERO (TRUE PREMIUM GLASS) ── */
+        /* ── HERO (PREMIUM MINIMALIST) ── */
         .hero-cinematic {
             position: relative;
             width: calc(100% - 40px);
@@ -43,88 +43,89 @@
             overflow: hidden;
             display: flex;
             align-items: center;
-            justify-content: flex-end; /* Картка справа */
-            padding: 40px 80px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            justify-content: center; /* Центруємо для преміального вигляду */
+            padding: 40px 20px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
         }
         
         .hero-bg-img {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover; z-index: 0;
-            transform: scale(1.02); /* Легкий ефект глибини */
+            transform: scale(1.02);
         }
 
-        /* Сильне затемнення фотографії, щоб скло і текст виглядали дорого */
+        /* Плавний градієнт: зверху прозоро (для лого), знизу темніше (для тексту) */
         .hero-overlay {
             position: absolute; inset: 0; z-index: 1;
-            background: linear-gradient(180deg, rgba(18,26,18,0.6) 0%, rgba(18,26,18,0.3) 50%, rgba(18,26,18,0.7) 100%);
+            background: linear-gradient(180deg, rgba(18,26,18,0.1) 0%, rgba(18,26,18,0.4) 40%, rgba(18,26,18,0.7) 100%);
         }
 
-        /* Шапка банера */
-        .hero-top {
-            position: absolute; top: 40px; left: 40px; right: 40px; z-index: 2;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .hero-brand {
-            font-family: 'Playfair Display', serif; 
-            font-size: 36px; /* Збільшили розмір логотипу (було 24px) */
-            font-weight: 700; 
-            letter-spacing: 6px; /* Додали трохи більше повітря між літерами для балансу */
-            color: #ffffff;
-            text-shadow: 0 2px 15px rgba(0,0,0,0.4); /* Зробили тінь глибшою, щоб логотип ідеально читався навіть на світлих фото */
-        }
-        .hero-brand span { color: var(--wood); } /* Золота крапка */
-        .hero-location {
-            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.8); font-weight: 500;
-        }
-
-       /* ── ІДЕАЛЬНЕ ПРОЗОРЕ СКЛО (Пропорційний преміум) ── */
+        /* ── ЧИСТА ТИПОГРАФІКА ЗАМІСТЬ СКЛА ── */
+        /* Використовуємо той самий клас, щоб не міняти HTML, але прибираємо все зайве */
         .hero-glass-card {
             position: relative; z-index: 2;
-            background: rgba(255, 255, 255, 0.06); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15); 
-            border-radius: 24px;
-            /* ЗБІЛЬШИЛИ ВИСОТУ: 80px зверху/знизу, 60px по боках */
-            padding: 80px 60px; 
-            max-width: 620px; 
+            background: transparent; 
+            backdrop-filter: none; 
+            -webkit-backdrop-filter: none;
+            border: none; 
+            padding: 0; 
+            max-width: 800px; 
             width: 100%;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            box-shadow: none;
             
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
+
+        /* Елегантна вертикальна лінія кольору дерева над текстом */
+        .hero-glass-card::before {
+            content: '';
+            display: block;
+            width: 1px;
+            height: 60px;
+            background: var(--wood);
+            margin-bottom: 24px;
+            opacity: 0.7;
+        }
         
         .card-micro-label {
             font-family: 'Inter', sans-serif;
-            font-size: 10px; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 5px; color: var(--wood); margin-bottom: 24px;
-            display: flex; align-items: center; gap: 16px;
+            font-size: 11px; font-weight: 500; text-transform: uppercase;
+            letter-spacing: 6px; color: var(--wood); margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: center;
         }
+        
+        /* Прибираємо бокові рисочки, вони перевантажують */
         .card-micro-label::before, .card-micro-label::after {
-            content: ''; width: 24px; height: 1px; background: var(--wood); opacity: 0.4;
+            display: none;
         }
         
         .hero-glass-card h1 {
             font-family: 'Playfair Display', serif; 
-            font-size: 64px; /* Великий, впевнений розмір */
-            font-weight: 400; /* Тонке накреслення завжди виглядає дорожче за жирне */
+            font-size: 72px; /* Трохи більший розмір */
+            font-weight: 400; 
             line-height: 1.1; 
             color: #ffffff; 
-            margin-bottom: 24px; 
-            letter-spacing: -1px; /* Playfair виглядає елітніше, коли літери стоять трохи щільніше */
-            text-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+            margin-bottom: 32px; 
+            letter-spacing: -1px; 
+            text-shadow: 0 4px 24px rgba(0,0,0,0.4); /* Глибока тінь для читабельності */
         }
         
         .hero-glass-card p {
             font-family: 'Inter', sans-serif; font-size: 16px; 
             color: rgba(255, 255, 255, 0.85); line-height: 1.6; 
             font-weight: 300; 
-            max-width: 440px; /* Ширший абзац */
+            max-width: 500px; 
             margin: 0 auto;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Адаптація заголовку для мобільних */
+        @media (max-width: 768px) {
+            .hero-glass-card h1 { font-size: 48px; }
+            .hero-glass-card::before { height: 40px; }
         }
 
         /* ── LAYOUT ── */
