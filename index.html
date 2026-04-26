@@ -129,148 +129,89 @@
         .screen { display: none; }
         .screen.active { display: block; }
 
-        /* ── КОНТЕЙНЕР КАРТОК (Сітка) ── */
+        /* ── КОНТЕЙНЕР КАРТОК (Full width) ── */
         #cabinsContainer {
             max-width: 1200px;
             width: calc(100% - 40px);
-            margin: 0 auto 80px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* Дві масивні картки в ряд */
-            gap: 40px;
+            margin: 0 auto 100px;
+            display: flex;
+            flex-direction: column; /* Картки йдуть одна під одною */
+            gap: 60px; /* Великий відступ між котеджами */
         }
 
-        /* ── ПРЕМІУМ КАРТКА КОТЕДЖУ (Вертикальна) ── */
+        /* ── ПРЕМІУМ КАРТКА КОТЕДЖУ (Horizontal & Alternating) ── */
         .cabin-card {
             display: flex;
-            flex-direction: column; /* Текст ПІД фотографією */
+            flex-direction: row; /* За замовчуванням: фото зліва, текст справа */
             background: var(--white);
-            border-radius: 28px;
+            border-radius: 32px;
             overflow: hidden;
             border: 1px solid var(--border);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+            box-shadow: 0 16px 40px rgba(18, 26, 18, 0.05);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
-            height: 100%;
-        }
-        .cabin-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 48px rgba(0,0,0,0.12);
+            height: 520px; /* Розкішна висота для горизонтального формату */
         }
 
-        /* Верхня частина - ВЕЛИКЕ ФОТО */
+        /* МАГІЯ ЧЕРГУВАННЯ: Кожна друга картка розгортається дзеркально */
+        .cabin-card:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .cabin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 24px 60px rgba(18, 26, 18, 0.12);
+        }
+
+        /* Ліва/Права частина - Фото (55%) */
         .slider-wrap { 
             position: relative; 
-            width: 100%; 
-            height: 400px; /* Високе, масштабне фото */
+            width: 55%; 
+            height: 100%; 
             overflow: hidden; 
             background: #E5E1DC; 
             cursor: pointer; 
         }
-        .slider-track { display: flex; height: 100%; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
-        .slide { min-width: 100%; height: 100%; position: relative; overflow: hidden; }
-        .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
         
-        .slider-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            width: 48px; height: 48px; border-radius: 50%;
-            background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
-            border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15); transition: 0.3s; z-index: 5;
-        }
-        .slider-btn:hover { background: #fff; transform: translateY(-50%) scale(1.05); }
-        .slider-btn svg { width: 20px; height: 20px; stroke: #1A1A1A; fill: none; stroke-width: 2; }
-        .slider-prev { left: 24px; }
-        .slider-next { right: 24px; }
-        
-        .slider-dots { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 5;}
-        .sdot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: 0.3s; cursor: pointer; }
-        .sdot.active { background: #fff; width: 24px; border-radius: 4px; }
-        
-        .cabin-badge {
-            position: absolute; top: 24px; left: 24px;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(8px);
-            font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; color: #3A4F35;
-            padding: 8px 16px; border-radius: 12px; text-transform: uppercase; letter-spacing: 1.5px;
-            z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        /* Нижня частина - ІНФОРМАЦІЯ */
+        /* Права/Ліва частина - Інформація (45%) */
         .cabin-body { 
-            width: 100%; 
-            padding: 32px 32px 40px; 
+            width: 45%; 
+            padding: 50px 60px; 
             display: flex; 
             flex-direction: column; 
-            flex: 1;
+            justify-content: center; 
+            text-align: left; /* Завжди по лівому краю для зручності читання */
         }
-        
-        /* ЗАМІНИЛИ ШРИФТ: Тепер букви і цифри ідеально рівні */
+
+        /* Назви котеджів рівним шрифтом Inter */
         .cabin-name {
             font-family: 'Inter', sans-serif; 
-            font-size: 28px; font-weight: 700; color: #1A1A1A; 
-            margin-bottom: 12px; line-height: 1.2; letter-spacing: -0.5px;
+            font-size: 32px; 
+            font-weight: 700; 
+            color: var(--primary); 
+            margin-bottom: 12px; 
+            line-height: 1.2; 
+            letter-spacing: -0.5px;
         }
+
         .cabin-subtitle {
-            font-family: 'Inter', sans-serif; font-size: 15px; color: #6B7280;
-            margin-bottom: 28px; font-weight: 400; line-height: 1.6;
+            font-family: 'Inter', sans-serif; 
+            font-size: 15px; 
+            color: var(--muted);
+            margin-bottom: 32px; 
+            line-height: 1.6;
         }
-        
-        /* Блоки з технічною інформацією */
-        .cabin-meta { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-        .cabin-meta-item { 
-            background: #F7F5F2; 
-            border: 1px solid #E5E1DC; 
-            border-radius: 12px; 
-            padding: 10px 16px;
-            display: flex; align-items: center; gap: 8px; 
-            font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: #4B5563; 
-        }
-        .cabin-meta-item svg { width: 16px; height: 16px; stroke: #3A4F35; fill: none; stroke-width: 2; }
-        .cabin-next-free { color: #3A4F35; font-weight: 700; }
 
-        /* Блок ціни та кнопки (Сірий підвал картки) */
-        .cabin-footer-block {
-            background: #F8FAF7; 
-            border: 1px solid rgba(85, 107, 47, 0.15);
-            border-radius: 20px;
-            padding: 20px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto; 
-        }
-        .price-info { display: flex; flex-direction: column; }
-        .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
-        .price-val { font-family: 'Inter', sans-serif; font-size: 15px; color: #4B5563; font-weight: 500; }
-        .price-val strong { font-family: 'Inter', sans-serif; font-size: 24px; color: #1A1A1A; font-weight: 700; }
-
-        /* КНОПКА ФІРМОВОГО ЗЕЛЕНОГО КОЛЬОРУ */
-        .btn-book {
-            background: #3A4F35; 
-            color: #fff;
-            border: none; border-radius: 14px;
-            padding: 16px 28px;
-            font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif;
-            text-transform: uppercase; letter-spacing: 1.5px;
-            cursor: pointer; transition: 0.3s;
-            box-shadow: 0 8px 24px rgba(58, 79, 53, 0.25);
-        }
-        .btn-book:hover { background: #2C3D28; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(58, 79, 53, 0.35); }
-
-        /* Адаптація для мобільних */
-        @media (max-width: 900px) {
-            #cabinsContainer { grid-template-columns: 1fr; }
-            .slider-wrap { height: 300px; }
-            .cabin-body { padding: 24px; }
-            .cabin-footer-block { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
-            .btn-book { width: 100%; text-align: center; }
-        }
-        /* Адаптація для мобільних */
-        @media (max-width: 900px) {
-            .cabin-card { flex-direction: column; height: auto; border-radius: 24px; }
-            .slider-wrap { width: 100%; height: 320px; }
-            .cabin-body { width: 100%; padding: 24px; }
-            .cabin-footer-block { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
-            .btn-book { width: 100%; text-align: center; }
+        /* Адаптація для мобілок (скидаємо в вертикаль) */
+        @media (max-width: 960px) {
+            .cabin-card, .cabin-card:nth-child(even) { 
+                flex-direction: column; 
+                height: auto; 
+            }
+            .slider-wrap, .cabin-body { 
+                width: 100%; 
+            }
+            .slider-wrap { height: 320px; }
+            .cabin-body { padding: 32px 24px; }
         }
         /* ── DETAIL SCREEN ── */
         .back-btn {
