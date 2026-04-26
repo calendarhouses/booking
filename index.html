@@ -394,132 +394,76 @@
             .rules-grid, .amenities-grid { grid-template-columns: 1fr; }
         }
         
-        /* ── CALENDAR SCREEN ── */
-        .calendar-container { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 28px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
-        .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        .cal-months-wrap { display: flex; gap: 40px; }
-        .cal-month { flex: 1; }
-        .cal-month-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 16px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .cal-day-header { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); padding: 6px 0; text-transform: uppercase; }
+       /* ── ЛОГІКА КРОКІВ В ПАНЕЛІ ── */
+        .drawer-step {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .drawer-step.active { display: flex; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Кнопка "Назад" в панелі */
+        .back-btn {
+            background: transparent; border: none; font-family: 'Inter', sans-serif;
+            font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
+            display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px; transition: 0.2s;
+        }
+        .back-btn:hover { color: var(--text); }
+        .back-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        /* ── ПРЕМІУМ КАЛЕНДАР (ВЕРТИКАЛЬНИЙ) ── */
+        .calendar-container { 
+            background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); 
+            padding: 32px; margin-bottom: 24px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+        .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 16px;}
+        
+        /* МАГІЯ ТУТ: Робимо вертикальний стек для місяців */
+        .cal-months-wrap { display: flex; flex-direction: column; gap: 40px; }
+        .cal-month { flex: 1; width: 100%; }
+        
+        .cal-month-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; text-align: left; margin-bottom: 20px; color: var(--text); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-day-header { text-align: center; font-size: 11px; font-weight: 700; color: #8A8D86; padding: 8px 0; text-transform: uppercase; letter-spacing: 1px; }
+        
         .cal-day {
             aspect-ratio: 1;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 8px; cursor: pointer; transition: 0.15s;
-            font-size: 13px; font-weight: 500; position: relative;
+            border-radius: 12px; cursor: pointer; transition: 0.2s;
+            font-size: 15px; font-weight: 500; position: relative;
+            min-height: 54px; /* Даємо висоту, щоб ціна не налазила на дату! */
         }
-        .cal-day:hover:not(.disabled):not(.past) { background: var(--accent-light); }
-        .cal-day.today { font-weight: 700; color: var(--accent); }
-        .cal-day.today::after { content: ''; position: absolute; bottom: 3px; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+        .cal-day:hover:not(.disabled):not(.past) { background: var(--accent-light); transform: translateY(-2px); }
+        .cal-day.today { font-weight: 800; color: var(--text); }
+        .cal-day.today::after { content: ''; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+        
+        /* Виділення дат */
         .cal-day.selected-start,
-        .cal-day.selected-end { background: var(--accent) !important; color: #fff !important; font-weight: 700; }
-        .cal-day.in-range { background: var(--accent-light); color: var(--accent); }
-        .cal-day.selected-start { border-radius: 8px 0 0 8px; }
-        .cal-day.selected-end { border-radius: 0 8px 8px 0; }
-        .cal-day.selected-start.selected-end { border-radius: 8px; }
-        .cal-day.disabled { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
-        .cal-day.past { opacity: 0.25; cursor: not-allowed; }
-        .cal-day.booked { background: #FEE2E2 !important; color: #DC2626 !important; cursor: not-allowed; }
-        .cal-day .day-price { font-size: 9px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+        .cal-day.selected-end { background: var(--accent) !important; color: #fff !important; font-weight: 700; box-shadow: 0 4px 12px rgba(85,107,47,0.3); }
+        .cal-day.in-range { background: var(--accent-light); color: var(--accent); border-radius: 0; }
+        .cal-day.selected-start { border-radius: 12px 0 0 12px; }
+        .cal-day.selected-end { border-radius: 0 12px 12px 0; }
+        .cal-day.selected-start.selected-end { border-radius: 12px; }
+        
+        /* Ціна під датою */
+        .cal-day .day-price { font-size: 10px; color: var(--muted); font-weight: 500; margin-top: 2px; letter-spacing: -0.5px;}
         .cal-day.selected-start .day-price,
-        .cal-day.selected-end .day-price { color: rgba(255,255,255,0.8); }
-        .cal-day.in-range .day-price { color: var(--accent); opacity: 0.7; }
-        .cal-nav-btn {
-            width: 36px; height: 36px; background: var(--bg); border: 1px solid var(--border);
-            border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        .cal-day.selected-end .day-price { color: rgba(255,255,255,0.9); }
+        .cal-day.in-range .day-price { color: var(--accent); opacity: 0.8; }
+        
+        .cal-day.disabled { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+        .cal-day.past { opacity: 0.2; cursor: not-allowed; }
+        .cal-day.booked { background: #FFF0F0 !important; color: #DC2626 !important; cursor: not-allowed; }
+
+        @media (max-width: 768px) {
+            .calendar-container { padding: 20px; }
+            .cal-day { min-height: 44px; font-size: 14px; }
+            .cal-day .day-price { font-size: 9px; }
         }
-        .cal-nav-btn:hover { background: #ece9e4; }
-        .cal-nav-btn svg { width: 16px; height: 16px; stroke: var(--text); fill: none; stroke-width: 2; }
-
-        /* Reset link */
-        .cal-reset { text-align: center; margin-top: 16px; }
-        .cal-reset a { font-size: 13px; color: var(--muted); cursor: pointer; text-decoration: underline; }
-
-        /* Discounts block */
-        .discounts-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 20px; }
-        .discounts-block h3 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 12px; }
-        .discount-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #374151; padding: 6px 0; border-bottom: 1px solid #F3F0EC; }
-        .discount-item:last-child { border-bottom: none; }
-
-        /* Guests picker */
-        .guests-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 20px; }
-        .guests-block h3 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-        .guests-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
-        .guests-label { font-size: 14px; font-weight: 500; }
-        .guests-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-        .counter-wrap { display: flex; align-items: center; gap: 12px; }
-        .cnt-btn {
-            width: 36px; height: 36px; border-radius: 50%;
-            border: 1.5px solid var(--border); background: #fff;
-            font-size: 20px; font-weight: 300; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; color: var(--text); line-height: 1;
-        }
-        .cnt-btn:hover { border-color: var(--accent); color: var(--accent); }
-        .cnt-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .cnt-val { font-size: 16px; font-weight: 700; min-width: 28px; text-align: center; }
-
-        /* Pets */
-        .pets-toggle { display: flex; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
-        .pet-opt {
-            flex: 1; padding: 10px; border: 1.5px solid var(--border); border-radius: 10px;
-            text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;
-            color: var(--muted); background: #fff;
-        }
-        .pet-opt.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-
-        /* Proceed button */
-        .btn-proceed {
-            display: block; width: 100%; padding: 16px;
-            background: var(--accent); color: #fff;
-            border: none; border-radius: 12px;
-            font-size: 16px; font-weight: 700; font-family: inherit;
-            cursor: pointer; transition: 0.25s;
-            box-shadow: 0 4px 16px rgba(85,107,47,0.3);
-            margin-bottom: 20px;
-        }
-        .btn-proceed:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(85,107,47,0.35); }
-        .btn-proceed:disabled { background: #ccc; box-shadow: none; transform: none; cursor: not-allowed; }
-
-        /* ── CHECKOUT SCREEN ── */
-        .summary-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 20px; }
-        .summary-block h3 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-        .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; color: #374151; border-bottom: 1px solid #F3F0EC; }
-        .summary-row:last-child { border-bottom: none; }
-        .summary-row.total { font-size: 16px; font-weight: 700; color: var(--text); padding-top: 14px; border-top: 2px solid var(--border); margin-top: 6px; }
-        .summary-row.total:first-child { border-top: none; margin-top: 0; }
-        .summary-row.discount-row { color: var(--success); }
-        .summary-row.discount-row span:last-child { font-weight: 600; }
-        .original-price { text-decoration: line-through; color: var(--muted); font-size: 13px; }
-
-        /* Form */
-        .form-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 20px; }
-        .form-block h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
-        .form-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
-        .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-        .form-field:last-child { margin-bottom: 0; }
-        .form-field label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-field label .required { color: var(--danger); margin-left: 2px; }
-        .form-field input,
-        .form-field textarea {
-            padding: 13px 16px; border: 1.5px solid var(--border); border-radius: 10px;
-            font-size: 14px; font-family: inherit; background: #FAFAF8; outline: none; transition: 0.2s;
-            color: var(--text);
-        }
-        .form-field input:focus,
-        .form-field textarea:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(85,107,47,0.1); }
-        .form-field textarea { resize: vertical; min-height: 80px; }
-        .phone-wrap { display: flex; gap: 10px; }
-        .phone-prefix {
-            display: flex; align-items: center; gap: 6px;
-            padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px;
-            background: #FAFAF8; font-size: 14px; color: var(--text); font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .privacy-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
-        .privacy-note a { color: var(--accent); text-decoration: underline; cursor: pointer; }
-
+        
         /* ── SUCCESS SCREEN ── */
         .success-wrap { text-align: center; padding: 60px 20px; }
         .success-icon { font-size: 64px; margin-bottom: 24px; display: block; }
@@ -767,119 +711,140 @@
     </div>
 </div>
 
-<!-- ── SCREEN: CALENDAR ── -->
-<div id="screen-calendar" class="screen">
-    <div class="page-wrap">
-        <button class="back-btn" onclick="showDetail(currentCabinId)">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Назад
+<div id="screen-detail" class="drawer-overlay" onclick="closeDetail(event)">
+    <div class="detail-drawer" onclick="event.stopPropagation()">
+        
+        <button class="drawer-close-btn" onclick="closeDetail()">
+            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
 
-        <div class="step-bar">
-            <div class="step done" id="step1"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
-            <div class="step-line done"></div>
-            <div class="step active" id="step2"><div class="step-num">2</div><div class="step-label">Дати</div></div>
-            <div class="step-line" id="line2"></div>
-            <div class="step" id="step3"><div class="step-num">3</div><div class="step-label">Бронювання</div></div>
-        </div>
+        <div id="drawer-step-info" class="drawer-step active">
+            <div class="drawer-content">
+                <div class="detail-slider-wrap" id="detailSlider"></div>
+                <h2 class="detail-title" id="detailTitle"></h2>
+                <div class="detail-meta" id="detailMeta"></div>
 
-        <div class="calendar-container">
-            <div class="cal-header">
-                <button class="cal-nav-btn" onclick="shiftCal(-1)">
-                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-                <div class="cal-months-wrap" id="calMonthsWrap"></div>
-                <button class="cal-nav-btn" onclick="shiftCal(1)">
-                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-            <div class="cal-reset"><a onclick="resetDates()">Скинути дати</a></div>
-        </div>
+                <h3 class="section-title">Про котедж</h3>
+                <p id="detailDesc" style="font-size:15px;color:#4B5563;line-height:1.7;margin-bottom:24px;"></p>
 
-        <div class="discounts-block" id="calDiscounts"></div>
+                <div class="divider"></div>
+                <h3 class="section-title">Що включено</h3>
+                <div class="amenities-grid" id="amenitiesList"></div>
 
-        <div class="guests-block">
-            <h3>Гості</h3>
-            <div class="guests-row">
-                <div>
-                    <div class="guests-label">Дорослі</div>
-                    <div class="guests-sub">Від 13 років</div>
-                </div>
-                <div class="counter-wrap">
-                    <button class="cnt-btn" id="guestMinus" onclick="changeGuests(-1)">−</button>
-                    <span class="cnt-val" id="guestCount">2</span>
-                    <button class="cnt-btn" id="guestPlus" onclick="changeGuests(1)">+</button>
+                <div class="divider"></div>
+                <h3 class="section-title">Знижки за тривалість</h3>
+                <div id="detailDiscounts" class="discounts-grid"></div>
+
+                <div class="divider"></div>
+                <h3 class="section-title">Правила</h3>
+                <div class="rules-grid">
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div><span>Заселення</span>15:00 – 23:00</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><div><span>Виселення</span>до 11:00</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 12c-2 0-4 1.5-4 4s2 6 4 6 4-3.5 4-6-2-4-4-4z"/><path d="M8.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/><path d="M15.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/></svg><div><span>Тварини</span>За узгодженням (+500 грн)</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6M4 22h16"/></svg><div><span>Куріння</span>Лише на вулиці</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><div><span>Тихий час</span>23:00 – 08:00</div></div>
                 </div>
             </div>
-            <div class="pets-toggle">
-                <div class="pet-opt active" id="petNo" onclick="setPet(false)">🐾 Без тварин</div>
-                <div class="pet-opt" id="petYes" onclick="setPet(true)">🐕 З тваринами (+500 грн)</div>
+            <div class="sticky-cta">
+                <div><div class="sticky-price">від <strong id="ctaPrice">—</strong> грн / ніч</div></div>
+                <button class="btn-book" onclick="goToStep('calendar')" style="width: auto;">Обрати дати</button>
             </div>
         </div>
 
-        <button class="btn-proceed" id="proceedBtn" onclick="showCheckout()" disabled>Оберіть дати заїзду та виїзду</button>
+        <div id="drawer-step-calendar" class="drawer-step">
+            <div class="drawer-content">
+                <button class="back-btn" onclick="goToStep('info')">
+                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 5l-7 7 7 7"/></svg> Назад до котеджу
+                </button>
+
+                <div class="step-bar">
+                    <div class="step done"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
+                    <div class="step-line done"></div>
+                    <div class="step active"><div class="step-num">2</div><div class="step-label">Дати</div></div>
+                    <div class="step-line"></div>
+                    <div class="step"><div class="step-num">3</div><div class="step-label">Бронь</div></div>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="cal-header">
+                        <button class="cal-nav-btn" onclick="shiftCal(-1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+                        <button class="cal-nav-btn" onclick="shiftCal(1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+                    </div>
+                    <div class="cal-months-wrap" id="calMonthsWrap"></div>
+                    <div class="cal-reset"><a onclick="resetDates()">Скинути дати</a></div>
+                </div>
+
+                <div class="guests-block">
+                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:16px;">Гості</h3>
+                    <div class="guests-row">
+                        <div><div class="guests-label">Дорослі</div><div class="guests-sub">Від 13 років</div></div>
+                        <div class="counter-wrap">
+                            <button class="cnt-btn" id="guestMinus" onclick="changeGuests(-1)">−</button>
+                            <span class="cnt-val" id="guestCount">2</span>
+                            <button class="cnt-btn" id="guestPlus" onclick="changeGuests(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="pets-toggle">
+                        <div class="pet-opt active" id="petNo" onclick="setPet(false)">🐾 Без тварин</div>
+                        <div class="pet-opt" id="petYes" onclick="setPet(true)">🐕 З тваринами (+500 грн)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sticky-cta">
+                <button class="btn-proceed" id="proceedBtn" onclick="goToStep('checkout')" disabled>Оберіть дати заїзду та виїзду</button>
+            </div>
+        </div>
+
+        <div id="drawer-step-checkout" class="drawer-step">
+            <div class="drawer-content">
+                <button class="back-btn" onclick="goToStep('calendar')">
+                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 5l-7 7 7 7"/></svg> Змінити дати
+                </button>
+
+                <div class="step-bar">
+                    <div class="step done"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
+                    <div class="step-line done"></div>
+                    <div class="step done"><div class="step-num">✓</div><div class="step-label">Дати</div></div>
+                    <div class="step-line done"></div>
+                    <div class="step active"><div class="step-num">3</div><div class="step-label">Бронь</div></div>
+                </div>
+
+                <div class="dates-display" id="datesDisplay">
+                    <div>
+                        <div class="dates-display-dates" id="datesDisplayText">—</div>
+                        <div class="dates-display-nights" id="nightsDisplayText">—</div>
+                    </div>
+                </div>
+
+                <div class="summary-block">
+                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:16px;">Розрахунок вартості</h3>
+                    <div id="summaryRows"></div>
+                </div>
+
+                <div class="form-block">
+                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:20px;">Ваші дані</h3>
+                    <div class="form-grid2">
+                        <div class="form-field"><label>Ім'я <span class="required">*</span></label><input type="text" id="fFirstName" placeholder="Іван"></div>
+                        <div class="form-field"><label>Прізвище</label><input type="text" id="fLastName" placeholder="Петренко"></div>
+                    </div>
+                    <div class="form-field">
+                        <label>Телефон <span class="required">*</span></label>
+                        <div class="phone-wrap">
+                            <div class="phone-prefix">🇺🇦 +380</div>
+                            <input type="tel" id="fPhone" placeholder="XX XXX XXXX" style="flex:1;">
+                        </div>
+                    </div>
+                    <div class="form-field"><label>Коментар</label><textarea id="fComment" placeholder="Будь-який коментар або побажання..."></textarea></div>
+                </div>
+                <p class="privacy-note">Бронюючи ви погоджуєтесь з <a>Політикою Конфіденційності</a></p>
+            </div>
+            <div class="sticky-cta">
+                <button class="btn-proceed" id="bookBtn" onclick="submitBooking()">Забронювати</button>
+            </div>
+        </div>
+        
     </div>
 </div>
-
-<!-- ── SCREEN: CHECKOUT ── -->
-<div id="screen-checkout" class="screen">
-    <div class="page-wrap">
-        <button class="back-btn" onclick="showCalendar()">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5M12 5l-7 7 7 7"/></svg>
-            Змінити дати
-        </button>
-
-        <div class="step-bar">
-            <div class="step done" id="step1b"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
-            <div class="step-line done"></div>
-            <div class="step done" id="step2b"><div class="step-num">✓</div><div class="step-label">Дати</div></div>
-            <div class="step-line done"></div>
-            <div class="step active" id="step3b"><div class="step-num">3</div><div class="step-label">Бронювання</div></div>
-        </div>
-
-        <div class="dates-display" id="datesDisplay">
-            <div>
-                <div class="dates-display-dates" id="datesDisplayText">—</div>
-                <div class="dates-display-nights" id="nightsDisplayText">—</div>
-            </div>
-            <span class="dates-change" onclick="showCalendar()">Змінити</span>
-        </div>
-
-        <div class="summary-block">
-            <h3>Розрахунок вартості</h3>
-            <div id="summaryRows"></div>
-        </div>
-
-        <div class="form-block">
-            <h3>Ваші дані</h3>
-            <div class="form-grid2">
-                <div class="form-field">
-                    <label>Ім'я <span class="required">*</span></label>
-                    <input type="text" id="fFirstName" placeholder="Іван">
-                </div>
-                <div class="form-field">
-                    <label>Прізвище</label>
-                    <input type="text" id="fLastName" placeholder="Петренко">
-                </div>
-            </div>
-            <div class="form-field">
-                <label>Телефон <span class="required">*</span></label>
-                <div class="phone-wrap">
-                    <div class="phone-prefix">🇺🇦 +380</div>
-                    <input type="tel" id="fPhone" placeholder="XX XXX XXXX" style="flex:1;">
-                </div>
-            </div>
-            <div class="form-field">
-                <label>Коментар</label>
-                <textarea id="fComment" placeholder="Будь-який коментар або побажання..."></textarea>
-            </div>
-        </div>
-
-        <button class="btn-proceed" id="bookBtn" onclick="submitBooking()">Забронювати</button>
-        <p class="privacy-note">Бронюючи ви погоджуєтесь з <a>Політикою Конфіденційності</a></p>
-    </div>
-</div>
-
 <!-- ── SCREEN: SUCCESS ── -->
 <div id="screen-success" class="screen">
     <div class="page-wrap">
@@ -1199,7 +1164,9 @@ function applySlide(id, idx, total) {
     if (counter) counter.innerText = `${idx+1} / ${total}`;
 }
 
-// ─── DETAIL ────────────────────────────────────────────────────────────────
+// ─── ЛОГІКА ВИЇЗНОЇ ПАНЕЛІ (КРОКИ ТА ІНФО) ─────────────────────────────────
+
+// Відкрити панель (Завжди починаємо з кроку INFO)
 function showDetail(cabinId) {
     currentCabinId = cabinId;
     const room = roomsList.find(r => r.id == cabinId);
@@ -1207,88 +1174,95 @@ function showDetail(cabinId) {
     const cfg = getCabinConfig(cabinId);
     showAllAmenities = false;
 
-    // Slider
+    // Слайдер (Рендеримо фотографії поточного котеджу)
     const ds = document.getElementById('detailSlider');
-    ds.innerHTML = `
-        <div class="slider-track" id="track-detail" style="display:flex;height:100%;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);">
-            ${cfg.images.map(url => `<div class="slide" style="min-width:100%;height:100%;"><img src="${url}" alt="${room.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<div class=\\'slide-placeholder\\' style=\\'height:100%\\'>🏡</div>'"></div>`).join('')}
-        </div>
-        <button class="slider-btn slider-prev" onclick="slideDetail(-1)">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button class="slider-btn slider-next" onclick="slideDetail(1)">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </button>
-        <div class="slider-counter" id="counter-detail">1 / ${cfg.images.length}</div>`;
-    sliderState['detail'] = 0;
+    if (ds) {
+        ds.innerHTML = `
+            <div class="slider-track" id="track-detail" style="display:flex;height:100%;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);">
+                ${cfg.images.map(url => `<div class="slide" style="min-width:100%;height:100%;"><img src="${url}" alt="${room.name}" style="width:100%;height:100%;object-fit:cover;"></div>`).join('')}
+            </div>
+            <button class="slider-btn slider-prev" onclick="slideDetail(-1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+            <button class="slider-btn slider-next" onclick="slideDetail(1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+            <div class="slider-counter" id="counter-detail">1 / ${cfg.images.length}</div>`;
+        sliderState['detail'] = 0;
+    }
 
-    document.getElementById('detailTitle').innerText = `${room.name} (${room.desc})`;
-    document.getElementById('detailDesc').innerText = cfg.description;
-    document.getElementById('ctaPrice').innerText = Math.min(room.priceWeekday, room.priceWeekend).toLocaleString('uk-UA');
+    // Заповнюємо текстові дані
+    const elTitle = document.getElementById('detailTitle');
+    if(elTitle) elTitle.innerText = `${room.name} (${room.desc})`;
+    
+    const elDesc = document.getElementById('detailDesc');
+    if(elDesc) elDesc.innerText = cfg.description;
+    
+    const elPrice = document.getElementById('ctaPrice');
+    if(elPrice) elPrice.innerText = Math.min(room.priceWeekday, room.priceWeekend).toLocaleString('uk-UA');
+    
+    const elMeta = document.getElementById('detailMeta');
+    if(elMeta) {
+        elMeta.innerHTML = `
+            <div class="detail-meta-item">До ${room.maxCapacity || room.capacity} гостей</div>
+            <div class="detail-meta-item">Вільний: <strong style="color:var(--accent);margin-left:4px;">${getNextFreeDate(room.name)}</strong></div>`;
+    }
 
-    document.getElementById('detailMeta').innerHTML = `
-        <div class="detail-meta-item">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-            ${room.capacity}–${room.maxCapacity || room.capacity} гостей
-        </div>
-        <div class="detail-meta-item">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75"/></svg>
-            Вільний: <strong style="color:var(--accent);margin-left:4px;">${getNextFreeDate(room.name)}</strong>
-        </div>`;
+    renderAmenities(cfg.amenities);
 
-   renderAmenities(cfg.amenities);
-
-    // ─── ГАРАНТОВАНІ ЗНИЖКИ ДЛЯ ПАНЕЛІ ───
+    // Знижки
     let currentDiscounts = discountsList.length > 0 ? discountsList : [
-        { condition: "Від 2 діб", discount: "15%" },
-        { condition: "Від 3 діб", discount: "20%" },
-        { condition: "Від 7 діб", discount: "43%" },
-        { condition: "Від 14 діб", discount: "57%" },
-        { condition: "Від 30 діб", discount: "73%" }
+        { condition: "Від 2 діб", discount: "15%" }, { condition: "Від 3 діб", discount: "20%" },
+        { condition: "Від 7 діб", discount: "43%" }, { condition: "Від 14 діб", discount: "57%" }
     ];
     
-    // Обертаємо у новий grid-контейнер
-    const discountsContainer = document.getElementById('detailDiscounts');
-    discountsContainer.className = 'discounts-grid';
-    
-    discountsContainer.innerHTML = currentDiscounts.map(d => {
-        // Витягуємо тільки цифру з будь-якого тексту (напр. з "Бронюючи діб: 2")
-        const nightsMatch = d.condition.match(/\d+/);
-        // Формуємо красивий текст
-        const nightsText = nightsMatch ? `Від ${nightsMatch[0]} ночей` : d.condition;
-        
-        // Додаємо мінімалістичну іконку місяця/ночі
-        const iconMoon = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    const discCont = document.getElementById('detailDiscounts');
+    if (discCont) {
+        discCont.innerHTML = currentDiscounts.map(d => {
+            const nightsMatch = d.condition.match(/\d+/);
+            const nightsText = nightsMatch ? `Від ${nightsMatch[0]} ночей` : d.condition;
+            return `<div class="discount-card"><div class="cond"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>${nightsText}</span></div><div class="pct">-${d.discount}</div></div>`;
+        }).join('');
+    }
 
-        return `
-        <div class="discount-card">
-            <div class="cond">
-                ${iconMoon}
-                <span>${nightsText}</span>
-            </div>
-            <div class="pct">-${d.discount}</div>
-        </div>`;
-    }).join('');
-
-    // Відкриваємо панель
+    // Відкриваємо панель і примусово ставимо на Крок 1 ('info')
+    goToStep('info');
     const overlay = document.getElementById('screen-detail');
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden'; // Блокуємо скрол фону
+    if(overlay) {
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden'; 
+    }
 }
 
-// Додаємо функції керування панеллю
+// ─── ФУНКЦІЯ ПЕРЕМИКАННЯ КРОКІВ ───
+function goToStep(step) {
+    // 1. Ховаємо всі кроки
+    document.querySelectorAll('.drawer-step').forEach(el => el.classList.remove('active'));
+    
+    // 2. Показуємо цільовий крок
+    const targetStep = document.getElementById('drawer-step-' + step);
+    if(targetStep) {
+        targetStep.classList.add('active');
+        // Скидаємо скрол наверх для нового кроку
+        const content = targetStep.querySelector('.drawer-content');
+        if(content) content.scrollTop = 0;
+    }
+
+    // 3. Запускаємо логіку конкретного кроку
+    if (step === 'calendar') {
+        renderCalendar();
+        updateProceedBtn();
+    } else if (step === 'checkout') {
+        renderCheckout();
+    }
+}
+
+// ─── ФУНКЦІЯ ЗАКРИТТЯ ПАНЕЛІ ───
 function closeDetail(e) {
     if (!e || e.target.id === 'screen-detail' || e.target.closest('.drawer-close-btn')) {
-        document.getElementById('screen-detail').classList.remove('open');
+        const overlay = document.getElementById('screen-detail');
+        if(overlay) overlay.classList.remove('open');
         document.body.style.overflow = '';
     }
 }
 
-function showCalendarFromDrawer() {
-    closeDetail();
-    setTimeout(() => { showCalendar(); }, 300);
-}
-
+// ─── ЛОГІКА СЛАЙДЕРА В ПАНЕЛІ ───
 let detailSlideIdx = 0;
 function slideDetail(dir) {
     const cfg = getCabinConfig(currentCabinId);
@@ -1302,28 +1276,14 @@ function slideDetail(dir) {
 
 function renderAmenities(amenities) {
     const show = showAllAmenities ? amenities : amenities.slice(0, 6);
-    // Малюємо зручності з іконками
-    document.getElementById('amenitiesList').innerHTML = show.map(a =>
-        `<div class="amenity-item">${a.icon} ${a.label}</div>`
-    ).join('');
-    
-    // Перевіряємо, чи існує кнопка, щоб скрипт не ламався
-    const btn = document.getElementById('showMoreBtn');
-    if (btn) {
-        if (amenities.length <= 6) { btn.style.display = 'none'; return; }
-        btn.style.display = 'block';
-        btn.innerText = showAllAmenities
-            ? 'Сховати зручності'
-            : `Показати всі ${amenities.length} зручності`;
+    const amList = document.getElementById('amenitiesList');
+    if(amList) {
+        amList.innerHTML = show.map(a =>
+            `<div class="amenity-item">${a.icon} ${a.label}</div>`
+        ).join('');
     }
 }
-
-function toggleAmenities() {
-    showAllAmenities = !showAllAmenities;
-    const cfg = getCabinConfig(currentCabinId);
-    renderAmenities(cfg.amenities);
-}
-
+    
 // ─── CALENDAR ──────────────────────────────────────────────────────────────
 function shiftCal(dir) { calBase = new Date(calBase); calBase.setMonth(calBase.getMonth() + dir); renderCalendar(); }
 
