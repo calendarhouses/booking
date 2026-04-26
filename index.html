@@ -979,9 +979,13 @@ async function init() {
         ];
     }
     
+    const skeleton = document.getElementById('skeletonLoader');
+    if (skeleton) skeleton.style.display = 'none';
+    
     renderCabinList();
 
-    // ─── РЕЖИСЕРСЬКИЙ СЦЕНАРІЙ (ІДЕАЛЬНЕ НАКЛАДАННЯ) ───
+    // ─── РЕЖИСЕРСЬКИЙ СЦЕНАРІЙ (ІДЕАЛЬНИЙ ТАЙМІНГ) ───
+    // 1. Чекаємо 2.5 секунди, поки красиво повзе зелена смужка завантаження
     setTimeout(() => {
         const preloader = document.getElementById('preloader');
         const introOverlay = document.getElementById('introOverlay');
@@ -989,22 +993,22 @@ async function init() {
         const cabins = document.getElementById('cabinsContainer');
 
         if(preloader) {
+            // Ховаємо прелоадер
             preloader.style.opacity = '0';
             
             setTimeout(() => {
                 preloader.style.display = 'none';
                 
                 if(introOverlay) {
-                    // 1. Полетіли літери
+                    // 2. Команда "Мотор!": Літери злітаються (триває 1.5 сек)
                     introOverlay.classList.add('start-fly');
                     
-                    // 2. Пауза 1.5 сек
+                    // 3. Пауза 1.5 сек, щоб юзер побачив логотип
                     setTimeout(() => {
-                        // 3. ПУСК ЗУМУ
+                        // 4. ПУСК ЗУМУ
                         introOverlay.classList.add('start-zoom');
                         
-                        // 4. СКРОЛ ПОЧИНАЄТЬСЯ ОДРАЗУ В ПРОЦЕСІ ЗУМУ (через 600мс!)
-                        // В цей момент літера 'О' якраз розлітається в сторони
+                        // 5. СКРОЛ ПОЧИНАЄТЬСЯ В ПРОЦЕСІ ЗУМУ (через 600мс)
                         setTimeout(() => {
                             if (cabins) {
                                 const offset = cabins.getBoundingClientRect().top + window.scrollY;
@@ -1014,24 +1018,21 @@ async function init() {
                             introOverlay.style.opacity = '0';
                         }, 600);
 
-                        // 5. Фоновий текст з'явиться ТІЛЬКИ коли ми вже доскролили до котеджів
+                        // 6. Фоновий напівпрозорий текст з'явиться в кінці
                         setTimeout(() => {
                             if(bgText) bgText.style.opacity = '1';
                         }, 2000);
 
                         // Остаточно прибираємо маску з коду
-                        // ... (увесь твій код зникання прелоадера та старту маски)
                         setTimeout(() => {
                             introOverlay.style.display = 'none';
-                        }, 800);
+                        }, 2500);
 
-                    }, 2200);
-
-                }, 2000);
-            }
-        }, 600);
-    }
-}, 2500); /* 🟢 ОСЬ ТУТ ЗМІНИЛИ 1000 на 2500 🟢 */
+                    }, 1500);
+                }
+            }, 600);
+        }
+    }, 2500); /* 🟢 ОСЬ ЦІ 2.5 СЕКУНДИ ДЛЯ СМУЖКИ 🟢 */
 }
 
 // ─── КАСТОМНА ФУНКЦІЯ ПРЕМІУМ-СКРОЛУ ───
