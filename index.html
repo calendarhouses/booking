@@ -31,57 +31,66 @@
             min-height: 100vh;
         }
 
-        /* ── CINEMATIC HERO ── */
+        /* ── CINEMATIC HERO (СИЛЬНИЙ ПРЕМІУМ) ── */
         .hero-cinematic {
             position: relative;
-            max-width: 1200px;
             width: calc(100% - 40px);
-            margin: 30px auto 50px;
-            height: 65vh; /* Займає 65% екрану */
-            min-height: 500px;
-            border-radius: 32px;
+            max-width: 1400px; /* Ширший формат для масштабу */
+            margin: 20px auto 60px;
+            height: 75vh;
+            min-height: 550px;
+            border-radius: 20px;
             overflow: hidden;
             display: flex;
-            flex-direction: column;
-            box-shadow: 0 24px 48px rgba(18,26,18,0.12);
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.15);
         }
         .hero-bg-img {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover; z-index: 0;
+            transform: scale(1.02); /* Легкий ефект глибини */
         }
+        /* Чисте затемнення для ідеального контрасту тексту */
         .hero-overlay {
             position: absolute; inset: 0; z-index: 1;
-            background: linear-gradient(180deg, rgba(18,26,18,0.5) 0%, rgba(18,26,18,0.1) 40%, rgba(18,26,18,0.85) 100%);
-        }
-        .hero-content {
-            position: relative; z-index: 2; height: 100%;
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 40px 48px;
+            background: rgba(0, 0, 0, 0.35); 
         }
         .hero-top {
+            position: absolute; top: 40px; left: 40px; right: 40px; z-index: 2;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
             padding-bottom: 20px;
         }
         .hero-brand {
-            font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; letter-spacing: 4px; color: var(--white);
+            font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; letter-spacing: 4px; color: #fff;
         }
-        .hero-brand span { color: var(--accent); }
+        /* На темному фоні використовуємо теплий деревний/золотий акцент */
+        .hero-brand span { color: var(--wood); }
         
         .hero-location {
-            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.8); font-weight: 600;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #fff; font-weight: 500;
         }
         .hero-main {
-            text-align: center; padding-bottom: 20px;
+            position: relative; z-index: 2;
+            text-align: center; padding: 0 20px;
         }
         .hero-main h1 {
-            font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 600; line-height: 1.1; color: var(--white); margin-bottom: 16px;
+            font-family: 'Playfair Display', serif; 
+            font-size: 68px; /* Великий, але тонкий шрифт = дорого */
+            font-weight: 400; 
+            line-height: 1.1; 
+            color: #fff; 
+            margin-bottom: 20px;
+            text-shadow: 0 4px 16px rgba(0,0,0,0.3); /* Об'єм для тексту */
         }
         .hero-main h1 em {
-            color: var(--accent); font-style: italic; font-weight: 400;
+            color: var(--wood); /* Золото замість болотно-зеленого */
+            font-style: italic; 
         }
         .hero-main p {
-            font-size: 16px; color: rgba(255,255,255,0.8); max-width: 500px; margin: 0 auto; font-weight: 300; letter-spacing: 0.5px;
+            font-size: 16px; color: rgba(255,255,255,0.9); max-width: 500px; margin: 0 auto; 
+            font-weight: 300; letter-spacing: 0.5px; line-height: 1.6;
         }
 
         /* ── LAYOUT ── */
