@@ -331,11 +331,11 @@
         .amenity-item { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text); font-weight: 500; }
         .amenity-item svg { width: 22px; height: 22px; stroke: #3A4F35; fill: none; stroke-width: 1.5; flex-shrink: 0; }
 
-        /* Картки Знижок */
+       /* Картки Знижок (Стиль ідентичний до Правил) */
 .discounts-grid { 
     display: grid; 
-    grid-template-columns: 1fr 1fr; /* Дві колонки для компактності */
-    gap: 12px; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 16px; /* Такий самий відступ, як у правилах */
     margin-bottom: 32px; 
 }
 
@@ -345,55 +345,38 @@
     justify-content: space-between;
     background: #fff; 
     border: 1px solid var(--border); 
-    border-radius: 14px; 
-    padding: 14px 18px; 
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.01);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    border-radius: 16px; /* Як у правилах */
+    padding: 16px; /* Як у правилах */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02); /* Легка статична тінь, як у правилах */
 }
 
-.discount-card:hover {
-    transform: translateY(-2px);
-    border-color: #5F746A;
-}
-
-/* Кольоровий маркер зліва для преміального вигляду */
-.discount-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: #5F746A; 
-}
+/* Ніяких ховерів та анімацій, картка повністю статична */
 
 .discount-card .cond { 
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: 600; 
+    gap: 12px; /* Відступ до тексту як у правилах */
     font-size: 14px; 
     color: var(--text); 
+    font-weight: 500; 
 }
 
 .discount-card .cond svg {
-    width: 18px;
-    height: 18px;
-    stroke: #5F746A;
+    width: 24px; /* Розмір іконки як у правилах */
+    height: 24px; 
+    stroke: var(--accent); /* Використовуємо твій фірмовий колір */
     fill: none;
-    stroke-width: 2;
-    opacity: 0.8;
+    stroke-width: 1.5; /* Тонші, елегантніші лінії */
+    flex-shrink: 0;
 }
 
 .discount-card .pct { 
-    background: rgba(95, 116, 106, 0.1); /* Світлий фон в тон акценту */
-    color: #5F746A; 
-    padding: 6px 10px; 
+    background: var(--accent-light); 
+    color: var(--accent); 
+    padding: 6px 12px; 
     border-radius: 8px; 
     font-weight: 700; 
-    font-size: 14px; 
+    font-size: 13px; 
 }
 
 @media (max-width: 768px) {
