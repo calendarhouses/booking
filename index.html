@@ -587,12 +587,10 @@
             <div class="hero-location"></div>
         </div>
         
-        <p id="hero-typing-text" style="min-height: 3em;"></p>
+        <div class="hero-glass-card">
             <div class="card-micro-label">ВАШ ПРИВАТНИЙ ПРОСТІР</div>
-            
             <h1>Оберіть свій<br>ідеальний котедж</h1>
-            
-            <p id="hero-typing-text"></p>
+            <p id="hero-typing-text" style="min-height: 3em;"></p>
         </div>
     </div>
 
@@ -1013,8 +1011,7 @@ function renderCabinList() {
 
         return `
         <div class="cabin-card">
-            // Шукай цей рядок всередині renderCabinList:
-<div class="slider-wrap" id="card-slider-${r.id}">
+            <div class="slider-wrap" id="card-slider-${r.id}">
                 <div class="cabin-badge">${r.desc}</div>
                 <div class="slider-track" id="track-${r.id}">
                     ${imgs.map(url => `<div class="slide"><img src="${url}" alt="${r.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'slide-placeholder\\'>🏡</div>'"></div>`).join('')}
