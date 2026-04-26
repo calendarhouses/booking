@@ -315,7 +315,7 @@
         
         /* ── НОВІ ШРИФТИ ТА ЕЛЕМЕНТИ ПАНЕЛІ ── */
         .detail-slider-wrap { height: 380px; border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; position: relative; }
-        .detail-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+        .detail-title { font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 12px; color: var(--text); letter-spacing: -0.5px; }
         .detail-meta { display: flex; gap: 24px; margin-bottom: 32px; }
         .detail-meta-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
         .detail-meta-item svg { width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
@@ -671,7 +671,7 @@
                 </div>
             </div>
 
-            <h3 class="section-title">Правила безпеки</h3>
+            <h3 class="section-title">Безпека на території</h3>
             <div class="rules-grid" style="margin-bottom:40px;">
                 <div class="rule-card">
                     <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -691,6 +691,15 @@
                 </div>
             </div>
         </div>
+
+        <div class="sticky-cta" id="stickyCta">
+            <div>
+                <div class="sticky-price">від <strong id="ctaPrice">—</strong> грн / ніч</div>
+            </div>
+            <button class="btn-book" onclick="showCalendarFromDrawer()" style="width: auto;">Обрати дати</button>
+        </div>
+    </div>
+</div>
 
         <div class="sticky-cta" id="stickyCta">
             <div>
@@ -1138,14 +1147,18 @@ function showDetail(cabinId) {
 
     renderAmenities(cfg.amenities);
 
-    // Discounts for this room
-    const roomDiscounts = discountsList.filter(d => {
-        if (!d.roomsIds) return false;
-        return d.roomsIds.includes('all') || d.roomsIds.includes(String(cabinId));
-    });
-    document.getElementById('detailDiscounts').innerHTML = roomDiscounts.length
-        ? roomDiscounts.map(d => `<div class="discount-item"><div class="cond">Бронюючи ${d.condition.toLowerCase()}</div><div class="pct">знижка ${d.discount}</div></div>`).join('')
-        : '<p style="font-size:14px;color:var(--muted);">Знижки не налаштовані</p>';
+    // ─── ГАРАНТОВАНІ ЗНИЖКИ ДЛЯ ПАНЕЛІ ───
+    let currentDiscounts = discountsList.length > 0 ? discountsList : [
+        { condition: "Від 2 діб", discount: "15%" },
+        { condition: "Від 3 діб", discount: "20%" },
+        { condition: "Від 7 діб", discount: "43%" },
+        { condition: "Від 14 діб", discount: "57%" },
+        { condition: "Від 30 діб", discount: "73%" }
+    ];
+    
+    document.getElementById('detailDiscounts').innerHTML = currentDiscounts.map(d => 
+        `<div class="discount-item"><div class="cond">Бронюючи ${d.condition.toLowerCase()}</div><div class="pct">знижка ${d.discount}</div></div>`
+    ).join('');
 
     // Відкриваємо панель
     const overlay = document.getElementById('screen-detail');
