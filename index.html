@@ -959,11 +959,12 @@ async function init() {
 
                         }, 1300);
 
-                    }, 1300);
+                   }, 1300);
                 }
             }, 600);
         }
     }, 1000);
+} 
 
 // ─── SCREENS ───────────────────────────────────────────────────────────────
 function showScreen(name) {
@@ -1557,30 +1558,6 @@ function toast(msg) {
 
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
-    
-    // ─── ZOOM ЕФЕКТ ПРИ СКРОЛІ (SVG STYLE) ───
-window.addEventListener('scroll', () => {
-    const track = document.getElementById('zoomTrack');
-    // Зверни увагу: тепер ми шукаємо '.zoom-svg', а не текст!
-    const svgMask = document.querySelector('.zoom-svg');
-    
-    if (!track || !svgMask) return;
-
-    const rect = track.getBoundingClientRect();
-    
-    if (rect.top > 0) {
-        svgMask.style.transform = 'scale(1)';
-        return;
-    }
-
-    let scrollProgress = Math.abs(rect.top) / (track.offsetHeight - window.innerHeight);
-    scrollProgress = Math.max(0, Math.min(1, scrollProgress)); 
-
-    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 200; 
-    
-    // Застосовуємо збільшення до всього SVG-полотна
-    svgMask.style.transform = `scale(${scaleValue})`;
-});
 </script>
 </body>
 </html>
