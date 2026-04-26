@@ -68,7 +68,8 @@
             height: 100%;
             z-index: 2;
             will-change: transform;
-            /* transform-origin звідси видалили! */
+            /* 🟢 РУЧНИЙ ПРИЦІЛ: 45% по X (права дуга першої О), 50% по Y (центр) */
+            transform-origin: 45% 50%; 
         }
 
         /* Текст тепер просто статично лежить по центру SVG */
@@ -608,7 +609,7 @@
                 <defs>
                     <mask id="textMask">
                         <rect width="100%" height="100%" fill="white" />
-                        <text id="zoomTextSvg" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="black" font-family="'Inter', sans-serif" font-weight="900">B<tspan id="targetLetter" dominant-baseline="central" alignment-baseline="central" dy="0">O</tspan>SO</text>
+                        <text id="zoomTextSvg" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="black" font-family="'Inter', sans-serif" font-weight="900">BOSO</text>
                     </mask>
                 </defs>
                 <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
@@ -1542,30 +1543,6 @@ function toast(msg) {
 
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
-   // ─── АВТОМАТИЧНИЙ ПРИЦІЛ В ПРАВУ ДУГУ ЛІТЕРИ "О" ───
-function setPerfectZoomCenter() {
-    const svgMask = document.querySelector('.zoom-svg');
-    const targetLetter = document.getElementById('targetLetter');
-    
-    if (!svgMask || !targetLetter) return;
-
-    // Отримуємо точні координати рамки літери 'O' на екрані
-    const rect = targetLetter.getBoundingClientRect();
-    
-    // МАГІЯ ТУТ:
-    // Замість центру (rect.width / 2), ми цілимось у праву стінку літери!
-    // Множник 0.85 означає, що ми беремо 85% ширини літери зліва направо. 
-    // Це ідеально попадає в саму товщу правої дуги шрифту Inter Black.
-    const centerX = rect.left + (rect.width * 0.85); 
-    const centerY = rect.top + (rect.height / 2); // По висоті залишаємо рівно по центру
-
-    // Перетворюємо пікселі у відсотки
-    const originX = (centerX / window.innerWidth) * 100;
-    const originY = (centerY / window.innerHeight) * 100;
-
-    // Задаємо ідеальний приціл
-    svgMask.style.transformOrigin = `${originX}% ${originY}%`;
-}
     
     // ─── ZOOM ЕФЕКТ ПРИ СКРОЛІ (SVG STYLE) ───
 window.addEventListener('scroll', () => {
@@ -1585,7 +1562,7 @@ window.addEventListener('scroll', () => {
     let scrollProgress = Math.abs(rect.top) / (track.offsetHeight - window.innerHeight);
     scrollProgress = Math.max(0, Math.min(1, scrollProgress)); 
 
-    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 300; 
+    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 150; 
     
     // Застосовуємо збільшення до всього SVG-полотна
     svgMask.style.transform = `scale(${scaleValue})`;
