@@ -31,17 +31,26 @@
             min-height: 100vh;
         }
 
-        /* ── КІНЕМАТОГРАФІЧНА ТЕКСТ-МАСКА (НАДІЙНИЙ ВАРІАНТ) ── */
-        .hero-mask-section {
+        /* ── КІНЕМАТОГРАФІЧНА ТЕКСТ-МАСКА (ZOOM ЕФЕКТ) ── */
+        .hero-scroll-track {
             position: relative;
             width: 100%;
+            height: 350vh; /* Висота треку: 3.5 екрани скролу для плавної анімації */
+            background-color: #0C110C; 
+            z-index: 1;
+        }
+
+        .hero-sticky-frame {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100vh;
-            background-color: #0C110C; /* Глибокий Tech-Noir фон */
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            z-index: 1;
+            background-color: #0C110C; /* Закриваємо фон */
         }
 
         .mask-text {
@@ -51,28 +60,32 @@
             margin: 0;
             line-height: 1;
             letter-spacing: 0.05em;
-            font-size: 28vw; /* Величезний розмір */
+            font-size: 28vw;
             text-align: center;
             
-            /* МАГІЯ: Фотографія стає фоном для самого тексту */
-            background-image: url('hero.jpg'); /* Переконайся, що hero.jpg лежить в папці */
+            /* Фотографія стає фоном */
+            background-image: url('hero.jpg');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* Робить крутий паралакс при скролі! */
+            background-attachment: fixed; /* Фото стоїть на місці, збільшується тільки маска */
             
-            /* Вирізаємо текст */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             color: transparent;
+
+            /* МАГІЯ: Центр масштабування і плавний рендер */
+            transform-origin: center center;
+            will-change: transform;
+            transform: scale(1);
         }
 
-        /* Забезпечуємо, щоб після Hero блоку йшов нормальний фон */
         #cabinsContainer {
             position: relative;
             z-index: 2;
             background: var(--bg);
             padding-top: 80px; 
+            box-shadow: 0 -20px 40px rgba(0,0,0,0.3); /* Легка тінь, щоб котеджі красиво наїжджали на темний фон */
         }
 
         @media (max-width: 768px) {
@@ -591,8 +604,10 @@
     </div>
 <div id="screen-list" class="screen active">
     
-    <div class="hero-mask-section">
-        <h1 class="mask-text">BOSO</h1>
+    <div class="hero-scroll-track" id="zoomTrack">
+        <div class="hero-sticky-frame">
+            <h1 class="mask-text" id="zoomText">BOSO</h1>
+        </div>
     </div>
 
     <div class="page-wrap" id="cabinsContainer">
@@ -1521,6 +1536,33 @@ function toast(msg) {
 
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
+    // ─── ZOOM ЕФЕКТ ПРИ СКРОЛІ (APPLE STYLE) ───
+window.addEventListener('scroll', () => {
+    const track = document.getElementById('zoomTrack');
+    const text = document.getElementById('zoomText');
+    
+    if (!track || !text) return;
+
+    // Отримуємо позицію блоку відносно екрану
+    const rect = track.getBoundingClientRect();
+    
+    // Якщо ми ще не доскролили до блоку — тримаємо початковий розмір
+    if (rect.top > 0) {
+        text.style.transform = 'scale(1)';
+        return;
+    }
+
+    // Рахуємо прогрес скролу (від 0 до 1)
+    // window.innerHeight віднімаємо, щоб анімація закінчилась рівно перед наступним блоком
+    let scrollProgress = Math.abs(rect.top) / (track.offsetHeight - window.innerHeight);
+    scrollProgress = Math.max(0, Math.min(1, scrollProgress)); // Не даємо вийти за межі 0-1
+
+    // Масштабуємо від 1x до 150x (щоб літери гарантовано перекрили весь екран і фото стало повним)
+    // Використовуємо експоненту для крутої кінематографічної динаміки
+    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 150; 
+    
+    text.style.transform = `scale(${scaleValue})`;
+});
 </script>
 </body>
 </html>
