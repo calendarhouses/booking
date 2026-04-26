@@ -1521,36 +1521,6 @@ function toast(msg) {
 
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
-    function typeWriter(elementId, text, speed) {
-    let i = 0;
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    element.innerHTML = "";
-    function type() {
-        if (i < text.length) {
-            element.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
-        }
-    }
-    type();
-}
-    // ─── СХОДИНЧАСТА АНІМАЦІЯ HERO ───
-window.addEventListener('load', () => {
-    // 1) Отримуємо всі слова-сходинки
-    const staircaseWords = document.querySelectorAll('.hero-staircase-wrapper .staircase-word');
-    
-    // 2) Запускаємо анімацію з затримкою
-    // Починаємо через 800мс після завантаження прелоадера
-    setTimeout(() => {
-        staircaseWords.forEach((word, index) => {
-            // Кожне наступне слово з'являється через 400мс після попереднього
-            setTimeout(() => {
-                word.classList.add('animate-in');
-            }, index * 400); 
-        });
-    }, 1000); 
-});
 </script>
 </body>
 </html>
