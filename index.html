@@ -129,36 +129,38 @@
         .screen { display: none; }
         .screen.active { display: block; }
 
-        /* ── КОНТЕЙНЕР КАРТОК (Широкий) ── */
+        /* ── КОНТЕЙНЕР КАРТОК (Сітка) ── */
         #cabinsContainer {
-            max-width: 1400px;
+            max-width: 1200px;
             width: calc(100% - 40px);
-            margin: 0 auto;
+            margin: 0 auto 80px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Дві масивні картки в ряд */
+            gap: 40px;
         }
 
-        /* ── ПРЕМІУМ КАРТКА КОТЕДЖУ (Горизонтальна) ── */
+        /* ── ПРЕМІУМ КАРТКА КОТЕДЖУ (Вертикальна) ── */
         .cabin-card {
             display: flex;
-            flex-direction: row;
+            flex-direction: column; /* Текст ПІД фотографією */
             background: var(--white);
-            border-radius: 32px;
+            border-radius: 28px;
             overflow: hidden;
             border: 1px solid var(--border);
-            margin-bottom: 50px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.06);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
-            height: 480px; /* Фіксована розкішна висота */
+            height: 100%;
         }
         .cabin-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 24px 48px rgba(0,0,0,0.12);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 48px rgba(0,0,0,0.12);
         }
 
-        /* Ліва частина - Фото */
+        /* Верхня частина - ВЕЛИКЕ ФОТО */
         .slider-wrap { 
             position: relative; 
-            width: 55%; 
-            height: 100%; 
+            width: 100%; 
+            height: 400px; /* Високе, масштабне фото */
             overflow: hidden; 
             background: #E5E1DC; 
             cursor: pointer; 
@@ -192,26 +194,28 @@
             z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* Права частина - Інформація */
+        /* Нижня частина - ІНФОРМАЦІЯ */
         .cabin-body { 
-            width: 45%; 
-            padding: 40px 48px; 
+            width: 100%; 
+            padding: 32px 32px 40px; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
+            flex: 1;
         }
+        
+        /* ЗАМІНИЛИ ШРИФТ: Тепер букви і цифри ідеально рівні */
         .cabin-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 38px; font-weight: 700; color: #1A1A1A; 
-            margin-bottom: 12px; line-height: 1.15;
+            font-family: 'Inter', sans-serif; 
+            font-size: 28px; font-weight: 700; color: #1A1A1A; 
+            margin-bottom: 12px; line-height: 1.2; letter-spacing: -0.5px;
         }
         .cabin-subtitle {
             font-family: 'Inter', sans-serif; font-size: 15px; color: #6B7280;
-            margin-bottom: 32px; font-weight: 400; line-height: 1.6;
+            margin-bottom: 28px; font-weight: 400; line-height: 1.6;
         }
         
-        /* Блоки з інформацією (Чіпи) */
-        .cabin-meta { display: flex; gap: 12px; margin-bottom: auto; flex-wrap: wrap; }
+        /* Блоки з технічною інформацією */
+        .cabin-meta { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
         .cabin-meta-item { 
             background: #F7F5F2; 
             border: 1px solid #E5E1DC; 
@@ -223,27 +227,28 @@
         .cabin-meta-item svg { width: 16px; height: 16px; stroke: #3A4F35; fill: none; stroke-width: 2; }
         .cabin-next-free { color: #3A4F35; font-weight: 700; }
 
-        /* Блок ціни та кнопки (Виділений контейнер) */
+        /* Блок ціни та кнопки (Сірий підвал картки) */
         .cabin-footer-block {
-            background: #F8FAF7; /* Дуже легкий відтінок зелені */
+            background: #F8FAF7; 
             border: 1px solid rgba(85, 107, 47, 0.15);
             border-radius: 20px;
-            padding: 24px;
+            padding: 20px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 24px;
+            margin-top: auto; 
         }
         .price-info { display: flex; flex-direction: column; }
         .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
         .price-val { font-family: 'Inter', sans-serif; font-size: 15px; color: #4B5563; font-weight: 500; }
-        .price-val strong { font-family: 'Inter', sans-serif; font-size: 26px; color: #1A1A1A; font-weight: 700; }
+        .price-val strong { font-family: 'Inter', sans-serif; font-size: 24px; color: #1A1A1A; font-weight: 700; }
 
+        /* КНОПКА ФІРМОВОГО ЗЕЛЕНОГО КОЛЬОРУ */
         .btn-book {
-            background: #3A4F35; /* Розкішний лісовий зелений */
+            background: #3A4F35; 
             color: #fff;
             border: none; border-radius: 14px;
-            padding: 16px 32px;
+            padding: 16px 28px;
             font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif;
             text-transform: uppercase; letter-spacing: 1.5px;
             cursor: pointer; transition: 0.3s;
@@ -251,6 +256,14 @@
         }
         .btn-book:hover { background: #2C3D28; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(58, 79, 53, 0.35); }
 
+        /* Адаптація для мобільних */
+        @media (max-width: 900px) {
+            #cabinsContainer { grid-template-columns: 1fr; }
+            .slider-wrap { height: 300px; }
+            .cabin-body { padding: 24px; }
+            .cabin-footer-block { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
+            .btn-book { width: 100%; text-align: center; }
+        }
         /* Адаптація для мобільних */
         @media (max-width: 900px) {
             .cabin-card { flex-direction: column; height: auto; border-radius: 24px; }
