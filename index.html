@@ -1562,7 +1562,7 @@ window.addEventListener('scroll', () => {
     let scrollProgress = Math.abs(rect.top) / (track.offsetHeight - window.innerHeight);
     scrollProgress = Math.max(0, Math.min(1, scrollProgress)); 
 
-    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 150; 
+    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 200; 
     
     // Застосовуємо збільшення до всього SVG-полотна
     svgMask.style.transform = `scale(${scaleValue})`;
