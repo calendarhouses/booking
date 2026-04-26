@@ -31,66 +31,75 @@
             min-height: 100vh;
         }
 
-        /* ── CINEMATIC HERO (СИЛЬНИЙ ПРЕМІУМ) ── */
+        /* ── HERO (FLOATING GLASS CARD) ── */
         .hero-cinematic {
             position: relative;
             width: calc(100% - 40px);
-            max-width: 1400px; /* Ширший формат для масштабу */
+            max-width: 1400px;
             margin: 20px auto 60px;
             height: 75vh;
             min-height: 550px;
-            border-radius: 20px;
+            border-radius: 24px;
             overflow: hidden;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end; /* ЗСУВАЄМО КАРТКУ ВПРАВО (туди, де ти обвів) */
+            padding: 40px 80px; /* Відступи від країв екрану */
             box-shadow: 0 16px 40px rgba(0,0,0,0.15);
         }
+        
         .hero-bg-img {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover; z-index: 0;
-            transform: scale(1.02); /* Легкий ефект глибини */
         }
-        /* Чисте затемнення для ідеального контрасту тексту */
-        .hero-overlay {
-            position: absolute; inset: 0; z-index: 1;
-            background: rgba(0, 0, 0, 0.35); 
-        }
+
+        /* Шапка всередині банера (Лого і Локація) */
         .hero-top {
             position: absolute; top: 40px; left: 40px; right: 40px; z-index: 2;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
-            padding-bottom: 20px;
         }
         .hero-brand {
             font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; letter-spacing: 4px; color: #fff;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.4); /* Тінь щоб лого читалось на будь-якому фоні */
         }
-        /* На темному фоні використовуємо теплий деревний/золотий акцент */
-        .hero-brand span { color: var(--wood); }
-        
+        .hero-brand span { color: var(--accent); }
         .hero-location {
-            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #fff; font-weight: 500;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #fff; font-weight: 600;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.4);
         }
-        .hero-main {
+
+        /* ── САМА СКЛЯНА КАРТКА ── */
+        .hero-glass-card {
             position: relative; z-index: 2;
-            text-align: center; padding: 0 20px;
+            background: rgba(255, 255, 255, 0.85); /* Дороге світле матове скло */
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            padding: 48px 40px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: left; /* Текст акуратно вирівняний по лівому краю картки */
         }
-        .hero-main h1 {
+        
+        .hero-glass-card h1 {
+            /* Більш витончений шрифт, однаковий глибокий колір */
             font-family: 'Playfair Display', serif; 
-            font-size: 68px; /* Великий, але тонкий шрифт = дорого */
-            font-weight: 400; 
-            line-height: 1.1; 
-            color: #fff; 
-            margin-bottom: 20px;
-            text-shadow: 0 4px 16px rgba(0,0,0,0.3); /* Об'єм для тексту */
+            font-size: 46px; 
+            font-weight: 600; /* Не занадто жирний, щоб виглядати дорого */
+            line-height: 1.15; 
+            color: #121A12; /* Уніфікований темний колір */
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
         }
-        .hero-main h1 em {
-            color: var(--wood); /* Золото замість болотно-зеленого */
-            font-style: italic; 
-        }
-        .hero-main p {
-            font-size: 16px; color: rgba(255,255,255,0.9); max-width: 500px; margin: 0 auto; 
-            font-weight: 300; letter-spacing: 0.5px; line-height: 1.6;
+        
+        .hero-glass-card p {
+            font-family: 'Inter', sans-serif;
+            font-size: 15px; 
+            color: #4B5563; /* М'який сірий для легкого читання */
+            line-height: 1.6; 
+            font-weight: 400;
         }
 
         /* ── LAYOUT ── */
@@ -428,19 +437,16 @@
 <div id="screen-list" class="screen active">
     
     <div class="hero-cinematic">
-       <img src="hero.jpg" alt="BOSO Карпати" class="hero-bg-img">
-        <div class="hero-overlay"></div>
+        <img src="hero.jpg" alt="BOSO" class="hero-bg-img">
         
-        <div class="hero-content">
-            <div class="hero-top">
-                <div class="hero-brand">BOSO<span>.</span></div>
-                <div class="hero-location">Карпати, Україна</div>
-            </div>
-            
-            <div class="hero-main">
-                <h1>Оберіть свій<br><em>ідеальний котедж</em></h1>
-                <p>Місце, де час уповільнюється, а природа надихає на справжній відпочинок.</p>
-            </div>
+        <div class="hero-top">
+            <div class="hero-brand">BOSO<span>.</span></div>
+            <div class="hero-location"></div>
+        </div>
+        
+        <div class="hero-glass-card">
+            <h1>Оберіть свій ідеальний котедж</h1>
+            <p>Місце, де час уповільнюється, а природа надихає на справжній відпочинок.</p>
         </div>
     </div>
 
