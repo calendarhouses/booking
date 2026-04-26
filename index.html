@@ -31,62 +31,65 @@
             min-height: 100vh;
         }
 
-        /* ── КІНЕМАТОГРАФІЧНА ТЕКСТ-МАСКА (SVG ZOOM СВІТЛА) ── */
-        .hero-scroll-track {
-            position: relative;
-            width: 100%;
-            height: 350vh; 
-            background-color: var(--bg); 
-            z-index: 1;
-        }
-
-        .hero-sticky-frame {
-            position: sticky;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--bg);
-        }
-
-        .zoom-bg-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
+        /* ── АВТОМАТИЧНА КІНЕМАТОГРАФІЧНА МАСКА ── */
+        .intro-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: 9990; /* Поверх всього, але під прелоадером */
+            pointer-events: none; /* Щоб не блокувати кліки після зуму */
+            transition: opacity 0.5s ease;
         }
 
         .zoom-svg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            will-change: transform;
-            /* 🟢 РУЧНИЙ ПРИЦІЛ: 45% по X (права дуга першої О), 50% по Y (центр) */
+            width: 100%; height: 100%;
+            /* Той самий приціл 46%, який підійшов! */
             transform-origin: 46% 50%; 
+            will-change: transform;
         }
 
-        /* Текст тепер просто статично лежить по центру SVG */
-        #zoomTextSvg {
-            font-size: 25vw;
-            letter-spacing: 0.05em;
-        }
-
-        #cabinsContainer {
+        /* Нормальний Hero-екран під маскою */
+        .clean-hero {
             position: relative;
-            z-index: 2;
-            background: var(--bg);
-            padding-top: 40px; 
+            width: 100%; height: 100vh;
+            background: #0C110C;
+            overflow: hidden;
+        }
+        .hero-bg-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            filter: brightness(0.9); /* Трохи затемнюємо фото для преміальності */
+        }
+
+        /* ── ПОЧАТКОВІ ПОЗИЦІЇ ЛІТЕР ── */
+        #fl-B, #fl-O1, #fl-S, #fl-O2 { opacity: 0; }
+        
+        #fl-B { transform: translateX(-20vw); }  /* B - зліва */
+        #fl-O1 { transform: translateY(-30vh); } /* O - зверху */
+        #fl-S { transform: translateY(30vh); }   /* S - знизу */
+        #fl-O2 { transform: translateX(20vw); }  /* O - справа */
+
+        /* ── АНІМАЦІЯ ЗЛІТАННЯ (КЛАС .start-fly) ── */
+        .intro-overlay.start-fly #fl-B { animation: flyX 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-O1 { animation: flyY 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-S { animation: flyY 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-O2 { animation: flyX 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
+        @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
+
+        /* ── АНІМАЦІЯ ЗУМУ (КЛАС .start-zoom) ── */
+        .intro-overlay.start-zoom .zoom-svg {
+            transform: scale(200); /* Зум крізь О */
+            transition: transform 1.5s cubic-bezier(0.64, 0, 0.23, 1);
+        }
+
+        /* Перехід до котеджів */
+        #cabinsContainer {
+            position: relative; z-index: 2; background: var(--bg); padding-top: 80px; 
         }
 
         @media (max-width: 768px) {
-            #zoomTextSvg { font-size: 32vw; }
+            .intro-overlay g { font-size: 32vw; }
         }
 
         /* ── LAYOUT ── */
@@ -601,20 +604,25 @@
     </div>
 <div id="screen-list" class="screen active">
     
-    <div class="hero-scroll-track" id="zoomTrack">
-        <div class="hero-sticky-frame">
-            <img src="hero.jpg" alt="BOSO bg" class="zoom-bg-img">
-            
-            <svg class="zoom-svg" width="100%" height="100%">
-                <defs>
-                    <mask id="textMask">
-                        <rect width="100%" height="100%" fill="white" />
-                        <text id="zoomTextSvg" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="black" font-family="'Inter', sans-serif" font-weight="900">BOSO</text>
-                    </mask>
-                </defs>
-                <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
-            </svg>
-        </div>
+    <div id="introOverlay" class="intro-overlay">
+        <svg class="zoom-svg" width="100%" height="100%">
+            <defs>
+                <mask id="textMask">
+                    <rect width="100%" height="100%" fill="white" />
+                    <g fill="black" font-family="'Inter', sans-serif" font-weight="900" font-size="25vw" text-anchor="middle">
+                        <g id="fl-B"><text x="26%" y="50%" dominant-baseline="central">B</text></g>
+                        <g id="fl-O1"><text x="42%" y="50%" dominant-baseline="central">O</text></g>
+                        <g id="fl-S"><text x="58%" y="50%" dominant-baseline="central">S</text></g>
+                        <g id="fl-O2"><text x="74%" y="50%" dominant-baseline="central">O</text></g>
+                    </g>
+                </mask>
+            </defs>
+            <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
+        </svg>
+    </div>
+
+    <div class="clean-hero">
+        <img src="hero.jpg" alt="BOSO bg" class="hero-bg-img">
     </div>
 
     <div class="page-wrap" id="cabinsContainer">
@@ -923,33 +931,39 @@ async function init() {
 
     setTimeout(() => {
         const preloader = document.getElementById('preloader');
+        const introOverlay = document.getElementById('introOverlay');
+
         if(preloader) {
+            // 1. Ховаємо прелоадер
             preloader.style.opacity = '0';
+            
             setTimeout(() => {
                 preloader.style.display = 'none';
                 
-                // 1) ЗАПУСКАЄМО КАРТИНКУ (зліва)
-                const hero = document.querySelector('.hero-cinematic');
-                if (hero) hero.classList.add('animate-in');
-
-                // 2) ЧЕРЕЗ 800мс ЗАПУСКАЄМО КАРТКУ (справа)
-                setTimeout(() => {
-                    const card = document.querySelector('.hero-glass-card');
-                    if (card) {
-                        card.classList.add('animate-in');
+                if(introOverlay) {
+                    // 2. Команда "Мотор!": Літери злітаються з різних боків (тривалість 1 сек)
+                    introOverlay.classList.add('start-fly');
+                    
+                    // 3. Пауза 1.3 секунди (щоб юзер встиг прочитати BOSO), потім запускаємо ЗУМ
+                    setTimeout(() => {
+                        introOverlay.classList.add('start-zoom');
                         
-                        // Запускаємо ефект друку через 1 секунду (коли картка закінчить рух)
+                        // 4. Через 1.3 сек (коли ми майже пролетіли крізь О), плавно розчиняємо маску
                         setTimeout(() => {
-                            const text = "Місце, де час уповільнюється, а природа надихає на справжній відпочинок.";
-                            typeWriter("hero-typing-text", text, 40);
-                        }, 1000);
-                    }
-                }, 800);
+                            introOverlay.style.opacity = '0';
+                            
+                            // 5. Повністю видаляємо маску, щоб вона не заважала
+                            setTimeout(() => {
+                                introOverlay.style.display = 'none';
+                            }, 500);
 
+                        }, 1300);
+
+                    }, 1300);
+                }
             }, 600);
         }
     }, 1000);
-}
 
 // ─── SCREENS ───────────────────────────────────────────────────────────────
 function showScreen(name) {
