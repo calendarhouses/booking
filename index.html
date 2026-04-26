@@ -601,8 +601,8 @@
         </div>
     </div>
 </div>
+
 <div id="screen-list" class="screen active">
-    
     <div id="introOverlay" class="intro-overlay">
         <svg class="zoom-svg" width="100%" height="100%">
             <defs>
@@ -629,84 +629,6 @@
         <div class="loading-state">
             <div class="loader"></div>
             Завантаження котеджів...
-        </div>
-    </div>
-</div>
-
-<div id="screen-detail" class="drawer-overlay" onclick="closeDetail(event)">
-    <div class="detail-drawer" onclick="event.stopPropagation()">
-        
-        <button class="drawer-close-btn" onclick="closeDetail()">
-            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-
-        <div class="drawer-content">
-            <div class="detail-slider-wrap" id="detailSlider"></div>
-            <h2 class="detail-title" id="detailTitle"></h2>
-            <div class="detail-meta" id="detailMeta"></div>
-
-            <h3 class="section-title">Про котедж</h3>
-            <p id="detailDesc" style="font-size:15px;color:#4B5563;line-height:1.7;margin-bottom:24px;"></p>
-
-            <div class="divider"></div>
-            <h3 class="section-title">Що включено</h3>
-            <div class="amenities-grid" id="amenitiesList"></div>
-
-            <div class="divider"></div>
-            <h3 class="section-title">Знижки за тривалість</h3>
-            <div id="detailDiscounts" style="margin-bottom:28px;"></div>
-
-            <div class="divider"></div>
-            <h3 class="section-title">Правила</h3>
-            <div class="rules-grid">
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    <div><span>Заселення</span>15:00 – 23:00</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-                    <div><span>Виселення</span>до 11:00</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M12 12c-2 0-4 1.5-4 4s2 6 4 6 4-3.5 4-6-2-4-4-4z"/><path d="M8.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/><path d="M15.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/></svg>
-                    <div><span>Тварини</span>За узгодженням (+500 грн)</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6M4 22h16"/></svg>
-                    <div><span>Куріння</span>Лише на вулиці</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                    <div><span>Тихий час</span>23:00 – 08:00</div>
-                </div>
-            </div>
-
-            <h3 class="section-title">Безпека на території</h3>
-            <div class="rules-grid" style="margin-bottom:40px;">
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    <div>Камери на території</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M7 21h10M9 21V7a3 3 0 0 1 6 0v14M9 10h6M12 3v4M10 3h4"/></svg>
-                    <div>Є вогнегасник</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
-                    <div>Є аптечка</div>
-                </div>
-                <div class="rule-card">
-                    <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <div>Датчик диму</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="sticky-cta" id="stickyCta">
-            <div>
-                <div class="sticky-price">від <strong id="ctaPrice">—</strong> грн / ніч</div>
-            </div>
-            <button class="btn-book" onclick="showCalendarFromDrawer()" style="width: auto;">Обрати дати</button>
         </div>
     </div>
 </div>
@@ -845,7 +767,7 @@
         
     </div>
 </div>
-<!-- ── SCREEN: SUCCESS ── -->
+
 <div id="screen-success" class="screen">
     <div class="page-wrap">
         <div class="success-wrap fade-in">
