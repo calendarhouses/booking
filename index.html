@@ -74,38 +74,54 @@
             font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.8); font-weight: 500;
         }
 
-        /* ── ІДЕАЛЬНЕ ПРОЗОРЕ СКЛО ── */
+       /* ── ІДЕАЛЬНЕ ПРОЗОРЕ СКЛО (Емблемний дизайн) ── */
         .hero-glass-card {
             position: relative; z-index: 2;
-            background: rgba(255, 255, 255, 0.08); /* Лише 8% білого (майже повністю прозоро) */
-            backdrop-filter: blur(24px); /* Сильне розмиття фону */
+            background: rgba(255, 255, 255, 0.08); 
+            backdrop-filter: blur(24px); 
             -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.2); /* Тонка скляна рамка */
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 20px;
-            padding: 48px 40px;
-            max-width: 500px;
+            padding: 56px 40px; /* Додали трохи висоти для розкоші */
+            max-width: 520px;
             width: 100%;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3); /* Тінь для відриву від фону */
-            text-align: left; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            
+            /* Магія симетрії */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        /* Витончений верхній надпис */
+        .card-micro-label {
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 4px; color: var(--wood); margin-bottom: 24px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .card-micro-label::before, .card-micro-label::after {
+            content: ''; width: 30px; height: 1px; background: var(--wood); opacity: 0.5;
         }
         
         .hero-glass-card h1 {
-            font-family: 'Playfair Display', serif; 
-            font-size: 52px; 
-            font-weight: 400; /* ТОНКИЙ шрифт = дорого */
-            line-height: 1.15; 
-            color: #ffffff; /* Білий текст на склі */
-            margin-bottom: 20px;
-            letter-spacing: 0px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Легка тінь для читабельності */
+            font-family: 'Playfair Display', serif; font-size: 52px; 
+            font-weight: 400; line-height: 1.15; color: #ffffff; 
+            margin-bottom: 24px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+        }
+        
+        /* Вертикальна лінія-розділювач */
+        .card-divider {
+            width: 1px; height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+            margin-bottom: 24px;
         }
         
         .hero-glass-card p {
-            font-family: 'Inter', sans-serif;
-            font-size: 16px; 
-            color: rgba(255, 255, 255, 0.85); /* Напівпрозорий білий */
-            line-height: 1.6; 
-            font-weight: 300;
+            font-family: 'Inter', sans-serif; font-size: 15px; 
+            color: rgba(255, 255, 255, 0.85); line-height: 1.6; 
+            font-weight: 300; 
+            max-width: 360px; /* Спеціально звужуємо текст, щоб він зібрався в красивий стовпчик */
         }
 
         /* ── LAYOUT ── */
@@ -453,7 +469,12 @@
         </div>
         
         <div class="hero-glass-card">
+            <div class="card-micro-label">The BOSO Experience</div>
+            
             <h1>Оберіть свій<br>ідеальний котедж</h1>
+            
+            <div class="card-divider"></div>
+            
             <p>Місце, де час уповільнюється, а природа надихає на справжній відпочинок.</p>
         </div>
     </div>
