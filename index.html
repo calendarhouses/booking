@@ -35,8 +35,8 @@
         .hero-scroll-track {
             position: relative;
             width: 100%;
-            height: 350vh; /* Висота для скролу */
-            background-color: var(--bg); /* Світлий фон сайту */
+            height: 350vh; 
+            background-color: var(--bg); 
             z-index: 1;
         }
 
@@ -50,7 +50,6 @@
             background-color: var(--bg);
         }
 
-        /* Фотографія, яка стоїть НЕРУХОМО позаду */
         .zoom-bg-img {
             position: absolute;
             top: 0;
@@ -61,7 +60,7 @@
             z-index: 1;
         }
 
-        /* SVG, який лежить поверх фотографії */
+        /* 🟢 ОСЬ ТУТ ТЕПЕР МАГІЯ МАСТШТАБУВАННЯ 🟢 */
         .zoom-svg {
             position: absolute;
             top: 0;
@@ -69,18 +68,19 @@
             width: 100%;
             height: 100%;
             z-index: 2;
-        }
-
-        /* Стилі для тексту всередині SVG */
-        #zoomTextSvg {
-            font-size: 25vw;
-            letter-spacing: 0.05em;
-            /* ЦЕ ГОЛОВНИЙ ФІКС: Зміщуємо центр масштабування рівно в першу літеру 'O' */
-            transform-origin: 36% 50%; 
+            /* Ставимо приціл відносно екрану. 
+               По Y залишаємо 50% (центр), 
+               а по X ставимо ~38% (приблизно твоя червона крапка в першій "O") */
+            transform-origin: 38% 50%; 
             will-change: transform;
         }
 
-        /* Перехід до котеджів */
+        /* Текст тепер просто статично лежить по центру SVG */
+        #zoomTextSvg {
+            font-size: 25vw;
+            letter-spacing: 0.05em;
+        }
+
         #cabinsContainer {
             position: relative;
             z-index: 2;
@@ -1549,25 +1549,25 @@ init();
    // ─── ZOOM ЕФЕКТ ПРИ СКРОЛІ (SVG STYLE) ───
 window.addEventListener('scroll', () => {
     const track = document.getElementById('zoomTrack');
-    const textSvg = document.getElementById('zoomTextSvg');
+    // Зверни увагу: тепер ми шукаємо '.zoom-svg', а не текст!
+    const svgMask = document.querySelector('.zoom-svg');
     
-    if (!track || !textSvg) return;
+    if (!track || !svgMask) return;
 
     const rect = track.getBoundingClientRect();
     
-    // Якщо ми ще не доскролили до блоку — тримаємо початковий розмір
     if (rect.top > 0) {
-        textSvg.style.transform = 'scale(1)';
+        svgMask.style.transform = 'scale(1)';
         return;
     }
 
     let scrollProgress = Math.abs(rect.top) / (track.offsetHeight - window.innerHeight);
     scrollProgress = Math.max(0, Math.min(1, scrollProgress)); 
 
-    // Масштабуємо саме дірку в SVG
     const scaleValue = 1 + Math.pow(scrollProgress, 3) * 300; 
     
-    textSvg.style.transform = `scale(${scaleValue})`;
+    // Застосовуємо збільшення до всього SVG-полотна
+    svgMask.style.transform = `scale(${scaleValue})`;
 });
 </script>
 </body>
