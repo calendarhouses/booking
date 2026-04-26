@@ -332,14 +332,73 @@
         .amenity-item svg { width: 22px; height: 22px; stroke: #3A4F35; fill: none; stroke-width: 1.5; flex-shrink: 0; }
 
         /* Картки Знижок */
-        .discount-item {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #fff; border: 1px solid var(--border); border-radius: 16px; 
-            padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
-        .discount-item .cond { font-weight: 600; font-size: 15px; color: var(--text); }
-        .discount-item .pct { background: var(--accent-light); color: var(--accent); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+.discounts-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; /* Дві колонки для компактності */
+    gap: 12px; 
+    margin-bottom: 32px; 
+}
 
+.discount-card {
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    background: #fff; 
+    border: 1px solid var(--border); 
+    border-radius: 14px; 
+    padding: 14px 18px; 
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.01);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.discount-card:hover {
+    transform: translateY(-2px);
+    border-color: #5F746A;
+}
+
+/* Кольоровий маркер зліва для преміального вигляду */
+.discount-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #5F746A; 
+}
+
+.discount-card .cond { 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600; 
+    font-size: 14px; 
+    color: var(--text); 
+}
+
+.discount-card .cond svg {
+    width: 18px;
+    height: 18px;
+    stroke: #5F746A;
+    fill: none;
+    stroke-width: 2;
+    opacity: 0.8;
+}
+
+.discount-card .pct { 
+    background: rgba(95, 116, 106, 0.1); /* Світлий фон в тон акценту */
+    color: #5F746A; 
+    padding: 6px 10px; 
+    border-radius: 8px; 
+    font-weight: 700; 
+    font-size: 14px; 
+}
+
+@media (max-width: 768px) {
+    .discounts-grid { grid-template-columns: 1fr; }
+}
         /* Картки Правил */
         .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
         .rule-card {
@@ -1135,7 +1194,7 @@ function showDetail(cabinId) {
             Вільний: <strong style="color:var(--accent);margin-left:4px;">${getNextFreeDate(room.name)}</strong>
         </div>`;
 
-    renderAmenities(cfg.amenities);
+   renderAmenities(cfg.amenities);
 
     // ─── ГАРАНТОВАНІ ЗНИЖКИ ДЛЯ ПАНЕЛІ ───
     let currentDiscounts = discountsList.length > 0 ? discountsList : [
@@ -1146,9 +1205,28 @@ function showDetail(cabinId) {
         { condition: "Від 30 діб", discount: "73%" }
     ];
     
-    document.getElementById('detailDiscounts').innerHTML = currentDiscounts.map(d => 
-        `<div class="discount-item"><div class="cond">Бронюючи ${d.condition.toLowerCase()}</div><div class="pct">знижка ${d.discount}</div></div>`
-    ).join('');
+    // Обертаємо у новий grid-контейнер
+    const discountsContainer = document.getElementById('detailDiscounts');
+    discountsContainer.className = 'discounts-grid';
+    
+    discountsContainer.innerHTML = currentDiscounts.map(d => {
+        // Витягуємо тільки цифру з будь-якого тексту (напр. з "Бронюючи діб: 2")
+        const nightsMatch = d.condition.match(/\d+/);
+        // Формуємо красивий текст
+        const nightsText = nightsMatch ? `Від ${nightsMatch[0]} ночей` : d.condition;
+        
+        // Додаємо мінімалістичну іконку місяця/ночі
+        const iconMoon = `<svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+        return `
+        <div class="discount-card">
+            <div class="cond">
+                ${iconMoon}
+                <span>${nightsText}</span>
+            </div>
+            <div class="pct">-${d.discount}</div>
+        </div>`;
+    }).join('');
 
     // Відкриваємо панель
     const overlay = document.getElementById('screen-detail');
