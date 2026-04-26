@@ -930,7 +930,6 @@ async function init() {
         if (sd.customPrices) customPrices = sd.customPrices;
     } catch(e) {
         console.error(e);
-        // Жорстко прописуємо знижки, як ти просив
         discountsList = [
             { condition:"Від 2 діб", discount:"15%", roomsIds:["all"] },
             { condition:"Від 3 діб", discount:"20%", roomsIds:["all"] },
@@ -940,15 +939,14 @@ async function init() {
         ];
     }
     
-    const skeleton = document.getElementById('skeletonLoader');
-    if (skeleton) skeleton.style.display = 'none';
-    
     renderCabinList();
 
-    // ─── СЦЕНАРІЙ КІНЕМАТОГРАФІЧНОЇ АНІМАЦІЇ ───
+    // ─── РЕЖИСЕРСЬКИЙ СЦЕНАРІЙ (БЕЗ ЗАТРИМОК) ───
     setTimeout(() => {
         const preloader = document.getElementById('preloader');
         const introOverlay = document.getElementById('introOverlay');
+        const bgText = document.getElementById('bgBosoText');
+        const cabins = document.getElementById('cabinsContainer');
 
         if(preloader) {
             preloader.style.opacity = '0';
@@ -957,37 +955,37 @@ async function init() {
                 preloader.style.display = 'none';
                 
                 if(introOverlay) {
-                    // 1. Полетіли літери (триває 1.5 сек)
+                    // 1. Полетіли літери
                     introOverlay.classList.add('start-fly');
                     
-                    // 2. Пауза 2 секунди, щоб юзер кайфонув і прочитав
+                    // 2. Пауза 1.5 сек (щоб встигли прочитати)
                     setTimeout(() => {
+                        // 3. ПУСК ЗУМУ (триває 2.5 сек по CSS)
                         introOverlay.classList.add('start-zoom');
                         
-                        // 3. Через 2.2 сек (коли зум майже закінчився)
+                        // 4. ЕФЕКТ ПЕРЕКРИТТЯ:
+                        // Не чекаємо кінця зуму! Запускаємо скрол і текст через 1.6 сек.
+                        // В цей момент літери вже величезні, і ми "влітаємо" в контент.
                         setTimeout(() => {
-                            introOverlay.style.opacity = '0';
-                            
-                            // Проявляємо фоновий текст
-                            const bgText = document.getElementById('bgBosoText');
+                            // Проявляємо текст BOSO на фоні
                             if(bgText) bgText.style.opacity = '1';
                             
-                            // 4. ІДЕАЛЬНИЙ ПЛАВНИЙ СКРОЛ ДО БІЛОГО ФОНУ
-                            const cabins = document.getElementById('cabinsContainer');
+                            // Запускаємо скрол (швидкість 1.8 сек для величі)
                             if (cabins) {
-                                // Рахуємо точну відстань до карток (без жодних -40px)
                                 const offset = cabins.getBoundingClientRect().top + window.scrollY;
-                                // Запускаємо наш кастомний скрол на 1.5 секунди
-                                smoothScrollTo(offset, 1500); 
+                                smoothScrollTo(offset, 1800); 
                             }
                             
+                            // Починаємо плавно розчиняти маску, поки йде скрол
+                            introOverlay.style.opacity = '0';
+
                             setTimeout(() => {
                                 introOverlay.style.display = 'none';
-                            }, 800);
+                            }, 1000);
 
-                        }, 2200);
+                        }, 1600); // Оптимальний момент для початку скролу
 
-                    }, 2000);
+                    }, 1500);
                 }
             }, 600);
         }
