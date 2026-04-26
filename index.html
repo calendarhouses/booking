@@ -60,7 +60,6 @@
             z-index: 1;
         }
 
-        /* 🟢 ОСЬ ТУТ ТЕПЕР МАГІЯ МАСТШТАБУВАННЯ 🟢 */
         .zoom-svg {
             position: absolute;
             top: 0;
@@ -68,11 +67,8 @@
             width: 100%;
             height: 100%;
             z-index: 2;
-            /* Ставимо приціл відносно екрану. 
-               По Y залишаємо 50% (центр), 
-               а по X ставимо ~38% (приблизно твоя червона крапка в першій "O") */
-            transform-origin: 38% 50%; 
             will-change: transform;
+            /* transform-origin звідси видалили! */
         }
 
         /* Текст тепер просто статично лежить по центру SVG */
@@ -612,7 +608,7 @@
                 <defs>
                     <mask id="textMask">
                         <rect width="100%" height="100%" fill="white" />
-                        <text id="zoomTextSvg" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="black" font-family="'Inter', sans-serif" font-weight="900">BOSO</text>
+                        <text id="zoomTextSvg" x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="black" font-family="'Inter', sans-serif" font-weight="900">B<tspan id="targetLetter">O</tspan>SO</text>
                     </mask>
                 </defs>
                 <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
@@ -1546,7 +1542,32 @@ function toast(msg) {
 
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
-   // ─── ZOOM ЕФЕКТ ПРИ СКРОЛІ (SVG STYLE) ───
+   // ─── АВТОМАТИЧНИЙ ПРИЦІЛ В ПРАВУ ДУГУ ЛІТЕРИ "О" ───
+function setPerfectZoomCenter() {
+    const svgMask = document.querySelector('.zoom-svg');
+    const targetLetter = document.getElementById('targetLetter');
+    
+    if (!svgMask || !targetLetter) return;
+
+    // Отримуємо точні координати рамки літери 'O' на екрані
+    const rect = targetLetter.getBoundingClientRect();
+    
+    // МАГІЯ ТУТ:
+    // Замість центру (rect.width / 2), ми цілимось у праву стінку літери!
+    // Множник 0.85 означає, що ми беремо 85% ширини літери зліва направо. 
+    // Це ідеально попадає в саму товщу правої дуги шрифту Inter Black.
+    const centerX = rect.left + (rect.width * 0.85); 
+    const centerY = rect.top + (rect.height / 2); // По висоті залишаємо рівно по центру
+
+    // Перетворюємо пікселі у відсотки
+    const originX = (centerX / window.innerWidth) * 100;
+    const originY = (centerY / window.innerHeight) * 100;
+
+    // Задаємо ідеальний приціл
+    svgMask.style.transformOrigin = `${originX}% ${originY}%`;
+}
+    
+    // ─── ZOOM ЕФЕКТ ПРИ СКРОЛІ (SVG STYLE) ───
 window.addEventListener('scroll', () => {
     const track = document.getElementById('zoomTrack');
     // Зверни увагу: тепер ми шукаємо '.zoom-svg', а не текст!
