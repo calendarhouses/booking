@@ -75,8 +75,8 @@
         #zoomTextSvg {
             font-size: 25vw;
             letter-spacing: 0.05em;
-            /* Центруємо точку масштабування */
-            transform-origin: 50% 50%;
+            /* ЦЕ ГОЛОВНИЙ ФІКС: Зміщуємо центр масштабування рівно в першу літеру 'O' */
+            transform-origin: 36% 50%; 
             will-change: transform;
         }
 
@@ -1565,7 +1565,7 @@ window.addEventListener('scroll', () => {
     scrollProgress = Math.max(0, Math.min(1, scrollProgress)); 
 
     // Масштабуємо саме дірку в SVG
-    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 150; 
+    const scaleValue = 1 + Math.pow(scrollProgress, 3) * 300; 
     
     textSvg.style.transform = `scale(${scaleValue})`;
 });
