@@ -945,15 +945,8 @@ async function init() {
     
     renderCabinList();
 
+    // ─── СЦЕНАРІЙ АНІМАЦІЇ ───
     setTimeout(() => {
-        const preloader = document.getElementById('preloader');
-        const introOverlay = document.getElementById('introOverlay');
-
-        if(preloader) {
-            // 1. Ховаємо прелоадер
-            preloader.style.opacity = '0';
-            
-            setTimeout(() => {
         const preloader = document.getElementById('preloader');
         const introOverlay = document.getElementById('introOverlay');
 
@@ -987,7 +980,7 @@ async function init() {
                                 window.scrollTo({ top: offset - 40, behavior: 'smooth' });
                             }
                             
-                            // Повністю видаляємо маску
+                            // Повністю видаляємо маску, щоб не заважала
                             setTimeout(() => {
                                 introOverlay.style.display = 'none';
                             }, 500);
