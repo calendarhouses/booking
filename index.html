@@ -587,12 +587,12 @@
             <div class="hero-location"></div>
         </div>
         
-        <div class="hero-glass-card">
+        <p id="hero-typing-text" style="min-height: 3em;"></p>
             <div class="card-micro-label">ВАШ ПРИВАТНИЙ ПРОСТІР</div>
             
             <h1>Оберіть свій<br>ідеальний котедж</h1>
             
-            <p>Місце, де час уповільнюється, а природа надихає на справжній відпочинок.</p>
+            <p id="hero-typing-text"></p>
         </div>
     </div>
 
@@ -946,7 +946,15 @@ async function init() {
                 // 2) ЧЕРЕЗ 800мс ЗАПУСКАЄМО КАРТКУ (справа)
                 setTimeout(() => {
                     const card = document.querySelector('.hero-glass-card');
-                    if (card) card.classList.add('animate-in');
+                    if (card) {
+                        card.classList.add('animate-in');
+                        
+                        // Запускаємо ефект друку через 1 секунду (коли картка закінчить рух)
+                        setTimeout(() => {
+                            const text = "Місце, де час уповільнюється, а природа надихає на справжній відпочинок.";
+                            typeWriter("hero-typing-text", text, 40);
+                        }, 1000);
+                    }
                 }, 800);
 
             }, 600);
@@ -1020,7 +1028,8 @@ function renderCabinList() {
 
         return `
         <div class="cabin-card">
-            <div class="slider-wrap" id="card-slider-${r.id}" onclick="showDetail(${r.id})">
+            // Шукай цей рядок всередині renderCabinList:
+<div class="slider-wrap" id="card-slider-${r.id}">
                 <div class="cabin-badge">${r.desc}</div>
                 <div class="slider-track" id="track-${r.id}">
                     ${imgs.map(url => `<div class="slide"><img src="${url}" alt="${r.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'slide-placeholder\\'>🏡</div>'"></div>`).join('')}
@@ -1502,6 +1511,20 @@ function toast(msg) {
 
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
+    function typeWriter(elementId, text, speed) {
+    let i = 0;
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    element.innerHTML = "";
+    function type() {
+        if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        }
+    }
+    type();
+}
 </script>
 </body>
 </html>
