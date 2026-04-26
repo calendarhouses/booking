@@ -31,102 +31,104 @@
             min-height: 100vh;
         }
 
-        /* ── HERO (PREMIUM MINIMALIST) ── */
-        .hero-cinematic {
-            position: relative;
-            width: calc(100% - 40px);
-            max-width: 1400px;
-            margin: 20px auto 60px;
-            height: 75vh;
-            min-height: 550px;
-            border-radius: 24px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center; /* Центруємо для преміального вигляду */
-            padding: 40px 20px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        }
-        
-        .hero-bg-img {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: 0;
-            transform: scale(1.02);
-        }
+        /* ── ОНОВЛЕНИЙ HERO БЛОК (Ступінчаста Анімація) ── */
 
-        /* Плавний градієнт: зверху прозоро (для лого), знизу темніше (для тексту) */
-        .hero-overlay {
-            position: absolute; inset: 0; z-index: 1;
-            background: linear-gradient(180deg, rgba(18,26,18,0.1) 0%, rgba(18,26,18,0.4) 40%, rgba(18,26,18,0.7) 100%);
-        }
+/* Прибираємо старий логотип зліва зверху */
+.hero-brand { display: none !important; }
 
-        /* ── ЧИСТА ТИПОГРАФІКА ЗАМІСТЬ СКЛА ── */
-        /* Використовуємо той самий клас, щоб не міняти HTML, але прибираємо все зайве */
-        .hero-glass-card {
-            position: relative; z-index: 2;
-            background: transparent; 
-            backdrop-filter: none; 
-            -webkit-backdrop-filter: none;
-            border: none; 
-            padding: 0; 
-            max-width: 800px; 
-            width: 100%;
-            box-shadow: none;
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
+.hero-cinematic {
+    position: relative;
+    width: calc(100% - 40px);
+    max-width: 1400px;
+    margin: 20px auto 60px;
+    height: 90vh; /* Збільшуємо висоту для кращого ефекту "сходинок" */
+    min-height: 700px;
+    border-radius: 24px;
+    overflow: hidden;
+    /* Тепер тут display: grid для сходинок */
+    display: grid; 
+    padding: 100px 40px; /* Збільшуємо відступи */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
 
-        /* Елегантна вертикальна лінія кольору дерева над текстом */
-        .hero-glass-card::before {
-            content: '';
-            display: block;
-            width: 1px;
-            height: 60px;
-            background: var(--wood);
-            margin-bottom: 24px;
-            opacity: 0.7;
-        }
-        
-        .card-micro-label {
-            font-family: 'Inter', sans-serif;
-            font-size: 11px; font-weight: 500; text-transform: uppercase;
-            letter-spacing: 6px; color: var(--wood); margin-bottom: 24px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        
-        /* Прибираємо бокові рисочки, вони перевантажують */
-        .card-micro-label::before, .card-micro-label::after {
-            display: none;
-        }
-        
-        .hero-glass-card h1 {
-            font-family: 'Playfair Display', serif; 
-            font-size: 72px; /* Трохи більший розмір */
-            font-weight: 400; 
-            line-height: 1.1; 
-            color: #ffffff; 
-            margin-bottom: 32px; 
-            letter-spacing: -1px; 
-            text-shadow: 0 4px 24px rgba(0,0,0,0.4); /* Глибока тінь для читабельності */
-        }
-        
-        .hero-glass-card p {
-            font-family: 'Inter', sans-serif; font-size: 16px; 
-            color: rgba(255, 255, 255, 0.85); line-height: 1.6; 
-            font-weight: 300; 
-            max-width: 500px; 
-            margin: 0 auto;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-        }
+.hero-bg-img {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 0;
+    transform: scale(1.02);
+}
 
-        /* Адаптація заголовку для мобільних */
-        @media (max-width: 768px) {
-            .hero-glass-card h1 { font-size: 48px; }
-            .hero-glass-card::before { height: 40px; }
-        }
+/* Робимо оверлей більш рівномірним, щоб слова читалися всюди */
+.hero-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background: rgba(18,26,18,0.5); /* Рівномірне затемнення */
+}
+
+/* ── СТРУКТУРА СХОДИНОК ── */
+/* Замість картки використовуємо контейнер для сходинок */
+.hero-staircase-wrapper {
+    position: relative; z-index: 2;
+    grid-column: 1 / -1; /* На всю ширину */
+    grid-row: 1 / -1;    /* На всю висоту */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Розтягуємо слова по вертикалі */
+    height: 100%;
+}
+
+/* ── СТИЛІЗАЦІЯ СЛІВ-СХОДИНОК ── */
+.staircase-word {
+    font-family: 'Playfair Display', serif; 
+    font-weight: 500; /* Зробимо трохи жирнішим для ефекту */
+    color: #ffffff; 
+    line-height: 1.1; 
+    letter-spacing: -1px; 
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    white-space: nowrap; /* Не розриваємо слово */
+    position: relative;
+    
+    /* ── СТАН ПЕРЕД АНІМАЦІЄЮ ── */
+    opacity: 0;
+    transform: translateX(-100vw); /* Винесено далеко вліво */
+    /* ── БАЗОВА АНІМАЦІЯ (керуємо з JS) ── */
+    transition: transform 1s cubic-bezier(0.23, 1, 0.32, 1), opacity 1s ease;
+}
+
+/* Позиціонування кожного слова (ступінчасті відступи) */
+.staircase-word:nth-child(1) { margin-left: 0%;    font-size: 60px; } /* Оберіть */
+.staircase-word:nth-child(2) { margin-left: 15%;   font-size: 65px; } /* свій */
+.staircase-word:nth-child(3) { margin-left: 30%;   font-size: 70px; } /* ідеальний */
+.staircase-word:nth-child(4) { margin-left: 45%;   font-size: 75px; } /* котедж */
+.staircase-word:nth-child(5) { margin-left: 60%;   font-size: 80px; } /* в */
+
+/* Останнє слово BOSO (Правий нижній кут, колір дерева) */
+.staircase-word:last-child { 
+    margin-left: auto; /* Зміщуємо максимально вправо */
+    margin-right: 0%;
+    margin-top: auto; /* Зміщуємо максимально вниз */
+    font-size: 110px; /* Дуже велике, як підпис */
+    font-weight: 700;
+    color: var(--wood); /* Колір дерева */
+    letter-spacing: 2px; /* Трохи ширше */
+}
+
+/* ── Клас, який додає анімацію через JS ── */
+.staircase-word.animate-in {
+    opacity: 1;
+    transform: translateX(0); /* Повертається в нормальну позицію */
+}
+
+/* ── Адаптація для мобільних ── */
+/* Сходинки collapse-ять в простий список */
+@media (max-width: 960px) {
+    .hero-cinematic { height: 75vh; padding: 40px 20px; }
+    .staircase-word, .staircase-word:last-child { 
+        margin: 0; 
+        font-size: 40px !important; 
+        text-align: left; 
+        width: 100%;
+        display: block; 
+    }
+}
 
         /* ── LAYOUT ── */
         .page-wrap {
@@ -640,22 +642,19 @@
     </div>
 <div id="screen-list" class="screen active">
     
-    <div class="hero-cinematic">
-        <img src="hero.jpg" alt="BOSO" class="hero-bg-img">
-        
-        <div class="hero-overlay"></div>
-        
-        <div class="hero-top">
-            <div class="hero-brand">BOSO</div>
-            <div class="hero-location"></div>
-        </div>
-        
-        <div class="hero-glass-card">
-            <div class="card-micro-label">ВАШ ПРИВАТНИЙ ПРОСТІР</div>
-            <h1>Оберіть свій<br>ідеальний котедж</h1>
-            <p id="hero-typing-text" style="min-height: 3em;"></p>
-        </div>
+    <div class="hero-cinematic" id="staircaseHero">
+    <img src="hero.jpg" alt="BOSO" class="hero-bg-img">
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-staircase-wrapper">
+        <span class="staircase-word">Оберіть</span>
+        <span class="staircase-word">свій</span>
+        <span class="staircase-word">ідеальний</span>
+        <span class="staircase-word">котедж</span>
+        <span class="staircase-word">в</span>
+        <span class="staircase-word">BOSO</span>
     </div>
+</div>
 
     <div class="page-wrap" id="cabinsContainer">
         <div class="loading-state">
@@ -1597,6 +1596,22 @@ init();
     }
     type();
 }
+    // ─── СХОДИНЧАСТА АНІМАЦІЯ HERO ───
+window.addEventListener('load', () => {
+    // 1) Отримуємо всі слова-сходинки
+    const staircaseWords = document.querySelectorAll('.hero-staircase-wrapper .staircase-word');
+    
+    // 2) Запускаємо анімацію з затримкою
+    // Починаємо через 800мс після завантаження прелоадера
+    setTimeout(() => {
+        staircaseWords.forEach((word, index) => {
+            // Кожне наступне слово з'являється через 400мс після попереднього
+            setTimeout(() => {
+                word.classList.add('animate-in');
+            }, index * 400); 
+        });
+    }, 1000); 
+});
 </script>
 </body>
 </html>
