@@ -92,10 +92,11 @@
         @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
         @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
 
-        /* ── АНІМАЦІЯ ЗУМУ (Збільшили до 2.5 сек) ── */
+        /* ── АНІМАЦІЯ ЗУМУ (Більш динамічна) ── */
         .intro-overlay.start-zoom .zoom-svg {
             transform: scale(200); 
-            transition: transform 2.5s cubic-bezier(0.64, 0, 0.15, 1);
+            /* Тривалість 1.8с замість 2.5с для ідеального злиття зі скролом */
+            transition: transform 1.8s cubic-bezier(0.7, 0, 0.2, 1);
         }
 
         /* Перехід до котеджів */
@@ -941,7 +942,7 @@ async function init() {
     
     renderCabinList();
 
-    // ─── РЕЖИСЕРСЬКИЙ СЦЕНАРІЙ (БЕЗ ЗАТРИМОК) ───
+    // ─── РЕЖИСЕРСЬКИЙ СЦЕНАРІЙ (ІДЕАЛЬНЕ НАКЛАДАННЯ) ───
     setTimeout(() => {
         const preloader = document.getElementById('preloader');
         const introOverlay = document.getElementById('introOverlay');
@@ -958,39 +959,37 @@ async function init() {
                     // 1. Полетіли літери
                     introOverlay.classList.add('start-fly');
                     
-                    // 2. Пауза 1.5 сек (щоб встигли прочитати)
+                    // 2. Пауза 1.5 сек
                     setTimeout(() => {
-                        // 3. ПУСК ЗУМУ (триває 2.5 сек по CSS)
+                        // 3. ПУСК ЗУМУ
                         introOverlay.classList.add('start-zoom');
                         
-                        // 4. ЕФЕКТ ПЕРЕКРИТТЯ:
-                        // Не чекаємо кінця зуму! Запускаємо скрол і текст через 1.6 сек.
-                        // В цей момент літери вже величезні, і ми "влітаємо" в контент.
+                        // 4. СКРОЛ ПОЧИНАЄТЬСЯ ОДРАЗУ В ПРОЦЕСІ ЗУМУ (через 600мс!)
+                        // В цей момент літера 'О' якраз розлітається в сторони
                         setTimeout(() => {
-                            // Проявляємо текст BOSO на фоні
-                            if(bgText) bgText.style.opacity = '1';
-                            
-                            // Запускаємо скрол (швидкість 1.8 сек для величі)
                             if (cabins) {
                                 const offset = cabins.getBoundingClientRect().top + window.scrollY;
-                                smoothScrollTo(offset, 1800); 
+                                smoothScrollTo(offset, 1500); 
                             }
-                            
-                            // Починаємо плавно розчиняти маску, поки йде скрол
+                            // Одразу починаємо розчиняти білу маску
                             introOverlay.style.opacity = '0';
+                        }, 600);
 
-                            setTimeout(() => {
-                                introOverlay.style.display = 'none';
-                            }, 1000);
+                        // 5. Фоновий текст з'явиться ТІЛЬКИ коли ми вже доскролили до котеджів
+                        setTimeout(() => {
+                            if(bgText) bgText.style.opacity = '1';
+                        }, 2000);
 
-                        }, 1600); // Оптимальний момент для початку скролу
+                        // Остаточно прибираємо маску з коду
+                        setTimeout(() => {
+                            introOverlay.style.display = 'none';
+                        }, 2000);
 
                     }, 1500);
                 }
             }, 600);
         }
     }, 1000);
-}
 
 // ─── КАСТОМНА ФУНКЦІЯ ПРЕМІУМ-СКРОЛУ ───
 function smoothScrollTo(endY, duration) {
