@@ -406,12 +406,23 @@
 
         /* Кнопка "Назад" в панелі */
         .back-btn {
-            background: transparent; border: none; font-family: 'Inter', sans-serif;
-            font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer;
-            display: inline-flex; align-items: center; gap: 8px; margin-bottom: 24px; transition: 0.2s;
+            background: #E5E1DC; /* Сірий преміум фон */
+            border: none; 
+            padding: 12px 18px; 
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif; 
+            font-size: 13px; 
+            font-weight: 700; 
+            color: var(--text);
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 8px; 
+            margin-bottom: 28px; 
+            transition: 0.2s;
         }
-        .back-btn:hover { color: var(--text); }
-        .back-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .back-btn:hover { background: #D1CCC5; transform: translateX(-4px); }
+        .back-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 
         /* ── ПРЕМІУМ КАЛЕНДАР (ВЕРТИКАЛЬНИЙ) ── */
         .calendar-container { 
@@ -603,9 +614,15 @@
         .step-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
         .step { display: flex; align-items: center; gap: 8px; }
         .step-num { 
-            width: 26px; height: 26px; border-radius: 50%; background: #F3F0EC; color: var(--muted); 
+            width: 28px; height: 28px; border-radius: 50%; background: #F3F0EC; color: var(--muted); 
             display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; transition: 0.4s; 
         }
+        
+        /* Пройдений етап — ТЕМНО-ЗЕЛЕНИЙ */
+        .step.done .step-num { 
+            background: #2C3D28; color: #fff; border-color: #2C3D28; 
+        }
+
         /* ── ПУЛЬСАЦІЯ АКТИВНОГО ЕТАПУ ── */
         .step.active .step-num { 
             background: #2C3D28; /* Темно-зелений */
@@ -619,14 +636,16 @@
             70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(85, 107, 47, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(85, 107, 47, 0); }
         }
-        .step-label { font-size: 13px; font-weight: 600; color: var(--muted); transition: 0.4s; }
-        .step.active .step-label, .step.done .step-label { color: var(--text); }
         
-        /* Лінія з анімацією заливки */
+        .step-label { font-size: 13px; font-weight: 600; color: var(--muted); transition: 0.4s; }
+        /* Текст активного і пройденого етапу теж робимо темно-зеленим */
+        .step.active .step-label, .step.done .step-label { color: #2C3D28; }
+        
+        /* Лінія з анімацією заливки (тепер темно-зелена) */
         .step-line { flex: 1; height: 3px; background: var(--border); border-radius: 2px; position: relative; overflow: hidden; }
         .step-line::after { 
             content: ''; position: absolute; top:0; left:0; height:100%; width: 0%; 
-            background: var(--accent); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            background: #2C3D28; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
         }
         .step-line.done::after { width: 100%; }
 
@@ -642,8 +661,16 @@
         .cnt-val { font-size: 16px; font-weight: 700; min-width: 24px; text-align: center; }
         
         .pets-toggle { display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .pet-opt { flex: 1; padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--muted); background: #fff; }
+        
+        /* 🟢 ФІКС ІКОНОК ТВАРИН 🟢 */
+        .pet-opt { 
+            flex: 1; padding: 16px 12px; border: 1.5px solid var(--border); border-radius: 14px; 
+            text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; 
+            color: var(--muted); background: #fff;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; /* Ставимо іконку над текстом */
+        }
         .pet-opt.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+        .pet-opt svg { width: 28px; height: 28px; flex-shrink: 0; } /* Жорстко обмежуємо розмір іконки! */
 
         /* ── ФОРМИ ── */
         .form-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
@@ -769,10 +796,8 @@
                 </div>
 
                 <div class="calendar-container">
-                    <div class="cal-header">
-                        <button class="cal-nav-btn" onclick="shiftCal(-1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
-                        <button class="cal-nav-btn" onclick="shiftCal(1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
-                    </div>
+                    <div class="cal-months-wrap" id="calMonthsWrap"></div>
+                </div>
                     <div class="cal-months-wrap" id="calMonthsWrap"></div>
                 </div>
 
@@ -893,9 +918,10 @@ const iWin = '<svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v
 const iGrill = '<svg viewBox="0 0 24 24"><path d="M17 8c0-3.3-2.2-6-5-6S7 4.7 7 8m-2 0h14v2H5V8zm2 2v6a3 3 0 006 0v-6M9 20h6M12 16v4"/></svg>';
 const iBath = '<svg viewBox="0 0 24 24"><path d="M4 17V8a2 2 0 012-2h12a2 2 0 012 2v9m-8-5h.01M6 21h12a2 2 0 002-2v-2H4v2a2 2 0 002 2z"/></svg>';
 const iKit = '<svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>';
-// Преміум іконки для тварини ( paw)
-const iNoPet = '<svg viewBox="0 0 24 24"><path d="M12 2l-3 4-4 3 4 3 3 4 3-4 4-3-4-3-3-4z"/><circle cx="12" cy="12" r="10"/></svg>'; // Stylized No Paw
-const iPetDog = '<svg viewBox="0 0 24 24"><path d="M12 2l-3 4-4 3 4 3 3 4 3-4 4-3-4-3-3-4z"/></svg>'; // Stylized Paw
+
+// 🟢 НОВІ ІКОНКИ ДЛЯ ТВАРИН (Із захистом від розтягування) 🟢
+const iNoPet = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>';
+const iPetDog = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM7 15h10M9 8h.01"/></svg>';
     
 // ─── CABIN CONFIG ─────────────────────────────────────────────────────────
 const CABIN_CONFIG = {
@@ -1299,16 +1325,25 @@ function renderCalendar() {
     const room = roomsList.find(r => r.id == currentCabinId);
     const bookedRanges = getBookedRanges(room ? room.name : '');
 
-    // Рендер 1 місяця (m < 1)
     for (let m = 0; m < 1; m++) {
         const base = new Date(calBase.getFullYear(), calBase.getMonth() + m, 1);
         const year = base.getFullYear(), month = base.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const firstDay = (base.getDay() + 6) % 7; 
         const today = new Date(); today.setHours(0,0,0,0);
-        const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Люпень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+        const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 
-        let html = `<div class="cal-month"><div class="cal-month-title">${monthNames[month]} ${year}</div><div class="cal-grid">`;
+        // 🟢 МАГІЯ ТУТ: Стрілочки тепер генеруються ПРЯМО БІЛЯ НАЗВИ МІСЯЦЯ 🟢
+        let html = `
+        <div class="cal-month">
+            <div class="cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:16px;">
+                <button class="cal-nav-btn" onclick="shiftCal(-1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+                <div class="cal-month-title" style="margin:0; font-size:22px;">${monthNames[month]} ${year}</div>
+                <button class="cal-nav-btn" onclick="shiftCal(1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+            </div>
+            <div class="cal-grid">
+        `;
+        
         ['Пн','Вт','Ср','Чт','Пт','Сб','Нд'].forEach(d => { html += `<div class="cal-day-header">${d}</div>`; });
 
         for (let i = 0; i < firstDay; i++) html += '<div></div>';
@@ -1354,17 +1389,17 @@ function renderCalendar() {
         if(cntVal) cntVal.innerText = guestCount;
     }
 
-    // 🟢🟢 Ініціалізуємо ПЕТ-ОПЦІЇ преміальними іконками і складним текстом 🟢🟢
+    // 🟢 ВСТАНОВЛЕННЯ ТВАРИН З ІКОНКАМИ 🟢
     const petNo = document.getElementById('petNo');
     const petYes = document.getElementById('petYes');
     
-    if(petNo) petNo.innerHTML = `${iNoPet} Без тварини`; // Paw print No
+    if(petNo) petNo.innerHTML = `${iNoPet} <span>Без тварини</span>`;
 
     if(petYes && selectedCheckIn && selectedCheckOut) {
         const nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
-        petYes.innerHTML = `${iPetDog} ${complexPetPriceString(nights)}`; // Paw print Yes
+        petYes.innerHTML = `${iPetDog} <span>З твариною (+500 грн + ${200 * nights} грн за добу)</span>`;
     } else if(petYes) {
-         petYes.innerHTML = `${iPetDog} З твариною (+500 грн + 200 грн/доба)`; // Заглушка, якщо дати не вибрано
+         petYes.innerHTML = `${iPetDog} <span>З твариною (+500 грн + 200 грн/доба)</span>`;
     }
 }
 
