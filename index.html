@@ -689,6 +689,33 @@
         .btn-proceed { display: block; width: 100%; padding: 16px; background: var(--accent); color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 24px rgba(85,107,47,0.25); }
         .btn-proceed:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(85,107,47,0.35); }
         .btn-proceed:disabled { background: #E5E1DC; color: #9CA3AF; box-shadow: none; cursor: not-allowed; }
+    /* ── ПРИМУСОВИЙ ФІКС ДЛЯ КНОПКИ ТА КРОКІВ (Вставити в кінець <style>) ── */
+        .back-btn {
+            background: #E5E1DC !important; /* Сірий преміум фон */
+            border: none !important; 
+            padding: 12px 20px !important; 
+            border-radius: 12px !important;
+            font-size: 14px !important; 
+            font-weight: 700 !important; 
+            color: #1A1A1A !important;
+            display: inline-flex !important; 
+            margin-bottom: 32px !important; 
+        }
+        .back-btn:hover { background: #D1CCC5 !important; }
+
+        .step-bar { 
+            justify-content: space-between !important; 
+            width: 100% !important; 
+            gap: 0 !important;
+        }
+        .step { flex: 0 0 auto !important; } /* Кружечки не розтягуються */
+        .step-line { 
+            flex: 1 1 auto !important; /* Лінії ідеально заповнюють пустоту порівну */
+            margin: 0 16px !important; 
+            height: 3px !important;
+            background: var(--border) !important;
+        }
+        .step-line::after { background: #2C3D28 !important; } /* Темно-зелена заливка */
     </style>
 </head>
 <body>
@@ -1334,13 +1361,21 @@ function renderCalendar() {
         const today = new Date(); today.setHours(0,0,0,0);
         const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 
-        // 🟢 МАГІЯ ТУТ: Стрілочки тепер генеруються ПРЯМО БІЛЯ НАЗВИ МІСЯЦЯ 🟢
+        // 🟢 ЖОРСТКІ СТИЛІ СТРІЛОЧОК, ЩОБ ЇХ НЕ ВИШТОВХУВАЛО 🟢
         let html = `
         <div class="cal-month">
-            <div class="cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:16px;">
-                <button class="cal-nav-btn" onclick="shiftCal(-1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
-                <div class="cal-month-title" style="margin:0; font-size:22px;">${monthNames[month]} ${year}</div>
-                <button class="cal-nav-btn" onclick="shiftCal(1)"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+            <div class="cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid var(--border); padding-bottom:16px; width:100%;">
+                
+                <button onclick="shiftCal(-1)" style="width:40px; height:40px; flex-shrink:0; background:#F3F0EC; border:none; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                
+                <div class="cal-month-title" style="margin:0; font-size:20px; flex:1; text-align:center; font-family:'Playfair Display',serif; font-weight:700;">${monthNames[month]} ${year}</div>
+                
+                <button onclick="shiftCal(1)" style="width:40px; height:40px; flex-shrink:0; background:#F3F0EC; border:none; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+                </button>
+                
             </div>
             <div class="cal-grid">
         `;
@@ -1390,7 +1425,7 @@ function renderCalendar() {
         if(cntVal) cntVal.innerText = guestCount;
     }
 
-    // 🟢 ВСТАНОВЛЕННЯ ТВАРИН З ІКОНКАМИ 🟢
+    // Тварини
     const petNo = document.getElementById('petNo');
     const petYes = document.getElementById('petYes');
     
