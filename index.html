@@ -662,15 +662,15 @@
         
         .pets-toggle { display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
         
-        /* 🟢 ФІКС ІКОНОК ТВАРИН 🟢 */
+        /* 🟢 ФІКС ІКОНОК ТВАРИН (КОМПАКТНИЙ РЯДОК) 🟢 */
         .pet-opt { 
-            flex: 1; padding: 16px 12px; border: 1.5px solid var(--border); border-radius: 14px; 
-            text-align: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; 
+            flex: 1; padding: 12px 8px; border: 1.5px solid var(--border); border-radius: 12px; 
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; 
             color: var(--muted); background: #fff;
-            display: flex; flex-direction: column; align-items: center; gap: 8px; /* Ставимо іконку над текстом */
+            display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; 
         }
         .pet-opt.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-        .pet-opt svg { width: 28px; height: 28px; flex-shrink: 0; } /* Жорстко обмежуємо розмір іконки! */
+        .pet-opt svg { width: 18px; height: 18px; flex-shrink: 0; }
 
         /* ── ФОРМИ ── */
         .form-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
@@ -828,21 +828,28 @@
                 </div>
 
                 <div class="guests-block">
-                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:16px;">Гості</h3>
+                    <h3 style="font-family:'Inter', sans-serif; font-size:18px; font-weight:700; margin-bottom:16px;">Гості</h3>
+                    
                     <div class="guests-row">
-                        <div><div class="guests-label">Дорослі</div><div class="guests-sub">Від 13 років</div></div>
+                        <div><div class="guests-label">Дорослі</div></div>
                         <div class="counter-wrap">
                             <button class="cnt-btn" id="guestMinus" onclick="changeGuests(-1)">−</button>
                             <span class="cnt-val" id="guestCount">2</span>
                             <button class="cnt-btn" id="guestPlus" onclick="changeGuests(1)">+</button>
                         </div>
                     </div>
+
                     <div class="pets-toggle">
-                        <div class="pet-opt active" id="petNo" onclick="setPet(false)"></div>
-                        <div class="pet-opt" id="petYes" onclick="setPet(true)"></div>
+                        <div class="pet-opt active" id="petNo" onclick="setPet(false)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 11.32A4.2 4.2 0 1 0 7.28 15h.02A4.6 4.6 0 0 0 11 11.32Z"/><path d="M18.5 7.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/><path d="M10.5 7.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/><path d="M16.7 15a4.6 4.6 0 0 0-3.7-3.68 4.2 4.2 0 1 0 3.7 3.68Z"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                            <span>Без тварини</span>
+                        </div>
+                        <div class="pet-opt" id="petYes" onclick="setPet(true)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 11.32A4.2 4.2 0 1 0 7.28 15h.02A4.6 4.6 0 0 0 11 11.32Z"/><path d="M18.5 7.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/><path d="M10.5 7.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0Z"/><path d="M16.7 15a4.6 4.6 0 0 0-3.7-3.68 4.2 4.2 0 1 0 3.7 3.68Z"/></svg>
+                            <span>З твариною</span>
+                        </div>
                     </div>
                 </div>
-            </div>
             
             <div class="sticky-cta">
                 <button class="btn-proceed" id="proceedBtn" onclick="goToStep('checkout')" disabled>Оберіть дати</button>
@@ -1423,19 +1430,6 @@ function renderCalendar() {
         if(btnPlus) btnPlus.disabled = guestCount >= (r.maxCapacity || r.capacity);
         if(btnMinus) btnMinus.disabled = guestCount <= 1;
         if(cntVal) cntVal.innerText = guestCount;
-    }
-
-    // Тварини
-    const petNo = document.getElementById('petNo');
-    const petYes = document.getElementById('petYes');
-    
-    if(petNo) petNo.innerHTML = `${iNoPet} <span>Без тварини</span>`;
-
-    if(petYes && selectedCheckIn && selectedCheckOut) {
-        const nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
-        petYes.innerHTML = `${iPetDog} <span>З твариною (+500 грн + ${200 * nights} грн за добу)</span>`;
-    } else if(petYes) {
-         petYes.innerHTML = `${iPetDog} <span>З твариною (+500 грн + 200 грн/доба)</span>`;
     }
 }
 
