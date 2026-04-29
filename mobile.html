@@ -70,15 +70,17 @@
         #fl-S { transform: translateY(40vh); }   
         #fl-O2 { transform: translateX(30vw); }  
 
+        /* ── ШВИДКІСТЬ ЛІТЕР (2.0s) ── */
         .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 2.0s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 2.0s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
+
         @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
         @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
 
-        .intro-overlay.start-zoom .zoom-svg {
-            transform: scale(350); /* Збільшений зум для вертикального екрану */
-            transition: transform 1.8s cubic-bezier(0.7, 0, 0.2, 1);
+        /* ── ШВИДКІСТЬ ЗУМУ (2.0s з прискоренням) ── */
+        .intro-overlay.start-zoom .zoom-svg { 
+            transform: scale(350); 
+            transition: transform 2.0s cubic-bezier(0.6, 0.05, 0.15, 1); 
         }
 
         /* ── КОНТЕЙНЕР КАРТОК (MOBILE) ── */
@@ -567,47 +569,46 @@ async function initApp() {
             if(introOverlay) {
                 introOverlay.classList.add('start-fly');
                 
-                // 1. Чекаємо 1.8 сек (букви ще плавно долітають, але зум вже стартує)
+                // 1. Чекаємо 2.0 сек, поки букви плавно злетяться
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // 2. Зум триває 1.8 сек. Чекаємо 1.3 сек — це момент, коли 
-                    // картинка вже МАЙЖЕ вся відкрилась. І відразу стрімко летимо вниз!
+                    // 2. 🚀 МАГІЯ: Запускаємо скрол на 800-й мілісекунді зуму!
+                    // Зум ще розкривається, а ми ВЖЕ стрімко летимо вниз (скрол триває 900мс).
                     setTimeout(() => {
-                        if (cabins) {
-                            const offset = cabins.getBoundingClientRect().top + window.scrollY;
-                            // Швидкий скрол: 800мс замість 1500мс
-                            smoothScrollTo(offset, 800); 
-                        }
-                        introOverlay.style.opacity = '0'; // Гасимо білий фон
-                    }, 1300);
+                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 900); 
+                        introOverlay.style.opacity = '0'; // Починаємо гасити білу маску
+                    }, 800);
                     
-                    // 3. Відрізаємо картинку і фіксуємо склейку (через 2.2 сек після зуму, 
-                    // щоб скрол точно встиг завершитись)
-                    setTimeout(() => {
-                        introOverlay.style.display = 'none';
+                    // 3. ІДЕАЛЬНА СКЛЕЙКА. 
+                    // Скрол завершиться на 1700мс (800 старт + 900 тривалість).
+                    // Робимо відрізання картинки на 1800мс (рівно перед кінцем зуму).
+                    setTimeout(() => { 
+                        introOverlay.style.display = 'none'; 
                         
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            // Тимчасово вимикаємо плавну прокрутку
+                            // Блокуємо плавність на мить
                             document.documentElement.style.scrollBehavior = 'auto';
                             
-                            // Відрізаємо верхній екран
+                            // Видаляємо головну картинку
                             hero.style.display = 'none'; 
                             
-                            // Жорстко фіксуємо скрол
-                            window.scrollTo(0, 0); 
+                            // Жорстко і миттєво фіксуємо скрол на початку (де тепер котеджі)
+                            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
                             
-                            // Повертаємо плавність назад
-                            setTimeout(() => {
-                                document.documentElement.style.scrollBehavior = 'smooth';
-                            }, 50);
+                            // Повертаємо плавність тільки після оновлення екрану браузером
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    document.documentElement.style.scrollBehavior = 'smooth';
+                                });
+                            });
                         }
-                    }, 2200);
+                    }, 1800); 
                     
-                }, 1800); 
+                }, 2000); 
             }
-        }, 600);
+        }, 500);
     }
 }
 
