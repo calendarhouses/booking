@@ -573,16 +573,16 @@ async function initApp() {
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // 2. 🚀 МАГІЯ: Запускаємо скрол на 800-й мілісекунді зуму!
-                    // Зум ще розкривається, а ми ВЖЕ стрімко летимо вниз (скрол триває 900мс).
+                    // 2. 🚀 ТУРБО-СКРОЛ: Стартуємо майже відразу (через 300мс).
+                    // Сам скрол робимо швидким — 600мс. Ти буквально падаєш вниз.
                     setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 900); 
-                        introOverlay.style.opacity = '0'; // Починаємо гасити білу маску
-                    }, 800);
+                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 600); 
+                        introOverlay.style.opacity = '0'; // Одразу починаємо гасити білу маску
+                    }, 300);
                     
-                    // 3. ІДЕАЛЬНА СКЛЕЙКА. 
-                    // Скрол завершиться на 1700мс (800 старт + 900 тривалість).
-                    // Робимо відрізання картинки на 1800мс (рівно перед кінцем зуму).
+                    // 3. БЛИСКАВИЧНА СКЛЕЙКА. 
+                    // Скрол завершиться на 900мс (300 старт + 600 тривалість).
+                    // На 1100мс відрізаємо все зайве.
                     setTimeout(() => { 
                         introOverlay.style.display = 'none'; 
                         
@@ -604,7 +604,7 @@ async function initApp() {
                                 });
                             });
                         }
-                    }, 1800); 
+                    }, 1100); 
                     
                 }, 2000); 
             }
