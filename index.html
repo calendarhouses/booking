@@ -881,12 +881,12 @@
                 </div>
 
                 <div class="summary-block">
-                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:16px;">Розрахунок вартості</h3>
+                    <h3 style="font-family:'Inter', sans-serif; font-size:24px; font-weight:700; margin-bottom:20px; letter-spacing:-0.5px; color:var(--text);">Розрахунок вартості</h3>
                     <div id="summaryRows"></div>
                 </div>
 
                 <div class="form-block">
-                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:20px;">Ваші дані</h3>
+                    <h3 style="font-family:'Inter', sans-serif; font-size:24px; font-weight:700; margin-bottom:24px; letter-spacing:-0.5px; color:var(--text);">Ваші дані</h3>
                     <div class="form-grid2">
                         <div class="form-field"><label>Ім'я <span class="required">*</span></label><input type="text" id="fFirstName" placeholder="Іван"></div>
                         <div class="form-field"><label>Прізвище</label><input type="text" id="fLastName" placeholder="Петренко"></div>
@@ -900,7 +900,6 @@
                     </div>
                     <div class="form-field"><label>Коментар</label><textarea id="fComment" placeholder="Будь-який коментар або побажання..."></textarea></div>
                 </div>
-                <p class="privacy-note">Бронюючи ви погоджуєтесь з <a>Політикою Конфіденційності</a></p>
             </div>
             
             <div class="sticky-cta">
@@ -1527,7 +1526,7 @@ function renderCheckout() {
     let petsText = hasPets ? ' · 🐾 з твариною' : '';
     document.getElementById('nightsDisplayText').innerText = `${nights} ${nightWord(nights)} · ${guestCount} ${guestWord(guestCount)}${petsText}`;
 
-    // Premium Summary Breakdown (Стилізовано під адмін-панель)
+    // Premium Summary Breakdown
     let rows = `
         <div style="background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
@@ -1579,7 +1578,9 @@ function renderCheckout() {
     `;
 
     document.getElementById('summaryRows').innerHTML = rows;
-    document.getElementById('bookBtn').innerText = `Забронювати · ${calc.totalPrice.toLocaleString('uk-UA')} грн`;
+    
+    // 🟢 КНОПКА ТЕПЕР ПРОСТО "ЗАБРОНЮВАТИ"
+    document.getElementById('bookBtn').innerText = 'Забронювати';
 }
 
 // ─── SUBMIT ────────────────────────────────────────────────────────────────
@@ -1624,31 +1625,14 @@ async function submitBooking() {
         const json = await res.json();
         if (json.error === 'OVERLAP') {
             toast('❌ Ці дати вже зайняті! Оберіть інші.');
-            btn.disabled = false; btn.innerText = `Забронювати · ${calc.totalPrice.toLocaleString('uk-UA')} грн`;
+            btn.disabled = false; btn.innerText = 'Забронювати';
             return;
         }
         showSuccess(bookingData, calc);
     } catch(e) {
         toast('Помилка відправки. Спробуйте ще раз.');
-        btn.disabled = false; btn.innerText = `Забронювати · ${calc.totalPrice.toLocaleString('uk-UA')} грн`;
+        btn.disabled = false; btn.innerText = 'Забронювати';
     }
-}
-
-function showSuccess(data, calc) {
-    const inStr  = selectedCheckIn.toLocaleDateString('uk-UA', {day:'numeric',month:'long',year:'numeric'});
-    const outStr = selectedCheckOut.toLocaleDateString('uk-UA', {day:'numeric',month:'long',year:'numeric'});
-    const nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
-    document.getElementById('successDetail').innerHTML = `
-        <div class="success-detail-row"><span>Котедж</span><span>${data.cottage}</span></div>
-        <div class="success-detail-row"><span>Заїзд</span><span>${inStr}</span></div>
-        <div class="success-detail-row"><span>Виїзд</span><span>${outStr}</span></div>
-        <div class="success-detail-row"><span>Ночей</span><span>${nights}</span></div>
-        <div class="success-detail-row"><span>Гостей</span><span>${data.guests}</span></div>
-        <div class="success-detail-row"><span>Сума</span><span>${calc.totalPrice.toLocaleString('uk-UA')} грн</span></div>
-        <div class="success-detail-row"><span>Телефон</span><span>${data.phone}</span></div>`;
-    showScreen('success');
-    // Reset
-    selectedCheckIn = null; selectedCheckOut = null; guestCount = 2; hasPets = false;
 }
 
 // ─── PRICE CALCULATION ─────────────────────────────────────────────────────
