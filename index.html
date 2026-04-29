@@ -1631,12 +1631,18 @@ async function submitBooking() {
             return;
         }
 
-        // Якщо Гугл повернув дані для оплати (PaymentData)
+        // 🟢 МАГІЯ: Якщо Гугл повернув дані, кидаємо клієнта на сторінку оплати (як у боті)
         if (json.paymentData) {
             const pd = json.paymentData;
-            const wayforpay = new Wayforpay();
             
-            wayforpay.run({
+            // Створюємо приховану форму
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = "https://secure.wayforpay.com/pay";
+            form.style.display = "none";
+            
+            // Базові параметри
+            const params = {
                 merchantAccount: pd.merchantAccount,
                 merchantDomainName: pd.merchantDomainName,
                 merchantSignature: pd.signature,
@@ -1644,31 +1650,41 @@ async function submitBooking() {
                 orderDate: pd.orderDate,
                 amount: pd.amount,
                 currency: pd.currency,
-                productName: [pd.productName],   // Обов'язково масив
-                productPrice: [pd.amount],       // Обов'язково масив
-                productCount: [pd.productCount], // Обов'язково масив
                 clientFirstName: firstName,
                 clientLastName: lastName,
-                clientPhone: phone
-            },
-            function (response) {
-                // Оплата успішна
-                showSuccess(bookingData, calc);
-                toast('Оплата успішна! Бронь підтверджено.');
-            },
-            function (response) {
-                // Оплата відхилена або закрили вікно
-                btn.disabled = false; btn.innerText = 'Забронювати';
-                toast('Оплату скасовано. Спробуйте ще раз.');
-            },
-            function (response) {
-                // В процесі обробки (наприклад, чекає підтвердження банку)
-                showSuccess(bookingData, calc);
-                toast('Оплата в процесі обробки.');
-            });
+                clientPhone: bookingData.phone,
+                language: "UA",
+                returnUrl: window.location.href // Куди повернути після оплати
+            };
+
+            for (const key in params) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                input.value = params[key];
+                form.appendChild(input);
+            }
+
+            // Масиви для товарів (специфічна вимога WayForPay)
+            const arrayParams = {
+                'productName[]': pd.productName,
+                'productPrice[]': pd.amount,
+                'productCount[]': pd.productCount
+            };
+            
+            for (const key in arrayParams) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                input.value = arrayParams[key];
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit(); // Перенаправляємо!
             
         } else {
-            // Якщо оплата не потрібна або щось пішло не так
+            // Якщо оплата не потрібна (сума 0)
             showSuccess(bookingData, calc);
         }
 
