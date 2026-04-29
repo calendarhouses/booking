@@ -1839,7 +1839,7 @@ function calcTotal(nights) {
     if (!room) return 0;
     const ds = dateStr(d);
     if (customPrices[room.id] && customPrices[room.id][ds]) return customPrices[room.id][ds];
-    const isWE = d.getDay() === 0 || d.getDay() === 6;
+    const isWE = d.getDay() === 0 || d.getDay() === 5 || d.getDay() === 6;
     return isWE ? room.priceWeekend : room.priceWeekday;
 }
 
