@@ -861,53 +861,53 @@
         </div>
 
         <div id="drawer-step-checkout" class="drawer-step">
-            <div class="drawer-content">
-                <button class="back-btn" onclick="goToStep('calendar')">
-                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Змінити дати
-                </button>
+    <div class="drawer-content">
+        <button class="back-btn" onclick="goToStep('calendar')">
+            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Змінити дати
+        </button>
 
-                <div class="step-bar">
-                    <div class="step done"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
-                    <div class="step-line done"></div>
-                    <div class="step done"><div class="step-num">✓</div><div class="step-label">Дати</div></div>
-                    <div class="step-line done"></div>
-                    <div class="step active"><div class="step-num">3</div><div class="step-label">Бронь</div></div>
-                </div>
+        <div class="step-bar">
+            <div class="step done"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
+            <div class="step-line done"></div>
+            <div class="step done"><div class="step-num">✓</div><div class="step-label">Дати</div></div>
+            <div class="step-line done"></div>
+            <div class="step active"><div class="step-num">3</div><div class="step-label">Бронь</div></div>
+        </div>
 
-                <div class="dates-display" id="datesDisplay">
-                    <div>
-                        <div class="dates-display-dates" id="datesDisplayText">—</div>
-                        <div class="dates-display-nights" id="nightsDisplayText">—</div>
-                    </div>
-                </div>
-
-                <div class="summary-block">
-                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:16px;">Розрахунок вартості</h3>
-                    <div id="summaryRows"></div>
-                </div>
-
-                <div class="form-block">
-                    <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:20px;">Ваші дані</h3>
-                    <div class="form-grid2">
-                        <div class="form-field"><label>Ім'я <span class="required">*</span></label><input type="text" id="fFirstName" placeholder="Іван"></div>
-                        <div class="form-field"><label>Прізвище</label><input type="text" id="fLastName" placeholder="Петренко"></div>
-                    </div>
-                    <div class="form-field">
-                        <label>Телефон <span class="required">*</span></label>
-                        <div class="phone-wrap">
-                            <div class="phone-prefix">🇺🇦 +380</div>
-                            <input type="tel" id="fPhone" placeholder="XX XXX XXXX" style="flex:1;">
-                        </div>
-                    </div>
-                    <div class="form-field"><label>Коментар</label><textarea id="fComment" placeholder="Будь-який коментар або побажання..."></textarea></div>
-                </div>
-                <p class="privacy-note">Бронюючи ви погоджуєтесь з <a>Політикою Конфіденційності</a></p>
-            </div>
-            
-            <div class="sticky-cta">
-                <button class="btn-proceed" id="bookBtn" onclick="submitBooking()">Забронювати</button>
+        <div class="dates-display" id="datesDisplay">
+            <div>
+                <div class="dates-display-dates" id="datesDisplayText">—</div>
+                <div class="dates-display-nights" id="nightsDisplayText">—</div>
             </div>
         </div>
+
+        <div class="summary-block">
+            <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:16px;">Розрахунок вартості</h3>
+            <div id="summaryRows"></div>
+        </div>
+
+        <div class="form-block">
+            <h3 style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:20px;">Ваші дані</h3>
+            <div class="form-grid2">
+                <div class="form-field"><label>Ім'я <span class="required">*</span></label><input type="text" id="fFirstName" placeholder="Іван"></div>
+                <div class="form-field"><label>Прізвище</label><input type="text" id="fLastName" placeholder="Петренко"></div>
+            </div>
+            <div class="form-field">
+                <label>Телефон <span class="required">*</span></label>
+                <div class="phone-wrap">
+                    <div class="phone-prefix">🇺🇦 +380</div>
+                    <input type="tel" id="fPhone" placeholder="XX XXX XXXX" style="flex:1;">
+                </div>
+            </div>
+            <div class="form-field"><label>Коментар</label><textarea id="fComment" placeholder="Будь-який коментар або побажання..."></textarea></div>
+        </div>
+        <p class="privacy-note">Бронюючи ви погоджуєтесь з <a>Політикою Конфіденційності</a></p>
+    </div>
+    
+    <div class="sticky-cta">
+        <button class="btn-proceed" id="bookBtn" onclick="submitBooking()">Забронювати</button>
+    </div>
+</div>
         
     </div>
 </div>
