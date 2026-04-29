@@ -991,6 +991,18 @@ function getCabinConfig(cabinId) {
 }
 
 async function init() {
+    // 🟢 ПЕРЕВІРКА ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment') === 'success') {
+        // Очищаємо посилання (щоб мітка зникла і при оновленні сторінки не показувало знову)
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Гасимо прелоадер і показуємо екран успіху
+        document.getElementById('preloader').style.display = 'none';
+        showScreen('success');
+        return; // Зупиняємо звичайне завантаження головної сторінки
+    }
+    
     // 1. Запускаємо таймер-мінімум (щоб смужка точно встигла красиво виїхати)
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
 
@@ -1672,7 +1684,7 @@ async function submitBooking() {
                 clientLastName: lastName,
                 clientPhone: bookingData.phone,
                 language: "UA",
-                returnUrl: window.location.href // Куди повернути після оплати
+                returnUrl: window.location.origin + window.location.pathname + "?payment=success"
             };
 
             for (const key in params) {
