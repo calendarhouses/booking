@@ -582,19 +582,17 @@ async function initApp() {
         const enterBtn = document.getElementById('enterBtn');
         const progressFill = document.getElementById('progressFill');
         
-        // 1. Чекаємо поки смужка завантажиться (2.5 сек) і показуємо кнопку
-        setTimeout(() => {
-            if(enterBtn) enterBtn.classList.add('show');
-            // Ховаємо саму смужку, бо вона вже не потрібна
-            const wrap = document.querySelector('.progress-bar-wrap');
-            if(wrap) wrap.style.opacity = '0'; 
-        }, 2500);
+        // 1. ДИНАМІЧНА ГОТОВНІСТЬ: Сайт вже завантажився (дані з Гугла отримано)!
+        // Жодних пауз на 2.5 секунди. Одразу ховаємо смужку і показуємо "Почати".
+        if(enterBtn) enterBtn.classList.add('show');
+        const wrap = document.querySelector('.progress-bar-wrap');
+        if(wrap) wrap.style.opacity = '0'; 
 
         // 2. Логіка запуску ПІСЛЯ натискання на кнопку "Почати"
         if(enterBtn) {
             enterBtn.addEventListener('click', () => {
                 
-                // 🔒 Фіксуємо сторінку на самому верху, щоб перший котедж був ідеально під буквами
+                // 🔒 Фіксуємо сторінку на самому верху
                 document.body.style.overflow = 'hidden';
                 window.scrollTo(0, 0);
 
