@@ -511,16 +511,21 @@
         .receipt-total { border-top: 1px solid #1A1A1A; margin-top: 20px; padding-top: 20px; font-size: 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
         
         /* Кнопка Телеграм бота */
+        /* Кнопка Телеграм бота (Фірмова) */
         .btn-tg {
             display: flex; align-items: center; justify-content: center; gap: 12px;
             width: 100%; padding: 18px;
-            background: #1A1A1A; /* Преміальний чорний */
+            background: var(--accent); /* Фірмовий оливковий */
             color: #fff;
             border-radius: 14px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
             text-decoration: none; transition: 0.3s; margin-bottom: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 24px rgba(85, 107, 47, 0.25);
         }
-        .btn-tg:hover { background: #333; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+        .btn-tg:hover { 
+            background: var(--accent-hover); 
+            transform: translateY(-2px); 
+            box-shadow: 0 12px 32px rgba(85, 107, 47, 0.35); 
+        }
         .btn-tg svg { width: 22px; height: 22px; fill: currentColor; }
 
         .btn-home-link {
@@ -964,7 +969,7 @@
                 Електронний консьєрж
             </a>
             
-            <a onclick="showList()" class="btn-home-link">Повернутись на головну</a>
+            <a href="#" onclick="window.location.href = window.location.pathname; return false;" class="btn-home-link">Повернутись на головну</a>
         </div>
     </div>
 </div>
