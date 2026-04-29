@@ -56,7 +56,7 @@
         .zoom-svg { 
             width: 100%; height: 100%; 
             /* 🎯 Ідеальний приціл точно в центр першої літери "O" */
-            transform-origin: 42% 50%; 
+            transform-origin: 44% 50%; 
             will-change: transform; 
         }
 
@@ -574,16 +574,20 @@ async function initApp() {
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // 2. Починаємо скролити вниз ПАРАЛЕЛЬНО з різкою частиною зуму
+                    // 2. Плавно розчиняємо білу маску в самісінькому кінці зуму (за 200мс до кінця)
                     setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 1000); 
                         introOverlay.style.opacity = '0';
-                    }, 600);
+                    }, 1400);
                     
-                    // 3. Плавно проявляємо фоновий текст BOSO
-                    setTimeout(() => { if(bgText) bgText.style.opacity = '1'; }, 1200);
+                    // 3. ЗУМ закінчується на 1600мс. В ЦЮ Ж МИТЬ стартуємо скрол вниз!
+                    setTimeout(() => {
+                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 900); 
+                        
+                        // Фоновий текст BOSO проявляємо під час скролу
+                        if(bgText) bgText.style.opacity = '1';
+                    }, 1600);
                     
-                    // 4. ФІНАЛЬНА СКЛЕЙКА (Ідеально безшовна)
+                    // 4. Скрол триває 900мс. Тобто на 2500мс ми вже повністю на котеджах. Робимо безшовну склейку!
                     setTimeout(() => { 
                         introOverlay.style.display = 'none'; 
                         
@@ -605,7 +609,7 @@ async function initApp() {
                                 });
                             });
                         }
-                    }, 1800); // Спрацьовує рівно коли зум повністю розкрився
+                    }, 2600); // 100мс запасу після скролу для надійності
                     
                 }, 2200); 
             }
