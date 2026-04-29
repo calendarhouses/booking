@@ -56,7 +56,7 @@
         .zoom-svg { 
             width: 100%; height: 100%; 
             /* 🎯 Ідеальний приціл точно в центр першої літери "O" */
-            transform-origin: 44% 50%; 
+            transform-origin: 44.5% 50%; 
             will-change: transform; 
         }
 
@@ -574,42 +574,40 @@ async function initApp() {
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // 2. Плавно розчиняємо білу маску в самісінькому кінці зуму (за 200мс до кінця)
+                    // 2. 🚀 МАГІЯ: Запускаємо скрол вниз посеред зуму (на 800мс).
+                    // Коли дірка від букви "О" розкриється, рух вниз вже йтиме на повну швидкість.
+                    setTimeout(() => {
+                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 800); 
+                    }, 800);
+                    
+                    // 3. Плавно гасимо білу маску в кінці зуму
                     setTimeout(() => {
                         introOverlay.style.opacity = '0';
-                    }, 1400);
+                    }, 1300);
                     
-                    // 3. ЗУМ закінчується на 1600мс. В ЦЮ Ж МИТЬ стартуємо скрол вниз!
-                    setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 900); 
-                        
-                        // Фоновий текст BOSO проявляємо під час скролу
-                        if(bgText) bgText.style.opacity = '1';
-                    }, 1600);
-                    
-                    // 4. Скрол триває 900мс. Тобто на 2500мс ми вже повністю на котеджах. Робимо безшовну склейку!
+                    // 4. ФІНАЛЬНА СКЛЕЙКА (Ідеально безшовна на 1700мс)
                     setTimeout(() => { 
                         introOverlay.style.display = 'none'; 
                         
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            // Блокуємо плавність на мить
+                            // Вимикаємо плавність скролу на одну мить
                             document.documentElement.style.scrollBehavior = 'auto';
                             
-                            // Зникає верхній екран
+                            // Видаляємо головну картинку (текст BOSO видаляється разом з нею)
                             hero.style.display = 'none'; 
                             
-                            // Жорстко і миттєво фіксуємо скрол на початку (де тепер котеджі)
-                            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                            // Миттєво фіксуємо камеру на котеджах
+                            window.scrollTo(0, 0); 
                             
-                            // Повертаємо плавність тільки після оновлення екрану браузером
+                            // Повертаємо плавність браузеру
                             requestAnimationFrame(() => {
                                 requestAnimationFrame(() => {
                                     document.documentElement.style.scrollBehavior = 'smooth';
                                 });
                             });
                         }
-                    }, 2600); // 100мс запасу після скролу для надійності
+                    }, 1700); 
                     
                 }, 2200); 
             }
