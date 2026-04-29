@@ -326,6 +326,10 @@
     </style>
 </head>
 <body>
+    <audio id="introSound" preload="auto">
+    <source src="cinematic-whoosh.mp3" type="audio/mpeg">
+</audio>
+<div id="preloader">
 <div id="preloader">
     <div class="preloader-content">
         <div class="pulse-logo">BOSO</div>
@@ -567,37 +571,36 @@ async function initApp() {
         setTimeout(() => {
             preloader.style.display = 'none';
             if(introOverlay) {
+                
+                // 🔊 ЗАПУСК ЗВУКУ (Мобільна версія)
+                const sound = document.getElementById('introSound');
+                if (sound) {
+                    sound.volume = 0.7; // На телефоні можна трохи гучніше
+                    // Важливо: catch потрібен, щоб сайт не впав, якщо iOS заблокує автоплей
+                    sound.play().catch(err => console.log('Аудіо заблоковано политикою iOS'));
+                }
+
                 introOverlay.classList.add('start-fly');
                 
                 // 1. Чекаємо 2.0 сек, поки букви плавно злетяться
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // 2. 🚀 ТУРБО-СКРОЛ: Стартуємо майже відразу (через 300мс).
-                    // Сам скрол робимо швидким — 600мс. Ти буквально падаєш вниз.
+                    // 2. ТУРБО-СКРОЛ: Стартуємо на 300мс зуму
                     setTimeout(() => {
                         if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 600); 
-                        introOverlay.style.opacity = '0'; // Одразу починаємо гасити білу маску
+                        introOverlay.style.opacity = '0'; 
                     }, 300);
                     
-                    // 3. БЛИСКАВИЧНА СКЛЕЙКА. 
-                    // Скрол завершиться на 900мс (300 старт + 600 тривалість).
-                    // На 1100мс відрізаємо все зайве.
+                    // 3. БЛИСКАВИЧНА СКЛЕЙКА (через 1100мс від старту зуму)
                     setTimeout(() => { 
                         introOverlay.style.display = 'none'; 
                         
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            // Блокуємо плавність на мить
                             document.documentElement.style.scrollBehavior = 'auto';
-                            
-                            // Видаляємо головну картинку
                             hero.style.display = 'none'; 
-                            
-                            // Жорстко і миттєво фіксуємо скрол на початку (де тепер котеджі)
                             window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                            
-                            // Повертаємо плавність тільки після оновлення екрану браузером
                             requestAnimationFrame(() => {
                                 requestAnimationFrame(() => {
                                     document.documentElement.style.scrollBehavior = 'smooth';
