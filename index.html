@@ -1836,12 +1836,24 @@ function calcTotal(nights) {
     };
 }
     function getDayPrice(room, d) {
-    if (!room) return 0;
-    const ds = dateStr(d);
-    if (customPrices[room.id] && customPrices[room.id][ds]) return customPrices[room.id][ds];
-    const isWE = d.getDay() === 0 || d.getDay() === 5 || d.getDay() === 6;
-    return isWE ? room.priceWeekend : room.priceWeekday;
-}
+        if (!room) return 0;
+        const ds = dateStr(d);
+        
+        // 1. Пріоритет: Кастомна ціна з конструктора
+        if (customPrices[room.id] && customPrices[room.id][ds]) {
+            return customPrices[room.id][ds];
+        }
+        
+        // 2. Визначаємо, чи це вихідний (Пт, Сб, Нд)
+        const isWE = d.getDay() === 0 || d.getDay() === 5 || d.getDay() === 6;
+        let price = isWE ? room.priceWeekend : room.priceWeekday;
+        
+        // 🟢 СТРАХОВКА: Якщо ціна 0, беремо будню. Якщо і вона 0 - ставимо 4500
+        if (!price || price === 0) price = room.priceWeekday;
+        if (!price || price === 0) price = 4500; 
+        
+        return price;
+    }
 
     // --- ФОРМУВАННЯ ЧЕКУ ---
 function renderSuccessReceipt() {
