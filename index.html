@@ -1142,7 +1142,15 @@ function renderCabinList() {
     }
     cont.innerHTML = roomsList.map(r => {
         const cfg = getCabinConfig(r.id);
-        const minPrice = Math.min(r.priceWeekday, r.priceWeekend);
+        
+        // 🟢 РОЗУМНИЙ ПОШУК МІНІМАЛЬНОЇ ЦІНИ (З урахуванням Конструктора цін)
+        let minPrice = (r.priceWeekday > 0) ? Math.min(r.priceWeekday, r.priceWeekend) : 0;
+        if (minPrice === 0 && customPrices[r.id]) {
+            const prices = Object.values(customPrices[r.id]).filter(p => p > 0);
+            if (prices.length > 0) minPrice = Math.min(...prices);
+        }
+        if (minPrice === 0) minPrice = 4500; // Резервна ціна, якщо взагалі порожньо
+        
         const nextFree = getNextFreeDate(r.name);
         const imgs = cfg.images;
         const shortDesc = cfg.description.split('.')[0] + '.';
