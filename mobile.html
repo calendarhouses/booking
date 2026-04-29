@@ -69,14 +69,13 @@
         #fl-S { transform: translateY(40vh); }   
         #fl-O2 { transform: translateX(30vw); }  
 
-        .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
         @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
 
-        /* На мобілці зум має бути більшим (300), щоб перекрити вертикальний екран */
-        .intro-overlay.start-zoom .zoom-svg { transform: scale(300); transition: transform 1.8s cubic-bezier(0.7, 0, 0.2, 1); }
+        .intro-overlay.start-zoom .zoom-svg { transform: scale(300); transition: transform 2.8s cubic-bezier(0.7, 0, 0.2, 1); }
 
         /* ── КОНТЕЙНЕР КАРТОК (MOBILE) ── */
         .page-wrap { padding: 0 16px calc(60px + var(--safe-bottom)); }
@@ -334,7 +333,7 @@
             <defs>
                 <mask id="textMask">
                     <rect width="100%" height="100%" fill="white" />
-                    <g fill="black" font-family="'Playfair Display', serif" font-weight="900" font-size="28vw" text-anchor="middle">
+                    <g fill="black" font-family="'Inter', sans-serif" font-weight="900" font-size="28vw" text-anchor="middle">
                         <g id="fl-B"><text x="14%" y="50%" dominant-baseline="central">B</text></g>
                         <g id="fl-O1"><text x="38%" y="50%" dominant-baseline="central">O</text></g>
                         <g id="fl-S"><text x="62%" y="50%" dominant-baseline="central">S</text></g>
@@ -564,34 +563,33 @@ async function initApp() {
             preloader.style.display = 'none';
             if(introOverlay) {
                 introOverlay.classList.add('start-fly');
+                
+                // Чекаємо 2.2 сек, поки літери плавно злетяться, і починаємо зум
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
+                    
+                    // Запускаємо скрол до котеджів посеред зуму
                     setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 1200); 
+                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 1500); 
                         introOverlay.style.opacity = '0';
-                    }, 500);
-                    setTimeout(() => { if(bgText) bgText.style.opacity = '1'; }, 1800);
+                    }, 1000);
+                    
+                    // Плавно проявляємо фоновий текст BOSO
+                    setTimeout(() => { if(bgText) bgText.style.opacity = '1'; }, 2200);
+                    
+                    // Відрізаємо шлях назад (через 2.8 сек, коли зум завершився)
                     setTimeout(() => { 
                         introOverlay.style.display = 'none'; 
-                        
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            // 1. Тимчасово вимикаємо плавну прокрутку
                             document.documentElement.style.scrollBehavior = 'auto';
-                            
-                            // 2. Відрізаємо верхній екран
                             hero.style.display = 'none'; 
-                            
-                            // 3. Жорстко і миттєво фіксуємо скрол на початку
                             window.scrollTo(0, 0); 
-                            
-                            // 4. Повертаємо плавність назад
-                            setTimeout(() => {
-                                document.documentElement.style.scrollBehavior = 'smooth';
-                            }, 50);
+                            setTimeout(() => { document.documentElement.style.scrollBehavior = 'smooth'; }, 50);
                         }
-                    }, 2000);
-                }, 1500);
+                    }, 2800);
+                    
+                }, 2200); 
             }
         }, 500);
     }
