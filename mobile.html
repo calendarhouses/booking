@@ -274,22 +274,35 @@
             display: flex; flex-direction: column; align-items: center; gap: 24px; 
         }
         .pulse-logo { 
-            font-family: 'Playfair Display', serif; /* 🟢 Додано правильний преміум шрифт */
+            font-family: 'Playfair Display', serif; 
             font-size: 36px; font-weight: 800; letter-spacing: 4px; color: var(--text); 
-            /* 🟢 Додано ease-in-out для безперебійної роботи в Safari */
             animation: pulseAnim 1.5s ease-in-out infinite; 
         }
         .progress-bar-wrap { 
             width: 140px; height: 2px; 
-            background: rgba(0, 0, 0, 0.1); /* Трохи контрастніший фон смужки */
+            background: rgba(0, 0, 0, 0.1); 
             border-radius: 2px; overflow: hidden; 
         }
         .progress-bar-fill { 
             width: 0%; height: 100%; background: #5F746A; 
-            animation: loadProgress 4.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; 
+            /* 🟢 Прискорив смужку до 2.5с, щоб клієнт не чекав вічність */
+            animation: loadProgress 2.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; 
         }
 
-        /* 🟢 Явні ключові кадри для 100% спрацьовування на iOS */
+        /* 🚀 СТИЛІ ДЛЯ КНОПКИ ВХОДУ */
+        .enter-btn {
+            opacity: 0; pointer-events: none; /* Спочатку прихована */
+            transform: translateY(10px);
+            background: none; border: 1px solid var(--text); color: var(--text);
+            padding: 10px 32px; border-radius: 30px; font-size: 13px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+            transition: all 0.4s ease; margin-top: 10px;
+        }
+        /* Клас, який зробить кнопку видимою */
+        .enter-btn.show {
+            opacity: 1; pointer-events: auto; transform: translateY(0);
+        }
+
         @keyframes pulseAnim { 
             0% { transform: scale(1); opacity: 1; } 
             50% { transform: scale(1.05); opacity: 0.5; } 
@@ -333,6 +346,8 @@
     <div class="preloader-content">
         <div class="pulse-logo">BOSO</div>
         <div class="progress-bar-wrap"><div class="progress-bar-fill"></div></div>
+        <!-- 🚀 НОВА КНОПКА (прихована на старті) -->
+        <button id="enterBtn" class="enter-btn">Почати</button>
     </div>
 </div>
 
@@ -565,52 +580,68 @@ async function initApp() {
     const bgText = document.getElementById('bgBosoText');
     const cabins = document.getElementById('cabinsContainer');
 
-   if(preloader) {
-        preloader.style.opacity = '0';
+  if(preloader) {
+        const enterBtn = document.getElementById('enterBtn');
+        const progressFill = document.getElementById('progressFill');
+        
+        // 1. Чекаємо поки смужка завантажиться (2.5 сек) і показуємо кнопку
         setTimeout(() => {
-            preloader.style.display = 'none';
-            if(introOverlay) {
+            if(enterBtn) enterBtn.classList.add('show');
+            // Ховаємо саму смужку, бо вона вже не потрібна
+            const wrap = document.querySelector('.progress-bar-wrap');
+            if(wrap) wrap.style.opacity = '0'; 
+        }, 2500);
+
+        // 2. Логіка запуску ПІСЛЯ натискання на кнопку "Увійти"
+        if(enterBtn) {
+            enterBtn.addEventListener('click', () => {
                 
-                // 🔊 ЗАПУСК ЗВУКУ (Мобільна версія)
+                // 🔊 100% ГАРАНТОВАНИЙ ЗАПУСК ЗВУКУ
                 const sound = document.getElementById('introSound');
                 if (sound) {
-                    sound.volume = 0.7; // На телефоні можна трохи гучніше
-                    // Важливо: catch потрібен, щоб сайт не впав, якщо iOS заблокує автоплей
-                    sound.play().catch(err => console.log('Аудіо заблоковано политикою iOS'));
+                    sound.volume = 0.7; 
+                    sound.play().catch(e => console.log('Sound error:', e));
                 }
 
-                introOverlay.classList.add('start-fly');
-                
-                // 1. Чекаємо 2.0 сек, поки букви плавно злетяться
+                // Гасимо прелоадер
+                preloader.style.opacity = '0';
                 setTimeout(() => {
-                    introOverlay.classList.add('start-zoom');
+                    preloader.style.display = 'none';
                     
-                    // 2. ТУРБО-СКРОЛ: Стартуємо на 300мс зуму
-                    setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 600); 
-                        introOverlay.style.opacity = '0'; 
-                    }, 300);
-                    
-                    // 3. БЛИСКАВИЧНА СКЛЕЙКА (через 1100мс від старту зуму)
-                    setTimeout(() => { 
-                        introOverlay.style.display = 'none'; 
+                    if(introOverlay) {
+                        introOverlay.classList.add('start-fly');
                         
-                        const hero = document.querySelector('.clean-hero');
-                        if (hero) {
-                            document.documentElement.style.scrollBehavior = 'auto';
-                            hero.style.display = 'none'; 
-                            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                    document.documentElement.style.scrollBehavior = 'smooth';
-                                });
-                            });
-                        }
-                    }, 1100); 
-                    
-                }, 2000); 
-            }
-        }, 500);
+                        // Чекаємо 2.0с (букви злетілися)
+                        setTimeout(() => {
+                            introOverlay.classList.add('start-zoom');
+                            
+                            // 🚀 Запускаємо скрол на 800-й мілісекунді зуму
+                            setTimeout(() => {
+                                if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 900); 
+                                introOverlay.style.opacity = '0'; 
+                            }, 800);
+                            
+                            // ФІНАЛЬНА СКЛЕЙКА (1800мс - скрол вже завершився)
+                            setTimeout(() => { 
+                                introOverlay.style.display = 'none'; 
+                                const hero = document.querySelector('.clean-hero');
+                                if (hero) {
+                                    document.documentElement.style.scrollBehavior = 'auto';
+                                    hero.style.display = 'none'; 
+                                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                    requestAnimationFrame(() => {
+                                        requestAnimationFrame(() => {
+                                            document.documentElement.style.scrollBehavior = 'smooth';
+                                        });
+                                    });
+                                }
+                            }, 1800); 
+                            
+                        }, 2000); 
+                    }
+                }, 400); 
+            });
+        }}
     }
 }
 
