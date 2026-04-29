@@ -354,6 +354,7 @@
 <div id="screen-list" class="screen active">
     <div id="introOverlay" class="intro-overlay">
         <svg class="zoom-svg" width="100%" height="100%">
+            <!-- Твій код маски з літерами залишається без змін -->
             <defs>
                 <mask id="textMask">
                     <rect width="100%" height="100%" fill="white" />
@@ -369,10 +370,7 @@
         </svg>
     </div>
 
-    <div class="clean-hero">
-        <img src="hero.jpg" alt="BOSO bg" class="hero-bg-img" onerror="this.src='https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=800&auto=format&fit=crop'">
-    </div>
-
+    <!-- Одразу йдуть котеджі! -->
     <div class="page-wrap" id="cabinsContainer">
         <!-- Контент генерується через JS -->
     </div>
@@ -592,10 +590,14 @@ async function initApp() {
             if(wrap) wrap.style.opacity = '0'; 
         }, 2500);
 
-        // 2. Логіка запуску ПІСЛЯ натискання на кнопку "Увійти"
+        // 2. Логіка запуску ПІСЛЯ натискання на кнопку "Почати"
         if(enterBtn) {
             enterBtn.addEventListener('click', () => {
                 
+                // 🔒 Фіксуємо сторінку на самому верху, щоб перший котедж був ідеально під буквами
+                document.body.style.overflow = 'hidden';
+                window.scrollTo(0, 0);
+
                 // 🔊 100% ГАРАНТОВАНИЙ ЗАПУСК ЗВУКУ
                 const sound = document.getElementById('introSound');
                 if (sound) {
@@ -615,27 +617,16 @@ async function initApp() {
                         setTimeout(() => {
                             introOverlay.classList.add('start-zoom');
                             
-                            // 🚀 Запускаємо скрол на 800-й мілісекунді зуму
+                            // 🚀 Ближче до кінця зуму просто м'яко розчиняємо маску
                             setTimeout(() => {
-                                if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 900); 
                                 introOverlay.style.opacity = '0'; 
-                            }, 800);
+                            }, 1400);
                             
-                            // ФІНАЛЬНА СКЛЕЙКА (1800мс - скрол вже завершився)
+                            // ФІНАЛ: Зум завершився. Видаляємо маску і повертаємо можливість гортати сайт
                             setTimeout(() => { 
                                 introOverlay.style.display = 'none'; 
-                                const hero = document.querySelector('.clean-hero');
-                                if (hero) {
-                                    document.documentElement.style.scrollBehavior = 'auto';
-                                    hero.style.display = 'none'; 
-                                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                                    requestAnimationFrame(() => {
-                                        requestAnimationFrame(() => {
-                                            document.documentElement.style.scrollBehavior = 'smooth';
-                                        });
-                                    });
-                                }
-                            }, 1800); 
+                                document.body.style.overflow = ''; // Розблоковуємо скрол
+                            }, 2000); 
                             
                         }, 2000); 
                     }
@@ -643,18 +634,6 @@ async function initApp() {
             });
         }
     }
-}
-
-function smoothScrollTo(endY, duration) {
-    const startY = window.scrollY; const distance = endY - startY; let startTime = null;
-    function animation(currentTime) {
-        if (startTime === null) startTime = currentTime;
-        const progress = Math.min((currentTime - startTime) / duration, 1);
-        const ease = progress < 0.5 ? 8 * Math.pow(progress, 4) : 1 - Math.pow(-2 * progress + 2, 4) / 2;
-        window.scrollTo(0, startY + distance * ease);
-        if (currentTime - startTime < duration) requestAnimationFrame(animation);
-    }
-    requestAnimationFrame(animation);
 }
 
 function showScreen(name) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('screen-' + name).classList.add('active'); window.scrollTo(0,0); }
