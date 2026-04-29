@@ -1272,7 +1272,17 @@ function showDetail(cabinId) {
     if(elDesc) elDesc.innerText = cfg.description;
     
     const elPrice = document.getElementById('ctaPrice');
-    if(elPrice) elPrice.innerText = Math.min(room.priceWeekday, room.priceWeekend).toLocaleString('uk-UA');
+    if (elPrice) {
+        // Розумний пошук мінімальної ціни (як на головній сторінці)
+        let minPrice = (room.priceWeekday > 0) ? Math.min(room.priceWeekday, room.priceWeekend) : 0;
+        if (minPrice === 0 && customPrices[room.id]) {
+            const prices = Object.values(customPrices[room.id]).filter(p => p > 0);
+            if (prices.length > 0) minPrice = Math.min(...prices);
+        }
+        if (minPrice === 0) minPrice = 4500; // Резервна ціна
+        
+        elPrice.innerText = minPrice.toLocaleString('uk-UA');
+    }
     
     const elMeta = document.getElementById('detailMeta');
     if(elMeta) {
