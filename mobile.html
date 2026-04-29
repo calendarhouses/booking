@@ -534,7 +534,16 @@ async function initApp() {
                         introOverlay.style.opacity = '0';
                     }, 500);
                     setTimeout(() => { if(bgText) bgText.style.opacity = '1'; }, 1800);
-                    setTimeout(() => { introOverlay.style.display = 'none'; }, 2000);
+                    setTimeout(() => { 
+                        introOverlay.style.display = 'none'; 
+                        
+                        // 🚀 ВІДРІЗАЄМО ШЛЯХ НАЗАД
+                        const hero = document.querySelector('.clean-hero');
+                        if (hero) {
+                            hero.style.display = 'none'; // Ховаємо головну картинку
+                            window.scrollTo(0, 0); // Миттєво скидаємо скрол
+                        }
+                    }, 2000);
                 }, 1500);
             }
         }, 500);
