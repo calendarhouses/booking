@@ -537,11 +537,21 @@ async function initApp() {
                     setTimeout(() => { 
                         introOverlay.style.display = 'none'; 
                         
-                        // 🚀 ВІДРІЗАЄМО ШЛЯХ НАЗАД
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            hero.style.display = 'none'; // Ховаємо головну картинку
-                            window.scrollTo(0, 0); // Миттєво скидаємо скрол
+                            // 1. Тимчасово вимикаємо плавну прокрутку
+                            document.documentElement.style.scrollBehavior = 'auto';
+                            
+                            // 2. Відрізаємо верхній екран
+                            hero.style.display = 'none'; 
+                            
+                            // 3. Жорстко і миттєво фіксуємо скрол на початку
+                            window.scrollTo(0, 0); 
+                            
+                            // 4. Повертаємо плавність назад
+                            setTimeout(() => {
+                                document.documentElement.style.scrollBehavior = 'smooth';
+                            }, 50);
                         }
                     }, 2000);
                 }, 1500);
