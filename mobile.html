@@ -42,32 +42,20 @@
         }
 
         /* ── АВТОМАТИЧНА КІНЕМАТОГРАФІЧНА МАСКА (MOBILE) ── */
-        body.lock-scroll { overflow: hidden; }
-
-        .splash-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-            z-index: 9000; 
-            transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1); /* Кінематографічний від'їзд вгору */
-            will-change: transform;
-        }
-        .splash-screen.slide-up {
-            transform: translateY(-100%);
-        }
-
         .intro-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2; pointer-events: none; transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: 9990; pointer-events: none; transition: opacity 0.5s ease;
         }
         
         .zoom-svg { 
             width: 100%; height: 100%; 
-            transform-origin: 38% 50%; /* Ідеальний приціл в першу О */
+            transform-origin: 42.5% 50%; /* Ідеальний приціл в першу О */
             will-change: transform; 
         }
 
         .clean-hero { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #0C110C; overflow: hidden; z-index: 1;
+            position: relative; width: 100%; height: 100vh; 
+            background: #0C110C; overflow: hidden; 
         }
         .hero-bg-img { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
@@ -80,15 +68,16 @@
         #fl-S { transform: translateY(40vh); }   
         #fl-O2 { transform: translateX(30vw); }  
 
+        /* Швидкість літер, яка тобі сподобалась */
         .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
         @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
 
+        /* Плавний кінематографічний зум */
         .intro-overlay.start-zoom .zoom-svg { 
             transform: scale(350); 
-            /* 🎥 Повертаємо плавну, дорогу кіношну динаміку */
             transition: transform 2.4s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
@@ -343,28 +332,25 @@
 </div>
 
 <div id="screen-list" class="screen active">
-    <!-- 🚀 НОВА ОБГОРТКА ДЛЯ ЗАСТАВКИ -->
-    <div id="splashScreen" class="splash-screen">
-        <div id="introOverlay" class="intro-overlay">
-            <svg class="zoom-svg" width="100%" height="100%">
-                <defs>
-                    <mask id="textMask">
-                        <rect width="100%" height="100%" fill="white" />
-                        <g fill="black" font-family="'Inter', sans-serif" font-weight="900" font-size="28vw" text-anchor="middle">
-                            <g id="fl-B"><text x="14%" y="50%" dominant-baseline="central">B</text></g>
-                            <g id="fl-O1"><text x="38%" y="50%" dominant-baseline="central">O</text></g>
-                            <g id="fl-S"><text x="62%" y="50%" dominant-baseline="central">S</text></g>
-                            <g id="fl-O2"><text x="86%" y="50%" dominant-baseline="central">O</text></g>
-                        </g>
-                    </mask>
-                </defs>
-                <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
-            </svg>
-        </div>
+    <div id="introOverlay" class="intro-overlay">
+        <svg class="zoom-svg" width="100%" height="100%">
+            <defs>
+                <mask id="textMask">
+                    <rect width="100%" height="100%" fill="white" />
+                    <g fill="black" font-family="'Inter', sans-serif" font-weight="900" font-size="28vw" text-anchor="middle">
+                        <g id="fl-B"><text x="14%" y="50%" dominant-baseline="central">B</text></g>
+                        <g id="fl-O1"><text x="38%" y="50%" dominant-baseline="central">O</text></g>
+                        <g id="fl-S"><text x="62%" y="50%" dominant-baseline="central">S</text></g>
+                        <g id="fl-O2"><text x="86%" y="50%" dominant-baseline="central">O</text></g>
+                    </g>
+                </mask>
+            </defs>
+            <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
+        </svg>
+    </div>
 
-        <div class="clean-hero">
-            <img src="hero.jpg" alt="BOSO bg" class="hero-bg-img" onerror="this.src='https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=800&auto=format&fit=crop'">
-        </div>
+    <div class="clean-hero">
+        <img src="hero.jpg" alt="BOSO bg" class="hero-bg-img" onerror="this.src='https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=800&auto=format&fit=crop'">
     </div>
 
     <div class="page-wrap" id="cabinsContainer">
@@ -574,38 +560,46 @@ async function initApp() {
     const bgText = document.getElementById('bgBosoText');
     const cabins = document.getElementById('cabinsContainer');
 
-    if(preloader) {
+   if(preloader) {
         preloader.style.opacity = '0';
         setTimeout(() => {
             preloader.style.display = 'none';
             if(introOverlay) {
                 introOverlay.classList.add('start-fly');
                 
-                // Чекаємо поки літери злетяться
+                // Чекаємо 2.2 сек поки букви злетяться
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // Плавно гасимо білу маску ближче до кінця зуму
+                    // Починаємо скрол вниз рівно посередині зуму (коли дірка від 'О' вже розширилась)
                     setTimeout(() => {
-                        introOverlay.style.opacity = '0';
-                    }, 1900);
+                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 1200); 
+                        introOverlay.style.opacity = '0'; // Гасимо маску
+                    }, 1200);
                     
-                    // Як тільки зум завершився (2400) — заставка плавно від'їжджає вгору!
-                    setTimeout(() => {
-                        const splash = document.getElementById('splashScreen');
-                        const hero = document.querySelector('.clean-hero');
+                    // Фінальна безшовна склейка (зум і скрол завершились)
+                    setTimeout(() => { 
+                        introOverlay.style.display = 'none'; 
                         
-                        if (splash) {
-                            if (hero) hero.style.display = 'none';
+                        const hero = document.querySelector('.clean-hero');
+                        if (hero) {
+                            // Блокуємо плавність на мить
+                            document.documentElement.style.scrollBehavior = 'auto';
                             
-                            splash.classList.add('slide-up');
-                            document.body.classList.remove('lock-scroll');
+                            // Видаляємо головну картинку
+                            hero.style.display = 'none'; 
                             
-                            setTimeout(() => {
-                                splash.style.display = 'none';
-                            }, 1000);
+                            // Жорстко і миттєво фіксуємо камеру на котеджах
+                            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                            
+                            // Повертаємо плавність тільки після оновлення екрану
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    document.documentElement.style.scrollBehavior = 'smooth';
+                                });
+                            });
                         }
-                    }, 2400); 
+                    }, 2500); 
                     
                 }, 2200); 
             }
