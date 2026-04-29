@@ -88,7 +88,8 @@
 
         .intro-overlay.start-zoom .zoom-svg { 
             transform: scale(350); 
-            transition: transform 1.6s ease-in; /* Різке прискорення в кінці */
+            /* 🎥 Повертаємо плавну, дорогу кіношну динаміку */
+            transition: transform 2.4s cubic-bezier(0.4, 0, 0.2, 1); 
         }
 
         /* ── КОНТЕЙНЕР КАРТОК (MOBILE) ── */
@@ -580,44 +581,31 @@ async function initApp() {
             if(introOverlay) {
                 introOverlay.classList.add('start-fly');
                 
-                // 1. Чекаємо 2.2 сек поки букви плавно злетяться
+                // Чекаємо поки літери злетяться
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // 2. 🚀 МАГІЯ: Запускаємо скрол вниз посеред зуму (на 800мс).
-                    // Коли дірка від букви "О" розкриється, рух вниз вже йтиме на повну швидкість.
-                    setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 800); 
-                    }, 800);
-                    
-                    // 3. Плавно гасимо білу маску в кінці зуму
+                    // Плавно гасимо білу маску ближче до кінця зуму
                     setTimeout(() => {
                         introOverlay.style.opacity = '0';
-                    }, 1300);
+                    }, 1900);
                     
-                    // 4. ФІНАЛЬНА СКЛЕЙКА (Ідеально безшовна на 1700мс)
-                    setTimeout(() => { 
-                        introOverlay.style.display = 'none'; 
-                        
+                    // Як тільки зум завершився (2400) — заставка плавно від'їжджає вгору!
+                    setTimeout(() => {
+                        const splash = document.getElementById('splashScreen');
                         const hero = document.querySelector('.clean-hero');
-                        if (hero) {
-                            // Вимикаємо плавність скролу на одну мить
-                            document.documentElement.style.scrollBehavior = 'auto';
+                        
+                        if (splash) {
+                            if (hero) hero.style.display = 'none';
                             
-                            // Видаляємо головну картинку (текст BOSO видаляється разом з нею)
-                            hero.style.display = 'none'; 
+                            splash.classList.add('slide-up');
+                            document.body.classList.remove('lock-scroll');
                             
-                            // Миттєво фіксуємо камеру на котеджах
-                            window.scrollTo(0, 0); 
-                            
-                            // Повертаємо плавність браузеру
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                    document.documentElement.style.scrollBehavior = 'smooth';
-                                });
-                            });
+                            setTimeout(() => {
+                                splash.style.display = 'none';
+                            }, 1000);
                         }
-                    }, 1700); 
+                    }, 2400); 
                     
                 }, 2200); 
             }
