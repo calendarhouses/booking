@@ -475,22 +475,58 @@
             .cal-day .day-price { font-size: 9px; }
         }
         
-        /* ── SUCCESS SCREEN ── */
-        .success-wrap { text-align: center; padding: 60px 20px; }
-        .success-icon { font-size: 64px; margin-bottom: 24px; display: block; }
-        .success-wrap h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 28px; font-weight: 700; margin-bottom: 12px;
+        /* ── PREMIUM SUCCESS SCREEN ── */
+        .success-wrap { text-align: center; padding: 60px 20px 40px; max-width: 500px; margin: 0 auto; }
+        .success-icon-premium {
+            width: 80px; height: 80px;
+            margin: 0 auto 24px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: rgba(85,107,47,0.08); /* Легкий оливковий фон */
+            color: var(--accent);
         }
-        .success-wrap p { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 380px; margin: 0 auto 32px; }
-        .success-detail {
-            background: var(--white); border-radius: var(--radius); border: 1px solid var(--border);
-            padding: 20px 24px; margin-bottom: 24px; text-align: left;
+        .success-icon-premium svg { width: 40px; height: 40px; stroke-width: 1.5; }
+        .success-wrap h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; margin-bottom: 12px; color: var(--text); letter-spacing: -0.5px; }
+        .success-wrap p { font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 32px; }
+
+        /* Дизайн квитанції (Чеку) */
+        .success-receipt {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            text-align: left;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04);
         }
-        .success-detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid #F3F0EC; }
-        .success-detail-row:last-child { border-bottom: none; }
-        .success-detail-row span:first-child { color: var(--muted); }
-        .success-detail-row span:last-child { font-weight: 600; }
+        .receipt-header { border-bottom: 1px dashed var(--border); padding-bottom: 16px; margin-bottom: 20px; text-align: center;}
+        .receipt-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+        .receipt-room { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); }
+
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 14px; }
+        .receipt-row:last-child { margin-bottom: 0; }
+        .receipt-label { color: var(--muted); }
+        .receipt-val { font-weight: 600; color: var(--text); text-align: right; }
+        
+        .receipt-total { border-top: 1px solid #1A1A1A; margin-top: 20px; padding-top: 20px; font-size: 18px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
+        
+        /* Кнопка Телеграм бота */
+        .btn-tg {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; padding: 18px;
+            background: #1A1A1A; /* Преміальний чорний */
+            color: #fff;
+            border-radius: 14px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            text-decoration: none; transition: 0.3s; margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .btn-tg:hover { background: #333; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+        .btn-tg svg { width: 22px; height: 22px; fill: currentColor; }
+
+        .btn-home-link {
+            display: inline-block; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); text-decoration: none; transition: 0.2s; cursor: pointer; border-bottom: 1px solid transparent; padding-bottom: 2px;
+        }
+        .btn-home-link:hover { color: var(--text); border-color: var(--text); }
 
         /* ── FOOTER ── */
         .site-footer { text-align: center; padding: 24px 20px; font-size: 12px; color: #9CA3AF; }
@@ -914,15 +950,21 @@
 <div id="screen-success" class="screen">
     <div class="page-wrap">
         <div class="success-wrap fade-in">
-            <span class="success-icon">🎉</span>
-            <h2>Бронювання відправлено!</h2>
-            <p>Дякуємо! Ми перевіримо наявність та зв'яжемося з вами найближчим часом для підтвердження.</p>
+            <div class="success-icon-premium">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            
+            <h2>Бронювання підтверджено</h2>
+            <p>Оплата пройшла успішно. Ваші апартаменти заброньовано, деталі вказані нижче.</p>
 
-            <div class="success-detail" id="successDetail"></div>
+            <div class="success-receipt" id="successDetail"></div>
 
-            <button class="btn-proceed" onclick="showList()" style="max-width:280px;margin:0 auto;display:block;">
-                Повернутись на головну
-            </button>
+            <a href="tg://resolve?domain=bosohouses_bot&start=dzp4SnNlUkQyTw==" class="btn-tg">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.18 3.44-.49.33-.93.49-1.33.48-.44-.01-1.28-.24-1.91-.44-.77-.24-1.38-.37-1.32-.78.03-.22.34-.44.93-.68 3.63-1.58 6.06-2.63 7.28-3.13 3.47-1.42 4.18-1.67 4.65-1.68.1 0 .33.02.45.1.1.06.13.14.14.21-.01.04-.01.12-.02.21z"/></svg>
+                Електронний консьєрж
+            </a>
+            
+            <a onclick="showList()" class="btn-home-link">Повернутись на головну</a>
         </div>
     </div>
 </div>
@@ -994,13 +1036,14 @@ async function init() {
     // 🟢 ПЕРЕВІРКА ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('payment') === 'success') {
-        // Очищаємо посилання (щоб мітка зникла і при оновленні сторінки не показувало знову)
         window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Гасимо прелоадер і показуємо екран успіху
         document.getElementById('preloader').style.display = 'none';
+        
+        // Малюємо чек з пам'яті
+        renderSuccessReceipt();
+        
         showScreen('success');
-        return; // Зупиняємо звичайне завантаження головної сторінки
+        return;
     }
     
     // 1. Запускаємо таймер-мінімум (щоб смужка точно встигла красиво виїхати)
@@ -1665,6 +1708,17 @@ async function submitBooking() {
         if (json.paymentData) {
             const pd = json.paymentData;
             
+            // 🟢 ЗБЕРІГАЄМО ДАНІ ДЛЯ ЕКРАНУ УСПІХУ 🟢
+            sessionStorage.setItem('lastBooking', JSON.stringify({
+                cottage: bookingData.cottage,
+                checkIn: bookingData.checkIn,
+                checkOut: bookingData.checkOut,
+                guests: bookingData.guests,
+                pets: bookingData.pets,
+                totalPrice: calc.totalPrice,
+                prepayment: pd.amount // Це рівно ті 50%
+            }));
+            
             // Створюємо приховану форму
             const form = document.createElement("form");
             form.method = "POST";
@@ -1783,6 +1837,38 @@ function calcTotal(nights) {
     return isWE ? room.priceWeekend : room.priceWeekday;
 }
 
+    // --- ФОРМУВАННЯ ЧЕКУ ---
+function renderSuccessReceipt() {
+    const dataStr = sessionStorage.getItem('lastBooking');
+    if (!dataStr) return; // Якщо відкрили сторінку без бронювання
+    
+    try {
+        const b = JSON.parse(dataStr);
+        const inD = new Date(b.checkIn).toLocaleDateString('uk-UA', { day:'numeric', month:'long' });
+        const outD = new Date(b.checkOut).toLocaleDateString('uk-UA', { day:'numeric', month:'long' });
+        
+        document.getElementById('successDetail').innerHTML = `
+            <div class="receipt-header">
+                <div class="receipt-title">Бронь котеджу</div>
+                <div class="receipt-room">${b.cottage}</div>
+            </div>
+            <div class="receipt-row"><span class="receipt-label">Заїзд:</span> <span class="receipt-val">${inD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">з 15:00</span></span></div>
+            <div class="receipt-row"><span class="receipt-label">Виїзд:</span> <span class="receipt-val">${outD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">до 11:00</span></span></div>
+            <div class="receipt-row"><span class="receipt-label">Гості:</span> <span class="receipt-val">${b.guests} ${guestWord(b.guests)}</span></div>
+            ${b.pets === 'Так' ? `<div class="receipt-row"><span class="receipt-label">Тварини:</span> <span class="receipt-val">З твариною</span></div>` : ''}
+            
+            <div class="receipt-total">
+                <span style="font-size:14px; font-weight:600;">Внесено аванс</span>
+                <span style="color: var(--accent);">${b.prepayment.toLocaleString('uk-UA')} грн</span>
+            </div>
+            <div class="receipt-row" style="margin-top:12px;">
+                <span class="receipt-label" style="font-size:13px; font-weight: 500;">Залишок при заселенні:</span> 
+                <span class="receipt-val" style="font-size:13px; font-weight: 700;">${(b.totalPrice - b.prepayment).toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    } catch(e) { console.error("Помилка чеку:", e); }
+}
+    
 // ─── UTILS ─────────────────────────────────────────────────────────────────
 function dateStr(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
