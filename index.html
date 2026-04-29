@@ -1521,23 +1521,64 @@ function renderCheckout() {
     const room = roomsList.find(r => r.id == currentCabinId);
 
     // Dates display
-    const inStr = selectedCheckIn.toLocaleDateString('uk-UA', {day:'numeric',month:'long'});
-    const outStr = selectedCheckOut.toLocaleDateString('uk-UA', {day:'numeric',month:'long'});
-    document.getElementById('datesDisplayText').innerText = `${inStr} → ${outStr}`;
-    document.getElementById('nightsDisplayText').innerText = `${nights} ${nightWord(nights)} · ${guestCount} ${guestWord(guestCount)}${hasPets ? ' · 🐾 з тваринами' : ''}`;
+    const inStr = selectedCheckIn.toLocaleDateString('uk-UA', {day:'numeric',month:'long', year:'numeric'});
+    const outStr = selectedCheckOut.toLocaleDateString('uk-UA', {day:'numeric',month:'long', year:'numeric'});
+    document.getElementById('datesDisplayText').innerText = `${inStr} — ${outStr}`;
+    
+    let petsText = hasPets ? ' · 🐾 з твариною' : '';
+    document.getElementById('nightsDisplayText').innerText = `${nights} ${nightWord(nights)} · ${guestCount} ${guestWord(guestCount)}${petsText}`;
 
-    // Summary
+    // Premium Summary Breakdown (Стилізовано під адмін-панель)
     let rows = `
-        <div class="summary-row"><span>${room?.name}</span><span>${inStr} – ${outStr}</span></div>
-        <div class="summary-row"><span>Базова вартість (${nights} ночей)</span><span>${calc.basePrice.toLocaleString('uk-UA')} грн</span></div>`;
-    if (calc.extraGuestFee > 0) rows += `<div class="summary-row"><span>Додаткові гості</span><span>+${calc.extraGuestFee.toLocaleString('uk-UA')} грн</span></div>`;
-    if (calc.petFee > 0) rows += `<div class="summary-row"><span>Тварини</span><span>+${calc.petFee.toLocaleString('uk-UA')} грн</span></div>`;
-    if (calc.discountAmount > 0) {
-        rows += `<div class="summary-row discount-row"><span>Знижка (${Math.round(calc.discountPercent*100)}%)</span><span>−${calc.discountAmount.toLocaleString('uk-UA')} грн</span></div>`;
-        rows += `<div class="summary-row total"><span>Всього</span><span><span class="original-price">${(calc.basePrice+calc.extraGuestFee+calc.petFee).toLocaleString('uk-UA')} грн</span> &nbsp; ${calc.totalPrice.toLocaleString('uk-UA')} грн</span></div>`;
-    } else {
-        rows += `<div class="summary-row total"><span>Всього</span><span>${calc.totalPrice.toLocaleString('uk-UA')} грн</span></div>`;
+        <div style="background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Базова вартість (${nights} ${nightWord(nights)})</span>
+                <span style="font-weight: 600; color: #1A1A1A;">${calc.basePrice.toLocaleString('uk-UA')} грн</span>
+            </div>
+    `;
+
+    if (calc.extraGuestFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Дод. гості (${guestCount - room.capacity})</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.extraGuestFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
     }
+
+    if (calc.petFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Тварина</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.petFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+
+    if (calc.discountAmount > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: var(--danger);">
+                <span>Знижка (${Math.round(calc.discountPercent * 100)}%)</span>
+                <span style="font-weight: 700;">-${calc.discountAmount.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+
+    // Total and Prepayment
+    rows += `
+            <div style="border-top: 1px solid rgba(85, 107, 47, 0.1); margin-top: 16px; padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 16px; font-weight: 700; color: #1A1A1A;">Загальна сума</span>
+                    <span style="font-size: 22px; font-weight: 800; color: var(--accent);">${calc.totalPrice.toLocaleString('uk-UA')} грн</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #FFF; padding: 14px; border-radius: 12px; border: 1px dashed var(--accent);">
+                    <span style="font-size: 14px; font-weight: 600; color: #4B5563;">Передплата (50%)<br><span style="font-size: 11px; font-weight: 400; color: #9CA3AF;">Для підтвердження броні</span></span>
+                    <span style="font-size: 18px; font-weight: 700; color: #1A1A1A;">${calc.prepayment.toLocaleString('uk-UA')} грн</span>
+                </div>
+            </div>
+        </div>
+    `;
+
     document.getElementById('summaryRows').innerHTML = rows;
     document.getElementById('bookBtn').innerText = `Забронювати · ${calc.totalPrice.toLocaleString('uk-UA')} грн`;
 }
@@ -1614,7 +1655,7 @@ function showSuccess(data, calc) {
 // ─── PRICE CALCULATION ─────────────────────────────────────────────────────
 function calcTotal(nights) {
     const room = roomsList.find(r => r.id == currentCabinId);
-    if (!room || !selectedCheckIn) return { basePrice:0, extraGuestFee:0, petFee:0, discountAmount:0, discountPercent:0, totalPrice:0 };
+    if (!room || !selectedCheckIn) return { basePrice:0, extraGuestFee:0, petFee:0, discountAmount:0, discountPercent:0, totalPrice:0, prepayment:0 };
 
     let base = 0;
     for (let i = 0; i < nights; i++) {
@@ -1622,30 +1663,45 @@ function calcTotal(nights) {
         base += getDayPrice(room, d);
     }
 
+    // Розрахунок додаткових гостей
     const extraGuests = Math.max(0, guestCount - room.capacity);
     const extraPrice = room.extraGuestPrice !== undefined ? room.extraGuestPrice : 2500;
     const extraGuestFee = extraGuests * extraPrice * nights;
+    
+    // Розрахунок тварин (як в адмінці: 500 одноразово + 200 грн/добу)
     const petFee = hasPets ? (500 + 200 * nights) : 0;
 
+    // Розумний підбір знижки (як в адмінці)
     let discountPercent = 0;
     discountsList.forEach(d => {
         const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0;
         const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
         const appliesToRoom = d.roomsIds && (d.roomsIds.includes('all') || d.roomsIds.includes(String(currentCabinId)));
-        if (nights >= condNights && appliesToRoom && pct > discountPercent) discountPercent = pct;
+        
+        if (nights >= condNights && appliesToRoom && pct > discountPercent) {
+            discountPercent = pct;
+        }
     });
 
-    const discountAmount = Math.round((base + extraGuestFee) * discountPercent);
-    const totalPrice = base + extraGuestFee - discountAmount + petFee;
-    return { basePrice: base, extraGuestFee, petFee, discountAmount, discountPercent, totalPrice };
-}
+    // Знижка діє на (базова вартість + додаткові гості)
+    const amountToDiscount = base + extraGuestFee;
+    const discountAmount = Math.round(amountToDiscount * discountPercent);
+    
+    // Фінальна сума
+    const totalPrice = amountToDiscount - discountAmount + petFee;
+    
+    // Передплата (50%)
+    const prepayment = Math.round(totalPrice / 2);
 
-function getDayPrice(room, d) {
-    if (!room) return 0;
-    const ds = dateStr(d);
-    if (customPrices[room.id] && customPrices[room.id][ds]) return customPrices[room.id][ds];
-    const isWE = d.getDay() === 0 || d.getDay() === 6;
-    return isWE ? room.priceWeekend : room.priceWeekday;
+    return { 
+        basePrice: base, 
+        extraGuestFee, 
+        petFee, 
+        discountAmount, 
+        discountPercent, 
+        totalPrice, 
+        prepayment 
+    };
 }
 
 // ─── UTILS ─────────────────────────────────────────────────────────────────
