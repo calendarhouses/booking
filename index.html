@@ -762,6 +762,10 @@
     <script id="widget-wfp-script" language="javascript" type="text/javascript" src="https://secure.wayforpay.com/server/pay-widget.js"></script>
 </head>
 <body>
+    <!-- Звук для кіно-входу -->
+<audio id="introSound" preload="auto">
+    <source src="cinematic-whoosh.mp3" type="audio/mpeg">
+</audio>
 <div id="preloader">
     <div class="preloader-content">
         <div class="pulse-logo">BOSO</div>
@@ -1100,7 +1104,19 @@ async function init() {
         setTimeout(() => {
             preloader.style.display = 'none';
             if(introOverlay) {
+                
+                // 🔊 ЗАПУСК ЗВУКУ
+                const sound = document.getElementById('introSound');
+                if (sound) {
+                    sound.volume = 0.6; // Гучність 60%, щоб не оглушити клієнта
+                    // Важливо: catch потрібен, щоб сайт не впав, якщо Safari заблокує звук
+                    sound.play().catch(err => console.log('Звук заблоковано браузером (не було кліку)'));
+                }
+
                 introOverlay.classList.add('start-fly');
+                
+                // 1. Чекаємо 2.0 сек, поки букви плавно злетяться
+                // ... (далі йде твій існуючий код зуму і скролу)
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     setTimeout(() => {
