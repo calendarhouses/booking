@@ -46,20 +46,22 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
             z-index: 9990; pointer-events: none; transition: opacity 0.5s ease;
         }
-        
-        .zoom-svg { 
-            width: 100%; height: 100%; 
-            transform-origin: 42.5% 50%; /* Ідеальний приціл в першу О */
-            will-change: transform; 
+
+        .zoom-svg {
+            width: 100%; height: 100%;
+            transform-origin: 44.5% 50%; /* Приціл в першу О для мобілки */
+            will-change: transform;
         }
 
-        .clean-hero { 
-            position: relative; width: 100%; height: 100vh; 
-            background: #0C110C; overflow: hidden; 
+        .clean-hero {
+            position: relative; /* Як на ПК! */
+            width: 100%; height: 100vh;
+            background: #0C110C;
+            overflow: hidden;
         }
-        .hero-bg-img { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            object-fit: cover; filter: brightness(0.85); 
+        .hero-bg-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; filter: brightness(0.85);
         }
 
         #fl-B, #fl-O1, #fl-S, #fl-O2 { opacity: 0; }
@@ -68,17 +70,15 @@
         #fl-S { transform: translateY(40vh); }   
         #fl-O2 { transform: translateX(30vw); }  
 
-        /* Швидкість літер, яка тобі сподобалась */
-        .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
         @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
 
-        /* Плавний кінематографічний зум */
-        .intro-overlay.start-zoom .zoom-svg { 
-            transform: scale(350); 
-            transition: transform 2.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        .intro-overlay.start-zoom .zoom-svg {
+            transform: scale(350); /* Збільшений зум для вертикального екрану */
+            transition: transform 1.8s cubic-bezier(0.7, 0, 0.2, 1);
         }
 
         /* ── КОНТЕЙНЕР КАРТОК (MOBILE) ── */
@@ -566,44 +566,43 @@ async function initApp() {
             preloader.style.display = 'none';
             if(introOverlay) {
                 introOverlay.classList.add('start-fly');
-                
-                // Чекаємо 2.2 сек поки букви злетяться
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // Починаємо скрол вниз рівно посередині зуму (коли дірка від 'О' вже розширилась)
+                    // Починаємо скрол як на ПК (через 600мс після старту зуму)
                     setTimeout(() => {
-                        if (cabins) smoothScrollTo(cabins.getBoundingClientRect().top + window.scrollY, 1200); 
-                        introOverlay.style.opacity = '0'; // Гасимо маску
-                    }, 1200);
+                        if (cabins) {
+                            const offset = cabins.getBoundingClientRect().top + window.scrollY;
+                            smoothScrollTo(offset, 1500); 
+                        }
+                        introOverlay.style.opacity = '0';
+                    }, 600);
                     
-                    // Фінальна безшовна склейка (зум і скрол завершились)
-                    setTimeout(() => { 
-                        introOverlay.style.display = 'none'; 
+                    // Відрізаємо картинку і фіксуємо склейку як на ПК
+                    setTimeout(() => {
+                        introOverlay.style.display = 'none';
                         
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            // Блокуємо плавність на мить
+                            // 1. Тимчасово вимикаємо плавну прокрутку
                             document.documentElement.style.scrollBehavior = 'auto';
                             
-                            // Видаляємо головну картинку
+                            // 2. Відрізаємо верхній екран
                             hero.style.display = 'none'; 
                             
-                            // Жорстко і миттєво фіксуємо камеру на котеджах
-                            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                            // 3. Жорстко і миттєво фіксуємо скрол на початку
+                            window.scrollTo(0, 0); 
                             
-                            // Повертаємо плавність тільки після оновлення екрану
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                    document.documentElement.style.scrollBehavior = 'smooth';
-                                });
-                            });
+                            // 4. Повертаємо плавність назад
+                            setTimeout(() => {
+                                document.documentElement.style.scrollBehavior = 'smooth';
+                            }, 50);
                         }
-                    }, 2500); 
+                    }, 2500);
                     
-                }, 2200); 
+                }, 1500); 
             }
-        }, 500);
+        }, 600);
     }
 }
 
