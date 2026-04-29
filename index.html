@@ -717,6 +717,7 @@
         }
         .step-line::after { background: #2C3D28 !important; } /* Темно-зелена заливка */
     </style>
+    <script id="widget-wfp-script" language="javascript" type="text/javascript" src="https://secure.wayforpay.com/server/pay-widget.js"></script>
 </head>
 <body>
 <div id="preloader">
@@ -1623,12 +1624,54 @@ async function submitBooking() {
             body: JSON.stringify(bookingData)
         });
         const json = await res.json();
+        
         if (json.error === 'OVERLAP') {
             toast('❌ Ці дати вже зайняті! Оберіть інші.');
             btn.disabled = false; btn.innerText = 'Забронювати';
             return;
         }
-        showSuccess(bookingData, calc);
+
+        // Якщо Гугл повернув дані для оплати (PaymentData)
+        if (json.paymentData) {
+            const pd = json.paymentData;
+            const wayforpay = new Wayforpay();
+            
+            wayforpay.run({
+                merchantAccount: pd.merchantAccount,
+                merchantDomainName: pd.merchantDomainName,
+                merchantSignature: pd.signature,
+                orderReference: pd.orderReference,
+                orderDate: pd.orderDate,
+                amount: pd.amount,
+                currency: pd.currency,
+                productName: [pd.productName],   // Обов'язково масив
+                productPrice: [pd.amount],       // Обов'язково масив
+                productCount: [pd.productCount], // Обов'язково масив
+                clientFirstName: firstName,
+                clientLastName: lastName,
+                clientPhone: phone
+            },
+            function (response) {
+                // Оплата успішна
+                showSuccess(bookingData, calc);
+                toast('Оплата успішна! Бронь підтверджено.');
+            },
+            function (response) {
+                // Оплата відхилена або закрили вікно
+                btn.disabled = false; btn.innerText = 'Забронювати';
+                toast('Оплату скасовано. Спробуйте ще раз.');
+            },
+            function (response) {
+                // В процесі обробки (наприклад, чекає підтвердження банку)
+                showSuccess(bookingData, calc);
+                toast('Оплата в процесі обробки.');
+            });
+            
+        } else {
+            // Якщо оплата не потрібна або щось пішло не так
+            showSuccess(bookingData, calc);
+        }
+
     } catch(e) {
         toast('Помилка відправки. Спробуйте ще раз.');
         btn.disabled = false; btn.innerText = 'Забронювати';
