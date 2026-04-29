@@ -70,9 +70,9 @@
         #fl-S { transform: translateY(40vh); }   
         #fl-O2 { transform: translateX(30vw); }  
 
-        .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
+        .intro-overlay.start-fly #fl-B, .intro-overlay.start-fly #fl-O2 { animation: flyX 2.0s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .intro-overlay.start-fly #fl-O1, .intro-overlay.start-fly #fl-S { animation: flyY 2.0s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
         @keyframes flyX { to { transform: translateX(0); opacity: 1; } }
         @keyframes flyY { to { transform: translateY(0); opacity: 1; } }
 
@@ -566,41 +566,46 @@ async function initApp() {
             preloader.style.display = 'none';
             if(introOverlay) {
                 introOverlay.classList.add('start-fly');
+                
+                // 1. Чекаємо 1.8 сек (букви ще плавно долітають, але зум вже стартує)
                 setTimeout(() => {
                     introOverlay.classList.add('start-zoom');
                     
-                    // Починаємо скрол як на ПК (через 600мс після старту зуму)
+                    // 2. Зум триває 1.8 сек. Чекаємо 1.3 сек — це момент, коли 
+                    // картинка вже МАЙЖЕ вся відкрилась. І відразу стрімко летимо вниз!
                     setTimeout(() => {
                         if (cabins) {
                             const offset = cabins.getBoundingClientRect().top + window.scrollY;
-                            smoothScrollTo(offset, 1500); 
+                            // Швидкий скрол: 800мс замість 1500мс
+                            smoothScrollTo(offset, 800); 
                         }
-                        introOverlay.style.opacity = '0';
-                    }, 600);
+                        introOverlay.style.opacity = '0'; // Гасимо білий фон
+                    }, 1300);
                     
-                    // Відрізаємо картинку і фіксуємо склейку як на ПК
+                    // 3. Відрізаємо картинку і фіксуємо склейку (через 2.2 сек після зуму, 
+                    // щоб скрол точно встиг завершитись)
                     setTimeout(() => {
                         introOverlay.style.display = 'none';
                         
                         const hero = document.querySelector('.clean-hero');
                         if (hero) {
-                            // 1. Тимчасово вимикаємо плавну прокрутку
+                            // Тимчасово вимикаємо плавну прокрутку
                             document.documentElement.style.scrollBehavior = 'auto';
                             
-                            // 2. Відрізаємо верхній екран
+                            // Відрізаємо верхній екран
                             hero.style.display = 'none'; 
                             
-                            // 3. Жорстко і миттєво фіксуємо скрол на початку
+                            // Жорстко фіксуємо скрол
                             window.scrollTo(0, 0); 
                             
-                            // 4. Повертаємо плавність назад
+                            // Повертаємо плавність назад
                             setTimeout(() => {
                                 document.documentElement.style.scrollBehavior = 'smooth';
                             }, 50);
                         }
-                    }, 2500);
+                    }, 2200);
                     
-                }, 1500); 
+                }, 1800); 
             }
         }, 600);
     }
