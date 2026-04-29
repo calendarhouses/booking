@@ -1054,16 +1054,17 @@ async function init() {
     // 1. Запускаємо таймер-мінімум (щоб смужка точно встигла красиво виїхати)
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
 
-    // 2. ОДНОЧАСНО (в фоні) тягнемо дані з бази Гугла
+    // 2. ТЯГНЕМО ВСІ ДАНІ З ГУГЛА ОДНИМ СУПЕР-ЗАПИТОМ (вдвічі швидше!)
     const fetchPromise = (async () => {
         try {
             const t = Date.now();
-            const [bRes, sRes] = await Promise.all([
-                fetch(API_URL + '?t=' + t),
-                fetch(API_URL + '?action=settings&t=' + t)
-            ]);
-            allBookings = await bRes.json();
-            const sd = await sRes.json();
+            const res = await fetch(API_URL + '?action=initData&t=' + t);
+            const data = await res.json();
+            
+            // Розпаковуємо нашу "посилку"
+            allBookings = data.bookings || [];
+            const sd = data.settings || {};
+
             if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
             if (sd.discountsList) discountsList = sd.discountsList;
             if (sd.customPrices) customPrices = sd.customPrices;
