@@ -38,12 +38,15 @@
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
         html { scroll-behavior: smooth; overscroll-behavior-y: none; }
         body {
-            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh;
+            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); 
+            min-height: 100dvh; /* 🚀 Використовуємо dvh для правильної висоти в Safari */
+            /* 🔒 Забороняємо випадковий зум щипком або подвійним тапом */
+            touch-action: pan-x pan-y; 
         }
 
         /* ── АВТОМАТИЧНА КІНЕМАТОГРАФІЧНА МАСКА (MOBILE) ── */
         .intro-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; /* 🚀 dvh */
             z-index: 9990; pointer-events: none; transition: opacity 0.5s ease;
         }
 
@@ -141,13 +144,14 @@
         
         /* ── ПРЕМІУМ ВИЇЗНА ПАНЕЛЬ (BOTTOM SHEET) ── */
         .drawer-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(18, 26, 18, 0.6);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; /* 🚀 dvh */
+            background: rgba(18, 26, 18, 0.6);
             backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .drawer-overlay.open { opacity: 1; pointer-events: auto; }
         
         .detail-drawer {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 92vh; /* Не на весь екран, як в iOS */
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 92dvh; /* 🚀 dvh замість vh */
             background: var(--bg); border-radius: 24px 24px 0 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
             transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex; flex-direction: column;
@@ -982,15 +986,13 @@ function toast(msg) { const t = document.getElementById('toast'); t.innerText = 
 
 document.addEventListener('DOMContentLoaded', initApp);
 
-// ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram + Захист) ───
+// ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram) ───
 let audioCtx = null;
-let lastSoundTime = 0; // Наш запобіжник
+let lastSoundTime = 0; // Запобіжник від подвійного кліку
 
 function playClick() {
-    // 🛡 ЗАХИСТ ВІД ПОДВІЙНОГО ЗВУКУ: 
-    // Якщо звук вже грав менше ніж 50 мілісекунд тому - ігноруємо
     const now = Date.now();
-    if (now - lastSoundTime < 50) return; 
+    if (now - lastSoundTime < 50) return; // Захист від здвоєного звуку
     lastSoundTime = now;
 
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -999,32 +1001,31 @@ function playClick() {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
-    osc.type = 'triangle'; // Telegram-стиль
-    
-    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.02);
+    // Чистий, високий і ультра-короткий "тік"
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(1500, audioCtx.currentTime); // Дуже висока частота
+    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.015); // Падає миттєво
 
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime); // Гучність
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015); // Затухає миттєво
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
     osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.02);
+    osc.stop(audioCtx.currentTime + 0.015); // Звук триває всього 0.015 сек
 }
-    // 🔊 АВТОМАТИЧНО ДОДАЄМО ЗВУК НА ВСІ ІНТЕРАКТИВНІ ЕЛЕМЕНТИ
+
+// 🔊 ГЛОБАЛЬНИЙ ПЕРЕХОПЛЮВАЧ КЛІКІВ (Автоматично на всі кнопки)
 document.addEventListener('click', function(e) {
-    // Шукаємо, чи клік був по кнопці, посиланню, або іншому активному блоку
-    // (Ігноруємо неактивні або вже заброньовані дати)
-    const interactiveEl = e.target.closest('button, a, .sdot, .pet-opt, .cal-day:not(.disabled):not(.past):not(.booked)');
+    // Шукаємо, чи клік був по кнопці, точці слайдера, вибору тварини або активній даті
+    const interactiveEl = e.target.closest('button, .sdot, .pet-opt, .cal-day:not(.disabled):not(.past):not(.booked)');
     
     if (interactiveEl) {
-        // Виняток: не граємо цей маленький клік для кнопки "Почати", 
-        // бо там вже є великий кінематографічний звук "вуууш"
+        // Якщо це кнопка "Почати", там грає кіношний звук, тому дрібний тік ігноруємо
         if (interactiveEl.id === 'enterBtn') return;
         
-        playClick(); // Робимо "тік!"
+        playClick(); // Запускаємо тік Telegram!
     }
 });
 </script>
