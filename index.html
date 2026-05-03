@@ -969,12 +969,11 @@
 
             <div class="success-receipt" id="successDetail"></div>
 
-            <a href="tg://resolve?domain=bosohouses_bot&start=dzp4SnNlUkQyTw==" class="btn-tg">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.18 3.44-.49.33-.93.49-1.33.48-.44-.01-1.28-.24-1.91-.44-.77-.24-1.38-.37-1.32-.78.03-.22.34-.44.93-.68 3.63-1.58 6.06-2.63 7.28-3.13 3.47-1.42 4.18-1.67 4.65-1.68.1 0 .33.02.45.1.1.06.13.14.14.21-.01.04-.01.12-.02.21z"/></svg>
-                Електронний консьєрж
+           <a href="tg://resolve?domain=bosohouses_bot&start=dzp4SnNlUkQyTw==" class="btn-tg" onclick="playClick()">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.18 3.44-.49.33-.93.49-1.33.48-.44-.01-1.28-.24-1.91-.44-.77-.24-1.38-.37-1.32-.78.03-.22.34-.44.93-.68 3.63-1.58 6.06-2.63 7.28-3.13 3.47-1.42 4.18-1.67 4.65-1.68.1 0 .33.02.45.1.1.06.13.14.14.21-.01.04-.01.12-.02.21z"/></svg> Телеграм Консьєрж
             </a>
             
-            <a href="#" onclick="window.location.href = window.location.pathname; return false;" class="btn-home-link">Повернутись на головну</a>
+            <a href="#" onclick="playClick(); setTimeout(() => window.location.href = window.location.pathname, 150); return false;" class="btn-home-link">Повернутись на головну</a>
         </div>
     </div>
 </div>
@@ -1340,6 +1339,7 @@ function applySlide(id, idx, total) {
 
 // Відкрити панель (Завжди починаємо з кроку INFO)
 function showDetail(cabinId) {
+    playClick(); // 🔊
     currentCabinId = cabinId;
     const room = roomsList.find(r => r.id == cabinId);
     if (!room) return;
@@ -1414,6 +1414,7 @@ function showDetail(cabinId) {
 
 // ─── ФУНКЦІЯ ПЕРЕМИКАННЯ КРОКІВ ───
 function goToStep(step) {
+    playClick(); // 🔊
     // 1. Ховаємо всі кроки
     document.querySelectorAll('.drawer-step').forEach(el => el.classList.remove('active'));
     
@@ -1438,6 +1439,7 @@ function goToStep(step) {
 // ─── ФУНКЦІЯ ЗАКРИТТЯ ПАНЕЛІ ───
 function closeDetail(e) {
     if (!e || e.target.id === 'screen-detail' || e.target.closest('.drawer-close-btn')) {
+        playClick(); // 🔊
         const overlay = document.getElementById('screen-detail');
         if(overlay) overlay.classList.remove('open');
         document.body.style.overflow = '';
@@ -1467,7 +1469,9 @@ function renderAmenities(amenities) {
 }
     
 // ─── CALENDAR ──────────────────────────────────────────────────────────────
-function shiftCal(dir) { calBase = new Date(calBase); calBase.setMonth(calBase.getMonth() + dir); renderCalendar(); }
+function shiftCal(dir) {
+    playClick(); // 🔊
+    calBase = new Date(calBase); calBase.setMonth(calBase.getMonth() + dir); renderCalendar(); }
 
 function renderCalendar() {
     const wrap = document.getElementById('calMonthsWrap');
@@ -1513,7 +1517,7 @@ function renderCalendar() {
             const isPast = d < today;
             const isBooked = bookedRanges.some(r => d >= r.start && d < r.end);
             const price = getDayPrice(room, d);
-            const priceStr = price ? (price/1000).toFixed(1)+'k' : '';
+            const priceStr = price ? price : '';
 
             let cls = 'cal-day';
             if (isPast) cls += ' past';
@@ -1550,6 +1554,7 @@ function renderCalendar() {
 }
 
 function selectDate(ds) {
+    playClick(); // 🔊
     const d = new Date(ds);
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
         selectedCheckIn = d; selectedCheckOut = null;
@@ -1599,6 +1604,7 @@ function complexPetPriceString(nights) {
 }
 
 function changeGuests(dir) {
+    playClick(); // 🔊
     const room = roomsList.find(r => r.id == currentCabinId);
     const max = room ? (room.maxCapacity || room.capacity) : 10;
     guestCount = Math.max(1, Math.min(max, guestCount + dir));
@@ -1615,6 +1621,7 @@ function changeGuests(dir) {
 }
 
 function setPet(val) {
+    playClick(); // 🔊
     hasPets = val;
     const petNo = document.getElementById('petNo');
     const petYes = document.getElementById('petYes');
@@ -1699,6 +1706,7 @@ function renderCheckout() {
 
 // ─── SUBMIT ────────────────────────────────────────────────────────────────
 async function submitBooking() {
+    playClick(); // 🔊
     const firstName = document.getElementById('fFirstName').value.trim();
     const lastName  = document.getElementById('fLastName').value.trim();
     const phone     = document.getElementById('fPhone').value.trim();
@@ -1970,6 +1978,40 @@ function toast(msg) {
     setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+    // ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram) ───
+let audioCtx = null;
+let lastSoundTime = 0; 
+
+function playClick() {
+    const now = Date.now();
+    if (now - lastSoundTime < 50) return; 
+    lastSoundTime = now;
+
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return; 
+        audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'square'; 
+    
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime); 
+    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.015); 
+
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015); 
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.015); 
+}
+    
 // ─── START ─────────────────────────────────────────────────────────────────
 init();
 </script>
