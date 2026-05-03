@@ -479,7 +479,9 @@
         <!-- КРОК 3: ОФОРМЛЕННЯ -->
         <div id="drawer-step-checkout" class="drawer-step">
             <div class="drawer-content">
-                <button class="back-btn" onclick="goToStep('calendar')"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Дати</button>
+                <button class="back-btn" onclick="goToStep('calendar')">
+                    <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Змінити дати
+                </button>
 
                 <div class="step-bar">
                     <div class="step done"><div class="step-num">✓</div><div class="step-label">Котедж</div></div>
@@ -496,27 +498,34 @@
                     </div>
                 </div>
 
+                <!-- 🚀 ПЕРЕНЕСЛИ РОЗРАХУНОК ВГОРУ (ЯК НА ПК) -->
+                <div class="summary-block">
+                    <h3 style="font-family:'Inter', sans-serif; font-size:24px; font-weight:700; margin-bottom:20px; letter-spacing:-0.5px; color:var(--text);">Розрахунок вартості</h3>
+                    <div id="summaryRows"></div>
+                </div>
+
+                <!-- 🚀 ВАШІ ДАНІ ТЕПЕР ВНИЗУ -->
                 <div class="form-block">
-                    <h3 style="font-size:18px; font-weight:700; margin-bottom:16px;">Ваші дані</h3>
-                    <div class="form-field"><label>Ім'я <span class="required">*</span></label><input type="text" id="fFirstName" placeholder="Іван"></div>
-                    <div class="form-field"><label>Прізвище</label><input type="text" id="fLastName" placeholder="Петренко"></div>
+                    <h3 style="font-family:'Inter', sans-serif; font-size:24px; font-weight:700; margin-bottom:24px; letter-spacing:-0.5px; color:var(--text);">Ваші дані</h3>
+                    <div class="form-grid2">
+                        <div class="form-field"><label>Ім'я <span class="required">*</span></label><input type="text" id="fFirstName" placeholder="Іван"></div>
+                        <div class="form-field"><label>Прізвище</label><input type="text" id="fLastName" placeholder="Петренко"></div>
+                    </div>
                     <div class="form-field">
                         <label>Телефон <span class="required">*</span></label>
                         <div class="phone-wrap">
-                            <div class="phone-prefix">🇺🇦 +38</div>
-                            <input type="tel" id="fPhone" placeholder="0XX XXX XXXX" style="flex:1;">
+                            <div class="phone-prefix">🇺🇦 +380</div>
+                            <input type="tel" id="fPhone" placeholder="XX XXX XXXX" style="flex:1;">
                         </div>
                     </div>
-                    <div class="form-field"><label>Коментар</label><textarea id="fComment" placeholder="Побажання..."></textarea></div>
+                    <div class="form-field"><label>Коментар</label><textarea id="fComment" placeholder="Будь-який коментар або побажання..."></textarea></div>
                 </div>
-
-                <div style="background:#F8FAF7; border:1px solid rgba(85,107,47,0.15); border-radius:16px; padding:16px; margin-bottom:24px;" id="summaryRows"></div>
             </div>
             
-            <div class="sticky-cta"><button class="btn-proceed" id="bookBtn" onclick="submitBooking()">Оплатити 50%</button></div>
+            <div class="sticky-cta">
+                <button class="btn-proceed" id="bookBtn" onclick="submitBooking()">Забронювати</button>
+            </div>
         </div>
-        
-    </div>
 </div>
 
 <!-- ЕКРАН УСПІХУ -->
@@ -901,28 +910,70 @@ function renderCheckout() {
     const calc = calcTotal(nights);
     const room = roomsList.find(r => r.id == currentCabinId);
 
-    const inStr = selectedCheckIn.toLocaleDateString('uk-UA', {day:'numeric',month:'short'});
-    const outStr = selectedCheckOut.toLocaleDateString('uk-UA', {day:'numeric',month:'short'});
+    // Dates display
+    const inStr = selectedCheckIn.toLocaleDateString('uk-UA', {day:'numeric',month:'long', year:'numeric'});
+    const outStr = selectedCheckOut.toLocaleDateString('uk-UA', {day:'numeric',month:'long', year:'numeric'});
     document.getElementById('datesDisplayText').innerText = `${inStr} — ${outStr}`;
-    document.getElementById('nightsDisplayText').innerText = `${nights} ${nightWord(nights)} · ${guestCount} ${guestWord(guestCount)}${hasPets ? ' · 🐾' : ''}`;
+    
+    let petsText = hasPets ? ' · 🐾 з твариною' : '';
+    document.getElementById('nightsDisplayText').innerText = `${nights} ${nightWord(nights)} · ${guestCount} ${guestWord(guestCount)}${petsText}`;
 
+    // Premium Summary Breakdown
     let rows = `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: #4B5563;">
-            <span>Базова (${nights} ${nightWord(nights)})</span><span style="font-weight:600; color:#1A1A1A;">${calc.basePrice.toLocaleString('uk-UA')} грн</span>
-        </div>
+        <div style="background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Базова вартість (${nights} ${nightWord(nights)})</span>
+                <span style="font-weight: 600; color: #1A1A1A;">${calc.basePrice.toLocaleString('uk-UA')} грн</span>
+            </div>
     `;
-    if (calc.extraGuestFee > 0) rows += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; color:#4B5563;"><span>Дод. гості</span><span style="font-weight:600; color:#1A1A1A;">+${calc.extraGuestFee.toLocaleString('uk-UA')} грн</span></div>`;
-    if (calc.petFee > 0) rows += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; color:#4B5563;"><span>Тварина</span><span style="font-weight:600; color:#1A1A1A;">+${calc.petFee.toLocaleString('uk-UA')} грн</span></div>`;
-    if (calc.discountAmount > 0) rows += `<div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; color:var(--danger);"><span>Знижка</span><span style="font-weight:700;">-${calc.discountAmount.toLocaleString('uk-UA')} грн</span></div>`;
 
+    if (calc.extraGuestFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Дод. гості (${guestCount - room.capacity})</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.extraGuestFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+
+    if (calc.petFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Тварина</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.petFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+
+    if (calc.discountAmount > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: var(--danger);">
+                <span>Знижка (${Math.round(calc.discountPercent * 100)}%)</span>
+                <span style="font-weight: 700;">-${calc.discountAmount.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+
+    // 🚀 ПОВЕРНУЛИ TOTAL ТА БЛОК З ПЕРЕДПЛАТОЮ
     rows += `
-        <div style="border-top: 1px solid rgba(85,107,47,0.1); margin-top:12px; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size: 14px; font-weight: 700;">Разом</span><span style="font-size: 18px; font-weight: 800; color: var(--accent);">${calc.totalPrice.toLocaleString('uk-UA')} грн</span>
+            <div style="border-top: 1px solid rgba(85, 107, 47, 0.1); margin-top: 16px; padding-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 16px; font-weight: 700; color: #1A1A1A;">Загальна сума</span>
+                    <span style="font-size: 22px; font-weight: 800; color: var(--accent);">${calc.totalPrice.toLocaleString('uk-UA')} грн</span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #FFF; padding: 14px; border-radius: 12px; border: 1px dashed var(--accent);">
+                    <span style="font-size: 14px; font-weight: 600; color: #4B5563;">Передплата (50%)<br><span style="font-size: 11px; font-weight: 400; color: #9CA3AF;">Для підтвердження броні</span></span>
+                    <span style="font-size: 18px; font-weight: 700; color: #1A1A1A;">${calc.prepayment.toLocaleString('uk-UA')} грн</span>
+                </div>
+            </div>
         </div>
     `;
+
     document.getElementById('summaryRows').innerHTML = rows;
     
-    document.getElementById('bookBtn').innerText = `Оплатити ${calc.prepayment.toLocaleString('uk-UA')} грн`;
+    // Кнопка просто "Забронювати", як на ПК
+    document.getElementById('bookBtn').innerText = 'Забронювати';
 }
 
 async function submitBooking() {
