@@ -692,10 +692,12 @@ async function initApp() {
                                 introOverlay.style.opacity = '0'; 
                             }, 1400);
                             
-                            // ФІНАЛ: Зум завершився. Видаляємо маску і повертаємо можливість гортати сайт
+                           // ФІНАЛ: Зум завершився. Видаляємо маску і повертаємо можливість гортати сайт
                             setTimeout(() => { 
                                 introOverlay.style.display = 'none'; 
-                                document.body.style.overflow = ''; // Розблоковуємо скрол
+                                // 🚀 ЖОРСТКО ВМИКАЄМО СКРОЛ ТУТ:
+                                document.body.style.overflow = 'auto'; 
+                                document.documentElement.style.overflow = 'auto'; 
                             }, 2000); 
                             
                         }, 2000); 
