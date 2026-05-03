@@ -517,10 +517,12 @@
             <h2>Підтверджено</h2>
             <p>Оплата пройшла успішно. Ваші апартаменти заброньовано.</p>
             <div class="success-receipt" id="successDetail"></div>
-            <a href="tg://resolve?domain=bosohouses_bot&start=dzp4SnNlUkQyTw==" class="btn-tg">
+           <a href="tg://resolve?domain=bosohouses_bot&start=dzp4SnNlUkQyTw==" class="btn-tg" onclick="playClick()">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.18 3.44-.49.33-.93.49-1.33.48-.44-.01-1.28-.24-1.91-.44-.77-.24-1.38-.37-1.32-.78.03-.22.34-.44.93-.68 3.63-1.58 6.06-2.63 7.28-3.13 3.47-1.42 4.18-1.67 4.65-1.68.1 0 .33.02.45.1.1.06.13.14.14.21-.01.04-.01.12-.02.21z"/></svg> Телеграм Консьєрж
             </a>
-            <div style="text-align: center;"><a href="#" onclick="window.location.href = window.location.pathname; return false;" class="btn-home-link">На головну</a></div>
+            <div style="text-align: center;">
+                <a href="#" onclick="playClick(); setTimeout(() => window.location.href = window.location.pathname, 150); return false;" class="btn-home-link">На головну</a>
+            </div>
         </div>
     </div>
 </div>
@@ -723,7 +725,7 @@ function handleTouchEnd(e, id) {
 
 // ─── ПАНЕЛЬ БРОНЮВАННЯ ───
 function showDetail(cabinId) {
-    // Ручний playClick() ВИДАЛЕНО, тепер все працює автоматично
+    playClick(); // 🔊
     currentCabinId = cabinId; const room = roomsList.find(r => r.id == cabinId); if (!room) return;
     const cfg = getCabinConfig(cabinId);
 
@@ -754,6 +756,7 @@ function showDetail(cabinId) {
 }
 
 function goToStep(step) {
+    playClick(); // 🔊
     document.querySelectorAll('.drawer-step').forEach(el => el.classList.remove('active'));
     const target = document.getElementById('drawer-step-' + step);
     if(target) { target.classList.add('active'); target.querySelector('.drawer-content').scrollTop = 0; }
@@ -763,12 +766,15 @@ function goToStep(step) {
 
 function closeDetail(e) {
     if (!e || e.target.id === 'screen-detail' || e.target.closest('.drawer-close-btn')) {
+        playClick(); // 🔊
         document.getElementById('screen-detail').classList.remove('open'); document.body.style.overflow = '';
     }
 }
 
 // ─── КАЛЕНДАР ───
-function shiftCal(dir) { calBase = new Date(calBase); calBase.setMonth(calBase.getMonth() + dir); renderCalendar(); }
+function shiftCal(dir) { 
+    playClick(); // 🔊
+    calBase = new Date(calBase); calBase.setMonth(calBase.getMonth() + dir); renderCalendar(); }
 
 function renderCalendar() {
     const wrap = document.getElementById('calGridMobile'); if (!wrap) return; wrap.innerHTML = '';
@@ -817,6 +823,7 @@ function renderCalendar() {
 }
 
 function selectDate(ds) {
+    playClick(); // 🔊
     const d = new Date(ds);
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) { selectedCheckIn = d; selectedCheckOut = null; } 
     else if (d <= selectedCheckIn) { selectedCheckIn = d; selectedCheckOut = null; } 
@@ -845,6 +852,7 @@ function updateProceedBtn() {
 }
 
 function changeGuests(dir) {
+    playClick(); // 🔊
     const room = roomsList.find(r => r.id == currentCabinId); const max = room ? (room.maxCapacity || room.capacity) : 10;
     guestCount = Math.max(1, Math.min(max, guestCount + dir));
     document.getElementById('guestCount').innerText = guestCount;
@@ -852,7 +860,9 @@ function changeGuests(dir) {
     document.getElementById('guestMinus').disabled = guestCount <= 1;
 }
 
-function setPet(val) { hasPets = val; document.getElementById('petNo').classList.toggle('active', !val); document.getElementById('petYes').classList.toggle('active', val); }
+function setPet(val) { 
+    playClick(); // 🔊
+    hasPets = val; document.getElementById('petNo').classList.toggle('active', !val); document.getElementById('petYes').classList.toggle('active', val); }
 
 // ─── ОФОРМЛЕННЯ (CHECKOUT) ───
 function renderCheckout() {
@@ -886,6 +896,7 @@ function renderCheckout() {
 }
 
 async function submitBooking() {
+    playClick(); // 🔊
     const fn = document.getElementById('fFirstName').value.trim(); const ln = document.getElementById('fLastName').value.trim();
     const ph = document.getElementById('fPhone').value.trim(); const cm = document.getElementById('fComment').value.trim();
 
@@ -998,46 +1009,26 @@ function playClick() {
     if (now - lastSoundTime < 50) return; // Захист від здвоєного звуку
     lastSoundTime = now;
 
-    if (!audioCtx) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return; // Захист, якщо браузер не підтримує
-        audioCtx = new AudioContext();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
-    // 🚀 ВИРІШЕННЯ ПРОБЛЕМИ 2: Square хвиля дає механічний "тік" Телеграму
-    osc.type = 'square'; 
-    
-    // Короткий механічний клік (падає з 400Hz до 50Hz)
-    osc.frequency.setValueAtTime(400, audioCtx.currentTime); 
-    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.015); 
+    // Чистий, високий і ультра-короткий "тік"
+    osc.type = 'sine'; 
+    osc.frequency.setValueAtTime(1500, audioCtx.currentTime); // Дуже висока частота
+    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.015); // Падає миттєво
 
-    // Робимо тихим (0.05 гучність) і миттєвим
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015); 
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime); // Гучність
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015); // Затухає миттєво
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
     osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.015); 
+    osc.stop(audioCtx.currentTime + 0.015); // Звук триває всього 0.015 сек
 }
-
-// 🚀 ВИРІШЕННЯ ПРОБЛЕМИ 3: ГЛОБАЛЬНИЙ ПЕРЕХОПЛЮВАЧ КЛІКІВ (Тепер на всі кнопки)
-document.addEventListener('click', function(e) {
-    // Шукаємо, чи клік був по будь-якій кнопці, точці слайдера, вибору або активній даті
-    const interactiveEl = e.target.closest('button, a, .sdot, .pet-opt, .cal-day:not(.disabled):not(.past):not(.booked)');
-    
-    if (interactiveEl) {
-        // Якщо це кнопка "Почати", там грає кіношний звук входу, тому цей тік пропускаємо
-        if (interactiveEl.id === 'enterBtn') return;
-        
-        playClick(); // Робимо "Тік"!
-    }
-});
 </script>
 </body>
 </html>
