@@ -982,24 +982,28 @@ function toast(msg) { const t = document.getElementById('toast'); t.innerText = 
 
 document.addEventListener('DOMContentLoaded', initApp);
 
-// ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram) ───
+// ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram + Захист) ───
 let audioCtx = null;
+let lastSoundTime = 0; // Наш запобіжник
 
 function playClick() {
+    // 🛡 ЗАХИСТ ВІД ПОДВІЙНОГО ЗВУКУ: 
+    // Якщо звук вже грав менше ніж 50 мілісекунд тому - ігноруємо
+    const now = Date.now();
+    if (now - lastSoundTime < 50) return; 
+    lastSoundTime = now;
+
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
-    // 'triangle' дає чіткий, механічний "тік"
-    osc.type = 'triangle'; 
+    osc.type = 'triangle'; // Telegram-стиль
     
-    // Дуже короткий діапазон частот для імітації дерев'яного/пластикового кліку
     osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.02); // 0.02 секунди!
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.02);
 
-    // Гучність 15%, миттєве затухання
     gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
 
