@@ -270,11 +270,12 @@
 
         #preloader { 
             position: fixed; 
-            top: -25vh; /* Піднімаємо високо вгору */
+            top: -25vh; 
             left: 0; 
             width: 100%; 
-            height: 150vh; /* Робимо величезним, щоб закрив будь-які щілини знизу */
-            background: var(--bg-color); z-index: 99999; 
+            height: 150vh; 
+            background: var(--bg); /* 🚀 МАГІЯ ТУТ: виправили назву змінної */
+            z-index: 99999; 
             display: flex; align-items: center; justify-content: center; 
             transition: opacity 0.4s ease; 
             touch-action: none; 
@@ -354,6 +355,10 @@
         .btn-tg { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: var(--accent); color: #fff; border-radius: 14px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; margin-bottom: 20px; }
         .btn-tg svg { width: 20px; height: 20px; fill: currentColor; }
         .btn-home-link { font-size: 13px; font-weight: 600; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+
+        /* 🚀 ХОВАЄМО ПАНЕЛІ ДО КІНЦЯ АНІМАЦІЇ */
+        .sticky-cta, .bottom-nav { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+        body.ready .sticky-cta, body.ready .bottom-nav { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body>
@@ -695,10 +700,11 @@ async function initApp() {
                            // ФІНАЛ: Зум завершився. Видаляємо маску і повертаємо можливість гортати сайт
                             setTimeout(() => { 
                                 introOverlay.style.display = 'none'; 
-                                // 🚀 ЖОРСТКО ВМИКАЄМО СКРОЛ ТУТ:
                                 document.body.style.overflow = 'auto'; 
                                 document.documentElement.style.overflow = 'auto'; 
-                            }, 2000); 
+                                // 🚀 ПЛАВНО ПОКАЗУЄМО МЕНЮ ТА КНОПКУ:
+                                document.body.classList.add('ready'); 
+                            }, 2000);
                             
                         }, 2000); 
                     }
