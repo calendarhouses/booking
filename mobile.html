@@ -838,7 +838,7 @@ function renderCalendar() {
         const isPast = d < today;
         const isBooked = bookedRanges.some(r => d >= r.start && d < r.end);
         const price = getDayPrice(room, d);
-        const priceStr = price ? (price/1000).toFixed(1)+'k' : '';
+        const priceStr = price ? price : '';
 
         let cls = 'cal-day';
         if (isPast) cls += ' past'; else if (isBooked) cls += ' booked'; else if (isWeekend) cls += ' weekend';
