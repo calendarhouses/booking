@@ -410,8 +410,18 @@
                 <div class="rules-grid">
                     <div class="rule-card"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div><span>Заселення</span>15:00 – 23:00</div></div>
                     <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><div><span>Виселення</span>до 11:00</div></div>
-                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 12c-2 0-4 1.5-4 4s2 6 4 6 4-3.5 4-6-2-4-4-4z"/><path d="M8.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/></svg><div><span>Тварина</span>За узгодженням</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 12c-2 0-4 1.5-4 4s2 6 4 6 4-3.5 4-6-2-4-4-4z"/><path d="M8.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/><path d="M15.5 10c-1.5 0-2.5-1.5-2.5-3s1-3 2.5-3 2.5 1.5 2.5 3-1 3-2.5 3z"/></svg><div><span>Тварина</span>За узгодженням (+500 грн)</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6M4 22h16"/></svg><div><span>Куріння</span>Лише на вулиці</div></div>
                     <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><div><span>Тихий час</span>23:00 – 08:00</div></div>
+                </div>
+                
+                <div class="divider"></div>
+                <h3 class="section-title">Безпека на території</h3>
+                <div class="rules-grid" style="margin-bottom:40px;">
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><div>Камери на території</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M7 21h10M9 21V7a3 3 0 0 1 6 0v14M9 10h6M12 3v4M10 3h4"/></svg><div>Є вогнегасник</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 8v8M8 12h8"/></svg><div>Є аптечка</div></div>
+                    <div class="rule-card"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><div>Датчик диму</div></div>
                 </div>
             </div>
             
@@ -539,17 +549,37 @@ let roomsList = []; let discountsList = []; let customPrices = {}; let allBookin
 let currentCabinId = null; let selectedCheckIn = null; let selectedCheckOut = null;
 let guestCount = 2; let hasPets = false; let calBase = new Date(); calBase.setDate(1);
 
+// ─── ХЕЛПЕРИ ДЛЯ ІКОНОК ───
 const iBed = '<svg viewBox="0 0 24 24"><path d="M3 12h18M3 16h18M5 8h4a2 2 0 012 2v2M13 8h4a2 2 0 012 2v2M4 20v-4m16 4v-4"/></svg>';
 const iWin = '<svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm8 0v12M4 12h16"/></svg>';
 const iGrill = '<svg viewBox="0 0 24 24"><path d="M17 8c0-3.3-2.2-6-5-6S7 4.7 7 8m-2 0h14v2H5V8zm2 2v6a3 3 0 006 0v-6M9 20h6M12 16v4"/></svg>';
 const iBath = '<svg viewBox="0 0 24 24"><path d="M4 17V8a2 2 0 012-2h12a2 2 0 012 2v9m-8-5h.01M6 21h12a2 2 0 002-2v-2H4v2a2 2 0 002 2z"/></svg>';
 const iKit = '<svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>';
+// 🟢 Нові іконки тварин
+const iNoPet = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>';
+const iPetDog = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM7 15h10M9 8h.01"/></svg>';
 
 const CABIN_CONFIG = {
-    1: { images: ['JUNIOR/k1-1.webp', 'JUNIOR/k1-2.webp', 'JUNIOR/k1-3.webp'], description: 'Затишна спальня для солодких снів.', amenities: [{ icon: iBed, label: 'Спальня' }, { icon: iKit, label: 'Кухня' }, { icon: iWin, label: 'Вид на озеро' }] },
-    2: { images: ['JUNIOR/k2-1.webp', 'JUNIOR/k2-2.webp', 'JUNIOR/k2-3.webp'], description: 'Поєднання скандинавського стилю та затишку.', amenities: [{ icon: iWin, label: 'Вітальня' }, { icon: iBed, label: 'Дві спальні' }, { icon: iGrill, label: 'Тераса з мангалом' }] },
-    3: { images: ['JUNIOR/k3-1.webp', 'JUNIOR/k3-2.webp', 'JUNIOR/k3-3.webp'], description: 'Комфортний сімейний котедж.', amenities: [{ icon: iWin, label: 'Світла вітальня' }, { icon: iBed, label: 'Окремі спальні' }, { icon: iGrill, label: 'Велика тераса' }] },
-    4: { images: ['JUNIOR/k4-1.webp', 'JUNIOR/k4-2.webp', 'JUNIOR/k4-3.webp'], description: 'Справжня перлина нашого берега.', amenities: [{ icon: iBed, label: 'Спальня з видом на зорі' }, { icon: iWin, label: 'Панорамні вікна' }, { icon: iBath, label: 'Розкішна ванна' }] },
+    1: {
+        images: ['JUNIOR/k1-1.webp', 'JUNIOR/k1-2.webp', 'JUNIOR/k1-3.webp', 'JUNIOR/k1-4.webp', 'JUNIOR/k1-5.webp', 'JUNIOR/k1-6.webp', 'JUNIOR/k1-7.webp'],
+        description: 'Усередині на тебе чекають: затишна спальня для солодких снів під звуки природи, світла кухня-вітальня, сучасна ванна кімната та неймовірний панорамний вид на озеро, який надихає щоранку.',
+        amenities: [{ icon: iBed, label: 'Затишна спальня' }, { icon: iKit, label: 'Світла кухня-вітальня' }, { icon: iBath, label: 'Сучасна ванна кімната' }, { icon: iGrill, label: 'Власна BBQ-зона з грилем' }, { icon: iWin, label: 'Панорамний вид на озеро' }]
+    },
+    2: {
+        images: ['JUNIOR/k2-1.webp', 'JUNIOR/k2-2.webp', 'JUNIOR/k2-3.webp', 'JUNIOR/k2-4.webp', 'JUNIOR/k2-6.webp', 'JUNIOR/k2-7.webp', 'JUNIOR/k2-8.webp', 'JUNIOR/k2-11.webp'],
+        description: 'Котедж №2 — це ідеальне поєднання сучасного скандинавського стилю та домашнього затишку. Створений для тих, хто шукає тиші та романтики на самому березі озера.',
+        amenities: [{ icon: iWin, label: 'Простора вітальня' }, { icon: iKit, label: 'Кухня з технікою' }, { icon: iBed, label: 'Дві окремі спальні' }, { icon: iBath, label: 'Ванна та господ. кімната' }, { icon: iGrill, label: 'Тераса під навісом із мангалом' }]
+    },
+    3: {
+        images: ['JUNIOR/k3-1.webp', 'JUNIOR/k3-2.webp', 'JUNIOR/k3-3.webp', 'JUNIOR/k3-4.webp', 'JUNIOR/k3-5.webp', 'JUNIOR/k3-6.webp', 'JUNIOR/k3-7.webp', 'JUNIOR/k3-8.webp', 'JUNIOR/k3-9.webp', 'JUNIOR/k3-10.webp', 'JUNIOR/k3-11.webp'],
+        description: 'Комфортний сімейний котедж для великої компанії. Місце, де час уповільнюється, а природа надихає на справжній відпочинок.',
+        amenities: [{ icon: iWin, label: 'Світла вітальня' }, { icon: iKit, label: 'Сучасна кухня' }, { icon: iBed, label: 'Окремі спальні' }, { icon: iBath, label: 'Ванна кімната з рушниками' }, { icon: iGrill, label: 'Велика тераса з мангалом' }]
+    },
+    4: {
+        images: ['JUNIOR/k4-1.webp', 'JUNIOR/k4-2.webp', 'JUNIOR/k4-3.webp', 'JUNIOR/k4-4.webp', 'JUNIOR/k4-5.webp', 'JUNIOR/k4-6.webp', 'JUNIOR/k4-7.webp', 'JUNIOR/k4-8.webp', 'JUNIOR/k4-9.webp', 'JUNIOR/k4-10.webp', 'JUNIOR/k4-11.webp'],
+        description: 'Котедж №4 — це справжня перлина нашого берега для тих, хто цінує естетику та комфорт. Це місце, де природа стає частиною вашого інтер\'єру завдяки величезним вікнам.',
+        amenities: [{ icon: iBed, label: 'Спальня з видом на зорі' }, { icon: iBed, label: 'Друга спальня з виходом' }, { icon: iWin, label: 'Вітальня з панорамними вікнами' }, { icon: iKit, label: 'Укомплектована кухня' }, { icon: iBath, label: 'Ванна кімната з дзеркалом' }, { icon: iGrill, label: 'Власна BBQ-зона на терасі' }]
+    },
     default: { images: ['JUNIOR/k1-1.webp'], description: '', amenities: [] }
 };
 function getCabinConfig(id) { return CABIN_CONFIG[id] || CABIN_CONFIG.default; }
