@@ -49,7 +49,8 @@
 
         .zoom-svg {
             width: 100%; height: 100%;
-            transform-origin: 44.5% 50%; /* Приціл в першу О для мобілки */
+            /* 🚀 НОВИЙ ПРИЦІЛ: точно в першу 'О', яка тепер вище */
+            transform-origin: 44.5% 25%; 
             will-change: transform;
         }
 
@@ -354,23 +355,24 @@
 <div id="screen-list" class="screen active">
     <div id="introOverlay" class="intro-overlay">
         <svg class="zoom-svg" width="100%" height="100%">
-            <!-- Твій код маски з літерами залишається без змін -->
             <defs>
                 <mask id="textMask">
                     <rect width="100%" height="100%" fill="white" />
                     <g fill="black" font-family="'Inter', sans-serif" font-weight="900" font-size="28vw" text-anchor="middle">
-                        <g id="fl-B"><text x="14%" y="50%" dominant-baseline="central">B</text></g>
-                        <g id="fl-O1"><text x="38%" y="50%" dominant-baseline="central">O</text></g>
-                        <g id="fl-S"><text x="62%" y="50%" dominant-baseline="central">S</text></g>
-                        <g id="fl-O2"><text x="86%" y="50%" dominant-baseline="central">O</text></g>
+                        <!-- 🚀 ПІДНЯЛИ БУКВИ НА 25%, ЩОБ ВОНИ ЛЕЖАЛИ НА КАРТИНЦІ -->
+                        <g id="fl-B"><text x="14%" y="25%" dominant-baseline="central">B</text></g>
+                        <g id="fl-O1"><text x="38%" y="25%" dominant-baseline="central">O</text></g>
+                        <g id="fl-S"><text x="62%" y="25%" dominant-baseline="central">S</text></g>
+                        <g id="fl-O2"><text x="86%" y="25%" dominant-baseline="central">O</text></g>
                     </g>
                 </mask>
             </defs>
+            <!-- Колір маски #F7F5F2 ідеально зіллється з фоном сторінки -->
             <rect width="100%" height="100%" fill="#F7F5F2" mask="url(#textMask)" />
         </svg>
     </div>
 
-    <!-- Одразу йдуть котеджі! -->
+    <!-- 🚀 ФЕЙКОВУ КАРТИНКУ clean-hero ВИДАЛЕНО! Одразу йдуть котеджі -->
     <div class="page-wrap" id="cabinsContainer">
         <!-- Контент генерується через JS -->
     </div>
@@ -592,11 +594,11 @@ async function initApp() {
         if(enterBtn) {
             enterBtn.addEventListener('click', () => {
                 
-                // 🔒 Фіксуємо сторінку на самому верху
+                // 🔒 Фіксуємо сторінку на самому верху, щоб перший котедж був ідеально під буквами
                 document.body.style.overflow = 'hidden';
                 window.scrollTo(0, 0);
 
-                // 🔊 100% ГАРАНТОВАНИЙ ЗАПУСК ЗВУКУ
+                // 🔊 Кіно-звук входу
                 const sound = document.getElementById('introSound');
                 if (sound) {
                     sound.volume = 0.7; 
@@ -717,6 +719,7 @@ function handleTouchEnd(e, id) {
 
 // ─── ПАНЕЛЬ БРОНЮВАННЯ ───
 function showDetail(cabinId) {
+    playClick(); // 🔊 Звук при натисканні "Забронювати" на картці
     currentCabinId = cabinId; const room = roomsList.find(r => r.id == cabinId); if (!room) return;
     const cfg = getCabinConfig(cabinId);
 
@@ -810,6 +813,7 @@ function renderCalendar() {
 }
 
 function selectDate(ds) {
+    playClick(); // 🔊
     const d = new Date(ds);
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) { selectedCheckIn = d; selectedCheckOut = null; } 
     else if (d <= selectedCheckIn) { selectedCheckIn = d; selectedCheckOut = null; } 
@@ -830,6 +834,7 @@ function updateProceedBtn() {
 }
 
 function changeGuests(dir) {
+   playClick(); // 🔊
     const room = roomsList.find(r => r.id == currentCabinId); const max = room ? (room.maxCapacity || room.capacity) : 10;
     guestCount = Math.max(1, Math.min(max, guestCount + dir));
     document.getElementById('guestCount').innerText = guestCount;
@@ -837,7 +842,9 @@ function changeGuests(dir) {
     document.getElementById('guestMinus').disabled = guestCount <= 1;
 }
 
-function setPet(val) { hasPets = val; document.getElementById('petNo').classList.toggle('active', !val); document.getElementById('petYes').classList.toggle('active', val); }
+function setPet(val) { 
+    playClick(); // 🔊
+    hasPets = val; document.getElementById('petNo').classList.toggle('active', !val); document.getElementById('petYes').classList.toggle('active', val); }
 
 // ─── ОФОРМЛЕННЯ (CHECKOUT) ───
 function renderCheckout() {
@@ -974,6 +981,33 @@ function guestWord(n) { const v = Math.abs(n) % 100, v1 = v % 10; if (v > 10 && 
 function toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
 document.addEventListener('DOMContentLoaded', initApp);
+
+    // ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Без файлів!) ───
+let audioCtx = null;
+
+function playClick() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sine'; // М'який чистий звук
+    
+    // Частота падає з 900Hz до 300Hz (звук "Плюп")
+    osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+
+    // Гучність 10%, щоб було ненав'язливо і дорого
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.1);
+}
 </script>
 </body>
 </html>
