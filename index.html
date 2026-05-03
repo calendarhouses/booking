@@ -625,6 +625,21 @@
             40% { width: 45%; } /* Легка пауза посередині */
             100% { width: 100%; }
         }
+        /* 🚀 СТИЛІ ДЛЯ КНОПКИ ВХОДУ НА ПК */
+        .enter-btn {
+            opacity: 0; pointer-events: none; 
+            transform: translateY(10px);
+            background: none; border: 1px solid var(--text); color: var(--text);
+            padding: 12px 40px; border-radius: 30px; font-size: 14px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+            transition: all 0.4s ease; margin-top: 16px;
+        }
+        .enter-btn.show {
+            opacity: 1; pointer-events: auto; transform: translateY(0);
+        }
+        .enter-btn:hover {
+            background: var(--text); color: var(--bg); /* Преміальний ховер на ПК */
+        }
 
         /* ── ПІДГОТОВКА ДО АНІМАЦІЇ ── */
         /* Початково картинка винесена за межі екрану зліва */
@@ -772,6 +787,8 @@
         <div class="progress-bar-wrap">
             <div class="progress-bar-fill"></div>
         </div>
+        <!-- 🚀 НОВА КНОПКА (прихована на старті) -->
+        <button id="enterBtn" class="enter-btn">Почати</button>
     </div>
 </div>
 
@@ -1092,65 +1109,78 @@ async function init() {
     if (skeleton) skeleton.style.display = 'none';
     renderCabinList();
 
-    // 5. ОДРАЗУ гасимо прелоадер і запускаємо кіно (без додаткових черг)
+    // 5. Ховаємо смужку і чекаємо кліку на "Почати", щоб дозволити звук
     const preloader = document.getElementById('preloader');
     const introOverlay = document.getElementById('introOverlay');
     const bgText = document.getElementById('bgBosoText');
     const cabins = document.getElementById('cabinsContainer');
+    
+    // 🟢 Беремо кнопку та обгортку смужки
+    const enterBtn = document.getElementById('enterBtn');
+    const progressWrap = document.querySelector('.progress-bar-wrap');
 
     if(preloader) {
-        preloader.style.opacity = '0';
-        setTimeout(() => {
-            preloader.style.display = 'none';
-            if(introOverlay) {
+        // Миттєво ховаємо смужку і показуємо кнопку
+        if(progressWrap) progressWrap.style.opacity = '0';
+        if(enterBtn) enterBtn.classList.add('show');
+
+        // Чекаємо кліку
+        if(enterBtn) {
+            enterBtn.addEventListener('click', () => {
                 
-                // 🔊 ЗАПУСК ЗВУКУ
+                // 🔊 ЗАПУСК ЗВУКУ (Тепер 100% спрацює)
                 const sound = document.getElementById('introSound');
                 if (sound) {
-                    sound.volume = 0.6; // Гучність 60%, щоб не оглушити клієнта
-                    // Важливо: catch потрібен, щоб сайт не впав, якщо Safari заблокує звук
-                    sound.play().catch(err => console.log('Звук заблоковано браузером (не було кліку)'));
+                    sound.volume = 0.6;
+                    sound.play().catch(err => console.log('Звук заблоковано:', err));
                 }
 
-                introOverlay.classList.add('start-fly');
-                
-                // 1. Чекаємо 2.0 сек, поки букви плавно злетяться
-                // ... (далі йде твій існуючий код зуму і скролу)
+                // 🚀 ДАЛІ ЙДЕ ТВІЙ ОРИГІНАЛЬНИЙ КОД БЕЗ ЗМІН
+                preloader.style.opacity = '0';
                 setTimeout(() => {
-                    introOverlay.classList.add('start-zoom');
-                    setTimeout(() => {
-                        if (cabins) {
-                            const offset = cabins.getBoundingClientRect().top + window.scrollY;
-                            smoothScrollTo(offset, 1500); 
-                        }
-                        introOverlay.style.opacity = '0';
-                    }, 600);
-                    setTimeout(() => {
-                        if(bgText) bgText.style.opacity = '1';
-                    }, 2000);
-                    setTimeout(() => {
-                        introOverlay.style.display = 'none';
+                    preloader.style.display = 'none';
+                    if(introOverlay) {
                         
-                        const hero = document.querySelector('.clean-hero');
-                        if (hero) {
-                            // 1. Тимчасово вимикаємо плавну прокрутку
-                            document.documentElement.style.scrollBehavior = 'auto';
-                            
-                            // 2. Відрізаємо верхній екран
-                            hero.style.display = 'none'; 
-                            
-                            // 3. Жорстко і миттєво фіксуємо скрол на початку
-                            window.scrollTo(0, 0); 
-                            
-                            // 4. Повертаємо плавність назад (через 50 мс, щоб браузер встиг відмалювати кадр)
+                        introOverlay.classList.add('start-fly');
+                        
+                        // 1. Чекаємо 2.0 сек, поки букви плавно злетяться
+                        setTimeout(() => {
+                            introOverlay.classList.add('start-zoom');
                             setTimeout(() => {
-                                document.documentElement.style.scrollBehavior = 'smooth';
-                            }, 50);
-                        }
-                    }, 2500);
-                }, 1500);
-            }
-        }, 600);
+                                if (cabins) {
+                                    const offset = cabins.getBoundingClientRect().top + window.scrollY;
+                                    smoothScrollTo(offset, 1500); 
+                                }
+                                introOverlay.style.opacity = '0';
+                            }, 600);
+                            setTimeout(() => {
+                                if(bgText) bgText.style.opacity = '1';
+                            }, 2000);
+                            setTimeout(() => {
+                                introOverlay.style.display = 'none';
+                                
+                                const hero = document.querySelector('.clean-hero');
+                                if (hero) {
+                                    // 1. Тимчасово вимикаємо плавну прокрутку
+                                    document.documentElement.style.scrollBehavior = 'auto';
+                                    
+                                    // 2. Відрізаємо верхній екран
+                                    hero.style.display = 'none'; 
+                                    
+                                    // 3. Жорстко і миттєво фіксуємо скрол на початку
+                                    window.scrollTo(0, 0); 
+                                    
+                                    // 4. Повертаємо плавність назад
+                                    setTimeout(() => {
+                                        document.documentElement.style.scrollBehavior = 'smooth';
+                                    }, 50);
+                                }
+                            }, 2500);
+                        }, 1500);
+                    }
+                }, 600);
+            });
+        }
     }
 }
 
