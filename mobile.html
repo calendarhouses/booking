@@ -982,7 +982,7 @@ function toast(msg) { const t = document.getElementById('toast'); t.innerText = 
 
 document.addEventListener('DOMContentLoaded', initApp);
 
-    // ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Без файлів!) ───
+// ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram) ───
 let audioCtx = null;
 
 function playClick() {
@@ -992,22 +992,37 @@ function playClick() {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
-    osc.type = 'sine'; // М'який чистий звук
+    // 'triangle' дає чіткий, механічний "тік"
+    osc.type = 'triangle'; 
     
-    // Частота падає з 900Hz до 300Hz (звук "Плюп")
-    osc.frequency.setValueAtTime(900, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+    // Дуже короткий діапазон частот для імітації дерев'яного/пластикового кліку
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.02); // 0.02 секунди!
 
-    // Гучність 10%, щоб було ненав'язливо і дорого
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    // Гучність 15%, миттєве затухання
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02);
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
     osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.1);
+    osc.stop(audioCtx.currentTime + 0.02);
 }
+    // 🔊 АВТОМАТИЧНО ДОДАЄМО ЗВУК НА ВСІ ІНТЕРАКТИВНІ ЕЛЕМЕНТИ
+document.addEventListener('click', function(e) {
+    // Шукаємо, чи клік був по кнопці, посиланню, або іншому активному блоку
+    // (Ігноруємо неактивні або вже заброньовані дати)
+    const interactiveEl = e.target.closest('button, a, .sdot, .pet-opt, .cal-day:not(.disabled):not(.past):not(.booked)');
+    
+    if (interactiveEl) {
+        // Виняток: не граємо цей маленький клік для кнопки "Почати", 
+        // бо там вже є великий кінематографічний звук "вуууш"
+        if (interactiveEl.id === 'enterBtn') return;
+        
+        playClick(); // Робимо "тік!"
+    }
+});
 </script>
 </body>
 </html>
