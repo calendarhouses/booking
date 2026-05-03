@@ -613,17 +613,17 @@
         }
 
         .progress-bar-fill {
-            width: 0%;
-            height: 100%;
-            background: #5F746A; 
-            /* 🟢 Змінили на 4.5s, щоб маскувати затримку Гугла 🟢 */
-            animation: loadProgress 4.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            width: 0%; height: 100%; background: #5F746A;
+            /* Додаємо плавний перехід для фінального ривка через JS */
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            /* Анімація тепер йде до 85% і зависає */
+            animation: loadProgress 3.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
         }
 
         @keyframes loadProgress {
             0% { width: 0%; }
-            40% { width: 45%; } /* Легка пауза посередині */
-            100% { width: 100%; }
+            40% { width: 50%; }
+            100% { width: 85%; } /* Зупиняється на 85% і чекає Гугл */
         }
         /* 🚀 СТИЛІ ДЛЯ КНОПКИ ВХОДУ НА ПК */
         .enter-btn {
@@ -1119,14 +1119,31 @@ async function init() {
     const enterBtn = document.getElementById('enterBtn');
     const progressWrap = document.querySelector('.progress-bar-wrap');
 
-    if(preloader) {
-        // Миттєво ховаємо смужку і показуємо кнопку
-        if(progressWrap) progressWrap.style.opacity = '0';
-        if(enterBtn) enterBtn.classList.add('show');
+   if(preloader) {
+        const enterBtn = document.getElementById('enterBtn');
+        const progressWrap = document.querySelector('.progress-bar-wrap');
+        const fill = document.querySelector('.progress-bar-fill');
 
-        // Чекаємо кліку
+        // 🚀 МАГІЯ ЗАВАНТАЖЕННЯ: Робимо фінальний ривок до 100%
+        if (fill) {
+            fill.style.animation = 'none'; // Вимикаємо CSS-анімацію
+            fill.style.width = '100%'; // Доливаємо смужку до кінця
+        }
+
+        // Даємо смужці 400мс, щоб клієнт побачив, що вона доїхала до кінця
+        setTimeout(() => {
+            if(progressWrap) progressWrap.style.opacity = '0'; // Ховаємо смужку
+            
+            // Показуємо кнопку м'яко, з мінімальною затримкою після зникнення смужки
+            setTimeout(() => {
+                if(enterBtn) enterBtn.classList.add('show');
+            }, 300);
+        }, 400);
+
+        // 2. Логіка запуску ПІСЛЯ натискання на кнопку "Почати"
         if(enterBtn) {
             enterBtn.addEventListener('click', () => {
+                // ... тут іде твій старий код (звук, start-fly і т.д.) без змін!
                 
                 // 🔊 ЗАПУСК ЗВУКУ (Тепер 100% спрацює)
                 const sound = document.getElementById('introSound');
