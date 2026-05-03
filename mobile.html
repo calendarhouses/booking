@@ -723,7 +723,7 @@ function handleTouchEnd(e, id) {
 
 // ─── ПАНЕЛЬ БРОНЮВАННЯ ───
 function showDetail(cabinId) {
-    playClick(); // 🔊 Звук при натисканні "Забронювати" на картці
+    // Ручний playClick() ВИДАЛЕНО, тепер все працює автоматично
     currentCabinId = cabinId; const room = roomsList.find(r => r.id == cabinId); if (!room) return;
     const cfg = getCabinConfig(cabinId);
 
@@ -817,7 +817,6 @@ function renderCalendar() {
 }
 
 function selectDate(ds) {
-    playClick(); // 🔊
     const d = new Date(ds);
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) { selectedCheckIn = d; selectedCheckOut = null; } 
     else if (d <= selectedCheckIn) { selectedCheckIn = d; selectedCheckOut = null; } 
@@ -825,8 +824,16 @@ function selectDate(ds) {
         const ranges = getBookedRanges(roomsList.find(r => r.id == currentCabinId)?.name || '');
         let hasConflict = false; let cur = new Date(selectedCheckIn); cur.setDate(cur.getDate() + 1);
         while (cur < d) { if (ranges.some(r => cur >= r.start && cur < r.end)) { hasConflict = true; break; } cur.setDate(cur.getDate() + 1); }
-        if (hasConflict) { toast('Ці дати вже зайняті'); return; }
-        selectedCheckOut = d;
+        
+        // 🚀 ВИРІШЕННЯ ПРОБЛЕМИ 1: Тепер календар не застрягає! 
+        // Якщо клік через бронь, скидаємо все і починаємо вибір з цієї нової дати
+        if (hasConflict) { 
+            toast('Ці дати вже зайняті, оберіть інші'); 
+            selectedCheckIn = d; 
+            selectedCheckOut = null;
+        } else {
+            selectedCheckOut = d;
+        }
     }
     renderCalendar(); updateProceedBtn();
 }
@@ -838,7 +845,6 @@ function updateProceedBtn() {
 }
 
 function changeGuests(dir) {
-   playClick(); // 🔊
     const room = roomsList.find(r => r.id == currentCabinId); const max = room ? (room.maxCapacity || room.capacity) : 10;
     guestCount = Math.max(1, Math.min(max, guestCount + dir));
     document.getElementById('guestCount').innerText = guestCount;
@@ -846,9 +852,7 @@ function changeGuests(dir) {
     document.getElementById('guestMinus').disabled = guestCount <= 1;
 }
 
-function setPet(val) { 
-    playClick(); // 🔊
-    hasPets = val; document.getElementById('petNo').classList.toggle('active', !val); document.getElementById('petYes').classList.toggle('active', val); }
+function setPet(val) { hasPets = val; document.getElementById('petNo').classList.toggle('active', !val); document.getElementById('petYes').classList.toggle('active', val); }
 
 // ─── ОФОРМЛЕННЯ (CHECKOUT) ───
 function renderCheckout() {
@@ -878,7 +882,6 @@ function renderCheckout() {
     `;
     document.getElementById('summaryRows').innerHTML = rows;
     
-    // Встановлюємо суму на кнопці
     document.getElementById('bookBtn').innerText = `Оплатити ${calc.prepayment.toLocaleString('uk-UA')} грн`;
 }
 
@@ -995,37 +998,44 @@ function playClick() {
     if (now - lastSoundTime < 50) return; // Захист від здвоєного звуку
     lastSoundTime = now;
 
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return; // Захист, якщо браузер не підтримує
+        audioCtx = new AudioContext();
+    }
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
-    // Чистий, високий і ультра-короткий "тік"
-    osc.type = 'sine'; 
-    osc.frequency.setValueAtTime(1500, audioCtx.currentTime); // Дуже висока частота
-    osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.015); // Падає миттєво
+    // 🚀 ВИРІШЕННЯ ПРОБЛЕМИ 2: Square хвиля дає механічний "тік" Телеграму
+    osc.type = 'square'; 
+    
+    // Короткий механічний клік (падає з 400Hz до 50Hz)
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime); 
+    osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.015); 
 
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime); // Гучність
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015); // Затухає миттєво
+    // Робимо тихим (0.05 гучність) і миттєвим
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015); 
 
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     
     osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.015); // Звук триває всього 0.015 сек
+    osc.stop(audioCtx.currentTime + 0.015); 
 }
 
-// 🔊 ГЛОБАЛЬНИЙ ПЕРЕХОПЛЮВАЧ КЛІКІВ (Автоматично на всі кнопки)
+// 🚀 ВИРІШЕННЯ ПРОБЛЕМИ 3: ГЛОБАЛЬНИЙ ПЕРЕХОПЛЮВАЧ КЛІКІВ (Тепер на всі кнопки)
 document.addEventListener('click', function(e) {
-    // Шукаємо, чи клік був по кнопці, точці слайдера, вибору тварини або активній даті
-    const interactiveEl = e.target.closest('button, .sdot, .pet-opt, .cal-day:not(.disabled):not(.past):not(.booked)');
+    // Шукаємо, чи клік був по будь-якій кнопці, точці слайдера, вибору або активній даті
+    const interactiveEl = e.target.closest('button, a, .sdot, .pet-opt, .cal-day:not(.disabled):not(.past):not(.booked)');
     
     if (interactiveEl) {
-        // Якщо це кнопка "Почати", там грає кіношний звук, тому дрібний тік ігноруємо
+        // Якщо це кнопка "Почати", там грає кіношний звук входу, тому цей тік пропускаємо
         if (interactiveEl.id === 'enterBtn') return;
         
-        playClick(); // Запускаємо тік Telegram!
+        playClick(); // Робимо "Тік"!
     }
 });
 </script>
