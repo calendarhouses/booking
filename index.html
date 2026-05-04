@@ -1074,7 +1074,7 @@
                                 <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Ранній заїзд
                             </div>
-                            <div class="srv-price" id="labelPriceEarly">+0 грн</div>
+                            <div class="srv-price" id="labelPriceEarly">+500грн</div>
                         </div>
                         <div class="srv-body">
                             <div style="font-size:12px; color:var(--text); font-weight:500;">Оберіть годину заїзду:</div>
@@ -1094,7 +1094,7 @@
                                 <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z M12 7v5l2.5 2.5"/></svg>
                                 Пізній виїзд
                             </div>
-                            <div class="srv-price" id="labelPriceLate">+0 грн</div>
+                            <div class="srv-price" id="labelPriceLate">+500 грн</div>
                         </div>
                         <div class="srv-body">
                             <div style="font-size:12px; color:var(--text); font-weight:500;">Оберіть годину виїзду:</div>
@@ -1871,19 +1871,15 @@ function setPet(val) {
     // ─── СТАН ДЛЯ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ ───
 let selectedEarlyTime = null;
 let selectedLateTime = null;
-let priceEarly = 1000; // Резервна ціна, якщо не задана в адмінці
-let priceLate = 1000;  // Резервна ціна, якщо не задана в адмінці
+const priceEarly = 500; // Жорстко 500 грн
+const priceLate = 500;  // Жорстко 500 грн
 
 // Функція відкриття/закриття карток
 function toggleService(type) {
     playClick(); // 🔊
     const card = document.getElementById(type === 'early' ? 'cardEarly' : 'cardLate');
-    
-    // Отримуємо актуальні ціни з системних налаштувань (з адмінки)
-    const sysEarly = sysServicesList.find(s => s.name === "Ранній заїзд");
-    const sysLate = sysServicesList.find(s => s.name === "Пізній виїзд");
-    if(sysEarly && sysEarly.price > 0) priceEarly = sysEarly.price;
-    if(sysLate && sysLate.price > 0) priceLate = sysLate.price;
+    const label = document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate');
+    const price = type === 'early' ? priceEarly : priceLate;
 
     // Якщо картка була активна — ми її вимикаємо
     if (card.classList.contains('active')) {
@@ -1895,19 +1891,19 @@ function toggleService(type) {
         card.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
         
         // Повертаємо текст
-        document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate').innerHTML = `+${type === 'early' ? priceEarly : priceLate} грн`;
+        label.innerHTML = `+${price} грн`;
     } else {
         // Відкриваємо картку
         card.classList.add('active');
         // Ставимо ціну, щоб клієнт бачив скільки це коштує
-        document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate').innerHTML = `+${type === 'early' ? priceEarly : priceLate} грн`;
+        label.innerHTML = `+${price} грн`;
     }
     
     // Перераховуємо ціну
-    if(document.getElementById('screen-checkout').classList.contains('active')) {
+    if(document.getElementById('drawer-step-checkout').classList.contains('active')) {
         renderCheckout();
     } else {
-        updateProceedBtn(); // Це оновить калькулятор у фоні
+        updateProceedBtn();
     }
 }
 
@@ -1921,16 +1917,25 @@ function selectTime(type, time, element) {
     // Фарбуємо обраний
     element.classList.add('selected');
     
+    const label = document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate');
+    const price = type === 'early' ? priceEarly : priceLate;
+    const prefixText = type === 'early' ? 'з' : 'до';
+    
     // Зберігаємо вибір
     if (type === 'early') {
         selectedEarlyTime = time;
-        document.getElementById('labelPriceEarly').innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">з ${time}</span> +${priceEarly} грн`;
     } else {
         selectedLateTime = time;
-        document.getElementById('labelPriceLate').innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">до ${time}</span> +${priceLate} грн`;
     }
     
-    updateProceedBtn(); // Оновлюємо загальну ціну
+    label.innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">${prefixText} ${time}</span> +${price} грн`;
+    
+    // Перераховуємо ціну
+    if(document.getElementById('drawer-step-checkout').classList.contains('active')) {
+        renderCheckout();
+    } else {
+        updateProceedBtn();
+    }
 }
     
 // ─── CHECKOUT ──────────────────────────────────────────────────────────────
