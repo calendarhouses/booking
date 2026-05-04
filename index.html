@@ -1823,18 +1823,20 @@ function resetDates() {
 }
 
 function updateProceedBtn() {
-    const btn = document.getElementById('proceedBtn');
-    if (!btn) return;
+    const btn = document.getElementById('proceedBtn'); if (!btn) return;
     
-    if (!selectedCheckIn || !selectedCheckOut) {
+    if (!selectedCheckIn || !selectedCheckOut) { 
         btn.disabled = true; 
         btn.innerText = 'Оберіть дати'; 
-        return;
+    } else { 
+        btn.disabled = false; 
+        btn.innerText = 'Продовжити'; 
     }
     
-    // Кнопка активна і має тільки текст "Продовжити" (без ціни)
-    btn.disabled = false;
-    btn.innerText = `Продовжити`;
+    // 🟢 МАГІЯ: Як тільки дати змінилися - перевіряємо, чи вільні години для заїзду/виїзду
+    if (typeof checkServiceAvailability === 'function') {
+        checkServiceAvailability();
+    }
 }
 
 // Хелпер для формування преміальної стрічки ціни за тварину
@@ -2353,6 +2355,51 @@ function playClick() {
     
     osc.start(audioCtx.currentTime);
     osc.stop(audioCtx.currentTime + 0.015); 
+}
+
+    // ─── ПЕРЕВІРКА ДОСТУПНОСТІ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ ───
+function checkServiceAvailability() {
+    const cardEarly = document.getElementById('cardEarly');
+    const cardLate = document.getElementById('cardLate');
+    const labelEarly = document.getElementById('labelPriceEarly');
+    const labelLate = document.getElementById('labelPriceLate');
+
+    // Якщо карток немає або дати ще не обрані повністю - виходимо
+    if (!cardEarly || !cardLate || !selectedCheckIn || !selectedCheckOut) return;
+
+    const room = roomsList.find(r => r.id == currentCabinId);
+    const ranges = getBookedRanges(room ? room.name : '');
+
+    // 1. Перевіряємо ранній заїзд (чи є ВИЇЗД інших людей в день нашого заїзду)
+    const isSomeoneLeaving = ranges.some(r => r.end.getTime() === selectedCheckIn.getTime());
+    
+    if (isSomeoneLeaving) {
+        cardEarly.style.opacity = '0.5';
+        cardEarly.style.pointerEvents = 'none'; // Забороняємо клікати
+        labelEarly.innerHTML = '<span style="color:var(--danger); font-size:11px; font-weight:700; text-transform:uppercase;">Зайнято до 15:00</span>';
+        
+        // Якщо клієнт якось встиг обрати це раніше - примусово скидаємо
+        if (cardEarly.classList.contains('active')) toggleService('early');
+    } else {
+        cardEarly.style.opacity = '1';
+        cardEarly.style.pointerEvents = 'auto'; // Дозволяємо клікати
+        if (!cardEarly.classList.contains('active')) labelEarly.innerHTML = `+${priceEarly} грн`;
+    }
+
+    // 2. Перевіряємо пізній виїзд (чи є ЗАЇЗД інших людей в день нашого виїзду)
+    const isSomeoneArriving = ranges.some(r => r.start.getTime() === selectedCheckOut.getTime());
+
+    if (isSomeoneArriving) {
+        cardLate.style.opacity = '0.5';
+        cardLate.style.pointerEvents = 'none';
+        labelLate.innerHTML = '<span style="color:var(--danger); font-size:11px; font-weight:700; text-transform:uppercase;">Бронь з 15:00</span>';
+        
+        if (cardLate.classList.contains('active')) toggleService('late');
+    } else {
+        cardLate.style.opacity = '1';
+        cardLate.style.pointerEvents = 'auto';
+        if (!cardLate.classList.contains('active')) labelLate.innerHTML = `+${priceLate} грн`;
+    }
 }
     
 // ─── START ─────────────────────────────────────────────────────────────────
