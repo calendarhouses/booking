@@ -1577,14 +1577,40 @@ function applySlide(id, idx, total) {
 
 // ─── ЛОГІКА ВИЇЗНОЇ ПАНЕЛІ (КРОКИ ТА ІНФО) ─────────────────────────────────
 
-// Відкрити панель (Завжди починаємо з кроку INFO)
+// ─── ПАНЕЛЬ БРОНЮВАННЯ ───
 function showDetail(cabinId) {
     playClick(); // 🔊
-    currentCabinId = cabinId;
-    const room = roomsList.find(r => r.id == cabinId);
-    if (!room) return;
+    currentCabinId = cabinId; const room = roomsList.find(r => r.id == cabinId); if (!room) return;
     const cfg = getCabinConfig(cabinId);
-    showAllAmenities = false;
+
+    // 🟢 ГЛОБАЛЬНЕ ОЧИЩЕННЯ ПАМ'ЯТІ (Щоб котеджі не плутали дати та гостей)
+    selectedCheckIn = null;
+    selectedCheckOut = null;
+    selectedEarlyTime = null;
+    selectedLateTime = null;
+    guestCount = 2;
+    hasPets = false;
+
+    // Скидаємо UI карток послуг
+    const cardEarly = document.getElementById('cardEarly');
+    const cardLate = document.getElementById('cardLate');
+    if (cardEarly) {
+        cardEarly.classList.remove('active');
+        cardEarly.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
+        document.getElementById('labelPriceEarly').innerHTML = `+${priceEarly} грн`;
+        cardEarly.style.opacity = '1'; cardEarly.style.pointerEvents = 'auto';
+    }
+    if (cardLate) {
+        cardLate.classList.remove('active');
+        cardLate.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
+        document.getElementById('labelPriceLate').innerHTML = `+${priceLate} грн`;
+        cardLate.style.opacity = '1'; cardLate.style.pointerEvents = 'auto';
+    }
+    
+    // Скидаємо UI гостей та тварин
+    document.getElementById('guestCount').innerText = guestCount;
+    document.getElementById('petNo').classList.add('active');
+    document.getElementById('petYes').classList.remove('active');
 
     // Слайдер (Рендеримо фотографії поточного котеджу)
     const ds = document.getElementById('detailSlider');
@@ -2370,31 +2396,36 @@ function checkServiceAvailability() {
     const room = roomsList.find(r => r.id == currentCabinId);
     const ranges = getBookedRanges(room ? room.name : '');
 
-    // 1. Перевіряємо ранній заїзд (чи є ВИЇЗД інших людей в день нашого заїзду)
-    const isSomeoneLeaving = ranges.some(r => r.end.getTime() === selectedCheckIn.getTime());
+    // 1. Перевіряємо ранній заїзд (ЗАЛІЗОБЕТОННА перевірка по тексту дати)
+    const isSomeoneLeaving = ranges.some(r => r.end.toDateString() === selectedCheckIn.toDateString());
     
     if (isSomeoneLeaving) {
         cardEarly.style.opacity = '0.5';
         cardEarly.style.pointerEvents = 'none'; // Забороняємо клікати
         labelEarly.innerHTML = '<span style="color:var(--danger); font-size:11px; font-weight:700; text-transform:uppercase;">Зайнято до 15:00</span>';
         
-        // Якщо клієнт якось встиг обрати це раніше - примусово скидаємо
-        if (cardEarly.classList.contains('active')) toggleService('early');
+        // Тихо скидаємо вибір, якщо він був
+        cardEarly.classList.remove('active');
+        selectedEarlyTime = null;
+        cardEarly.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
     } else {
         cardEarly.style.opacity = '1';
         cardEarly.style.pointerEvents = 'auto'; // Дозволяємо клікати
         if (!cardEarly.classList.contains('active')) labelEarly.innerHTML = `+${priceEarly} грн`;
     }
 
-    // 2. Перевіряємо пізній виїзд (чи є ЗАЇЗД інших людей в день нашого виїзду)
-    const isSomeoneArriving = ranges.some(r => r.start.getTime() === selectedCheckOut.getTime());
+    // 2. Перевіряємо пізній виїзд (ЗАЛІЗОБЕТОННА перевірка)
+    const isSomeoneArriving = ranges.some(r => r.start.toDateString() === selectedCheckOut.toDateString());
 
     if (isSomeoneArriving) {
         cardLate.style.opacity = '0.5';
         cardLate.style.pointerEvents = 'none';
         labelLate.innerHTML = '<span style="color:var(--danger); font-size:11px; font-weight:700; text-transform:uppercase;">Бронь з 15:00</span>';
         
-        if (cardLate.classList.contains('active')) toggleService('late');
+        // Тихо скидаємо вибір
+        cardLate.classList.remove('active');
+        selectedLateTime = null;
+        cardLate.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
     } else {
         cardLate.style.opacity = '1';
         cardLate.style.pointerEvents = 'auto';
