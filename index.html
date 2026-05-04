@@ -624,7 +624,85 @@
         .dates-display-dates { font-size: 15px; font-weight: 700; color: var(--accent); }
         .dates-display-nights { font-size: 12px; color: var(--muted); margin-top: 3px; }
         .dates-change { font-size: 12px; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; }
-    /* ── PRELOADER (КІНЕМАТОГРАФІЧНИЙ) ── */
+  
+        /* ── ДОДАТКОВІ ПОСЛУГИ (Ранній заїзд / Пізній виїзд) ── */
+        .service-card {
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            margin-top: 12px;
+            background: #fff;
+            overflow: hidden;
+            transition: 0.3s ease;
+        }
+        .service-card.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+        .srv-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .srv-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .srv-title svg { width: 20px; height: 20px; stroke: var(--muted); fill: none; stroke-width: 1.5; transition: 0.3s; }
+        .service-card.active .srv-title svg { stroke: var(--accent); }
+        
+        .srv-price { font-size: 13px; font-weight: 700; color: var(--muted); display: flex; align-items: center; gap: 8px;}
+        .service-card.active .srv-price { color: var(--accent); }
+        
+        /* Плавне розкриття */
+        .srv-body {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+            padding: 0 16px;
+        }
+        .service-card.active .srv-body {
+            max-height: 150px;
+            opacity: 1;
+            padding: 0 16px 16px;
+        }
+
+        .time-chips {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .time-chips::-webkit-scrollbar { display: none; }
+        
+        .t-chip {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            background: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .t-chip.selected {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            box-shadow: 0 4px 10px rgba(85, 107, 47, 0.2);
+        }
+        
+        /* ── PRELOADER (КІНЕМАТОГРАФІЧНИЙ) ── */
         #preloader { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: var(--bg); z-index: 99999; 
@@ -981,6 +1059,51 @@
                                 <path d="M12 2c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3zm-6.5 3c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3zm13 0c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3zm-6.5 5.5c-3.1 0-5.8 2.4-6.4 5.5-.1.6.1 1.2.6 1.7.7.7 1.8.7 2.5.2.5-.4 1.1-.7 1.8-.7 1.1 0 2.2.5 2.8 1.4.4.5 1.1.5 1.5 0 .6-.9 1.7-1.4 2.8-1.4.7 0 1.4.3 1.8.7.7.5 1.8.5 2.5-.2.5-.5.7-1.1.6-1.7-.6-3.1-3.3-5.5-6.4-5.5z"/>
                             </svg>
                             <span>З твариною</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 🟢 НОВИЙ БЛОК: ЧАС ЗАЇЗДУ ТА ВИЇЗДУ -->
+                <div class="guests-block" style="margin-top: 20px;">
+                    <h3 style="font-size:16px; font-weight:700; margin-bottom:4px;">Гнучкий графік</h3>
+                    <p style="font-size:12px; color:var(--muted); margin-bottom:16px;">Стандартний заїзд з 15:00, виїзд до 11:00</p>
+
+                    <!-- Ранній заїзд -->
+                    <div class="service-card" id="cardEarly">
+                        <div class="srv-header" onclick="toggleService('early')">
+                            <div class="srv-title">
+                                <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Ранній заїзд
+                            </div>
+                            <div class="srv-price" id="labelPriceEarly">+0 грн</div>
+                        </div>
+                        <div class="srv-body">
+                            <div style="font-size:12px; color:var(--text); font-weight:500;">Оберіть годину заїзду:</div>
+                            <div class="time-chips">
+                                <div class="t-chip" onclick="selectTime('early', '11:00', this)">11:00</div>
+                                <div class="t-chip" onclick="selectTime('early', '12:00', this)">12:00</div>
+                                <div class="t-chip" onclick="selectTime('early', '13:00', this)">13:00</div>
+                                <div class="t-chip" onclick="selectTime('early', '14:00', this)">14:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Пізній виїзд -->
+                    <div class="service-card" id="cardLate">
+                        <div class="srv-header" onclick="toggleService('late')">
+                            <div class="srv-title">
+                                <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z M12 7v5l2.5 2.5"/></svg>
+                                Пізній виїзд
+                            </div>
+                            <div class="srv-price" id="labelPriceLate">+0 грн</div>
+                        </div>
+                        <div class="srv-body">
+                            <div style="font-size:12px; color:var(--text); font-weight:500;">Оберіть годину виїзду:</div>
+                            <div class="time-chips">
+                                <div class="t-chip" onclick="selectTime('late', '12:00', this)">12:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '13:00', this)">13:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '14:00', this)">14:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '15:00', this)">15:00</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1745,6 +1868,71 @@ function setPet(val) {
     updateProceedBtn();
 }
 
+    // ─── СТАН ДЛЯ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ ───
+let selectedEarlyTime = null;
+let selectedLateTime = null;
+let priceEarly = 1000; // Резервна ціна, якщо не задана в адмінці
+let priceLate = 1000;  // Резервна ціна, якщо не задана в адмінці
+
+// Функція відкриття/закриття карток
+function toggleService(type) {
+    playClick(); // 🔊
+    const card = document.getElementById(type === 'early' ? 'cardEarly' : 'cardLate');
+    
+    // Отримуємо актуальні ціни з системних налаштувань (з адмінки)
+    const sysEarly = sysServicesList.find(s => s.name === "Ранній заїзд");
+    const sysLate = sysServicesList.find(s => s.name === "Пізній виїзд");
+    if(sysEarly && sysEarly.price > 0) priceEarly = sysEarly.price;
+    if(sysLate && sysLate.price > 0) priceLate = sysLate.price;
+
+    // Якщо картка була активна — ми її вимикаємо
+    if (card.classList.contains('active')) {
+        card.classList.remove('active');
+        if(type === 'early') selectedEarlyTime = null;
+        if(type === 'late') selectedLateTime = null;
+        
+        // Знімаємо виділення з чіпсів
+        card.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
+        
+        // Повертаємо текст
+        document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate').innerHTML = `+${type === 'early' ? priceEarly : priceLate} грн`;
+    } else {
+        // Відкриваємо картку
+        card.classList.add('active');
+        // Ставимо ціну, щоб клієнт бачив скільки це коштує
+        document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate').innerHTML = `+${type === 'early' ? priceEarly : priceLate} грн`;
+    }
+    
+    // Перераховуємо ціну
+    if(document.getElementById('screen-checkout').classList.contains('active')) {
+        renderCheckout();
+    } else {
+        updateProceedBtn(); // Це оновить калькулятор у фоні
+    }
+}
+
+// Функція вибору конкретної години
+function selectTime(type, time, element) {
+    playClick(); // 🔊
+    // Знімаємо зелений колір з усіх чіпсів у цьому блоці
+    const parent = element.closest('.time-chips');
+    parent.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
+    
+    // Фарбуємо обраний
+    element.classList.add('selected');
+    
+    // Зберігаємо вибір
+    if (type === 'early') {
+        selectedEarlyTime = time;
+        document.getElementById('labelPriceEarly').innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">з ${time}</span> +${priceEarly} грн`;
+    } else {
+        selectedLateTime = time;
+        document.getElementById('labelPriceLate').innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">до ${time}</span> +${priceLate} грн`;
+    }
+    
+    updateProceedBtn(); // Оновлюємо загальну ціну
+}
+    
 // ─── CHECKOUT ──────────────────────────────────────────────────────────────
 function renderCheckout() {
     if (!selectedCheckIn || !selectedCheckOut) return;
@@ -1787,6 +1975,24 @@ function renderCheckout() {
         `;
     }
 
+    if (calc.earlyFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Ранній заїзд (з ${selectedEarlyTime})</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.earlyFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+
+    if (calc.lateFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Пізній виїзд (до ${selectedLateTime})</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.lateFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+    
     if (calc.discountAmount > 0) {
         rows += `
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: var(--danger);">
@@ -1823,7 +2029,16 @@ async function submitBooking() {
     const firstName = document.getElementById('fFirstName').value.trim();
     const lastName  = document.getElementById('fLastName').value.trim();
     const phone     = document.getElementById('fPhone').value.trim();
-    const comment   = document.getElementById('fComment').value.trim();
+    
+    // 🟢 МАГІЯ ТУТ: Беремо коментар гостя і клеїмо до нього системні дані
+    let comment = document.getElementById('fComment').value.trim();
+    let sysComment = [];
+    if (selectedEarlyTime) sysComment.push(`🕒 Ранній заїзд: з ${selectedEarlyTime}`);
+    if (selectedLateTime) sysComment.push(`🕒 Пізній виїзд: до ${selectedLateTime}`);
+    if (sysComment.length > 0) {
+        comment = sysComment.join(' | ') + (comment ? '\n\nКоментар гостя: ' + comment : '');
+    }
+    // 🟢 КІНЕЦЬ МАГІЇ
 
     if (!firstName) { toast('Введіть ваше ім\'я'); return; }
     if (!phone || phone.length < 9) { toast('Введіть коректний номер телефону'); return; }
@@ -1848,7 +2063,7 @@ async function submitBooking() {
         totalPrice: calc.totalPrice,
         paidAmount: 0,
         source:     'Сайт',
-        comment:    comment
+        comment:    comment // 🚀 Передаємо наш склеєний коментар!
     };
 
     try {
@@ -1974,8 +2189,12 @@ function calcTotal(nights) {
     const amountToDiscount = base + extraGuestFee;
     const discountAmount = Math.round(amountToDiscount * discountPercent);
     
+    // 🟢 ДОДАЄМО СУМУ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ
+    const earlyFee = selectedEarlyTime ? priceEarly : 0;
+    const lateFee = selectedLateTime ? priceLate : 0;
+    
     // Фінальна сума
-    const totalPrice = amountToDiscount - discountAmount + petFee;
+    const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee;
     
     // Передплата (50%)
     const prepayment = Math.round(totalPrice / 2);
@@ -1984,6 +2203,8 @@ function calcTotal(nights) {
         basePrice: base, 
         extraGuestFee, 
         petFee, 
+        earlyFee, // 🟢 Передаємо далі
+        lateFee,  // 🟢 Передаємо далі
         discountAmount, 
         discountPercent, 
         totalPrice, 
