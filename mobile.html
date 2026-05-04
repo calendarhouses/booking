@@ -509,7 +509,7 @@
 
         <!-- КРОК 2: КАЛЕНДАР -->
         <div id="drawer-step-calendar" class="drawer-step">
-            <div class="drawer-content">
+            <div class="drawer-content"> <!-- 🟢 ПОЧАТОК ПАПКИ ДЛЯ СКРОЛУ -->
                 <button class="back-btn" onclick="goToStep('info')"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Інфо</button>
 
                 <div class="step-bar">
@@ -548,8 +548,8 @@
                         </div>
                     </div>
                 </div>
-            </div> 
-            <!-- 🟢 НОВИЙ БЛОК: ЧАС ЗАЇЗДУ ТА ВИЇЗДУ -->
+            
+                <!-- 🟢 НОВИЙ БЛОК: ЧАС ЗАЇЗДУ ТА ВИЇЗДУ -->
                 <div class="guests-block" style="margin-top: 20px;">
                     <h3 style="font-size:16px; font-weight:700; margin-bottom:4px;">Гнучкий графік</h3>
                     <p style="font-size:12px; color:var(--muted); margin-bottom:16px;">Стандартний заїзд з 15:00, виїзд до 11:00</p>
@@ -597,6 +597,9 @@
                         </div>
                     </div>
                 </div>
+
+            </div> <!-- 🔴 КІНЕЦЬ ПАПКИ ДЛЯ СКРОЛУ (ТУТ ВОНА МАЄ ЗАКРИВАТИСЯ!) -->
+
             <div class="sticky-cta"><button class="btn-proceed" id="proceedBtn" onclick="goToStep('checkout')" disabled>Оберіть дати</button></div>
         </div>
 
