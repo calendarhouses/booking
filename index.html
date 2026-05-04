@@ -1054,7 +1054,7 @@
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
                             <div class="guests-label">Денні гості</div>
-                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн/ніч)</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн)</div>
                         </div>
                         <div class="counter-wrap">
                             <button class="cnt-btn" id="dayGuestMinus" onclick="changeDayGuests(-1)" disabled>−</button>
@@ -2274,7 +2274,7 @@ function calcTotal(nights) {
     // 🟢 ДОДАЄМО СУМУ ПОСЛУГ ТА ДЕННИХ ГОСТЕЙ
     const earlyFee = selectedEarlyTime ? priceEarly : 0;
     const lateFee = selectedLateTime ? priceLate : 0;
-    const dayGuestFee = extraDayGuests * 500 * nights; // 500 грн * кількість * ночі
+    const dayGuestFee = extraDayGuests * 500; // 500 грн * кількість (одноразово)
     
     // Фінальна сума
     const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee;
