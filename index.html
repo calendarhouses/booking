@@ -1039,11 +1039,27 @@
                     <h3 style="font-family:'Inter', sans-serif; font-size:18px; font-weight:700; margin-bottom:16px;">Гості</h3>
                     
                     <div class="guests-row">
-                        <div><div class="guests-label">Дорослі</div></div>
+                        <div>
+                            <div class="guests-label">Дорослі</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">З ночівлею</div>
+                        </div>
                         <div class="counter-wrap">
                             <button class="cnt-btn" id="guestMinus" onclick="changeGuests(-1)">−</button>
                             <span class="cnt-val" id="guestCount">2</span>
                             <button class="cnt-btn" id="guestPlus" onclick="changeGuests(1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- 🟢 НОВИЙ РЯДОК: ДЕННІ ГОСТІ -->
+                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div>
+                            <div class="guests-label">Денні гості</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн/ніч)</div>
+                        </div>
+                        <div class="counter-wrap">
+                            <button class="cnt-btn" id="dayGuestMinus" onclick="changeDayGuests(-1)" disabled>−</button>
+                            <span class="cnt-val" id="dayGuestCount">0</span>
+                            <button class="cnt-btn" id="dayGuestPlus" onclick="changeDayGuests(1)">+</button>
                         </div>
                     </div>
 
@@ -1207,6 +1223,7 @@ let currentCabinId = null;
 let selectedCheckIn = null;
 let selectedCheckOut = null;
 let guestCount = 2;
+let extraDayGuests = 0;
 let hasPets = false;
 let calBase = new Date(); calBase.setDate(1);
 let showAllAmenities = false;
@@ -1589,6 +1606,7 @@ function showDetail(cabinId) {
     selectedEarlyTime = null;
     selectedLateTime = null;
     guestCount = 2;
+    extraDayGuests = 0;
     hasPets = false;
 
     // Скидаємо UI карток послуг
@@ -1609,6 +1627,10 @@ function showDetail(cabinId) {
     
     // Скидаємо UI гостей та тварин
     document.getElementById('guestCount').innerText = guestCount;
+    const elDayGuestCount = document.getElementById('dayGuestCount');
+    if(elDayGuestCount) elDayGuestCount.innerText = '0';
+    const elDayGuestMinus = document.getElementById('dayGuestMinus');
+    if(elDayGuestMinus) elDayGuestMinus.disabled = true;
     document.getElementById('petNo').classList.add('active');
     document.getElementById('petYes').classList.remove('active');
 
@@ -1888,6 +1910,19 @@ function changeGuests(dir) {
     updateProceedBtn();
 }
 
+    function changeDayGuests(dir) {
+    playClick(); // 🔊
+    extraDayGuests = Math.max(0, extraDayGuests + dir); // Мінімум 0
+    
+    const cntVal = document.getElementById('dayGuestCount');
+    const btnMinus = document.getElementById('dayGuestMinus');
+    
+    if(cntVal) cntVal.innerText = extraDayGuests;
+    if(btnMinus) btnMinus.disabled = extraDayGuests <= 0;
+    
+    updateProceedBtn();
+}
+    
 function setPet(val) {
     playClick(); // 🔊
     hasPets = val;
@@ -2012,6 +2047,15 @@ function renderCheckout() {
         `;
     }
 
+    if (calc.dayGuestFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Денні гості (${extraDayGuests} чол.)</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.dayGuestFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
+    
     if (calc.earlyFee > 0) {
         rows += `
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
@@ -2070,6 +2114,7 @@ async function submitBooking() {
     // 🟢 МАГІЯ ТУТ: Беремо коментар гостя і клеїмо до нього системні дані
     let comment = document.getElementById('fComment').value.trim();
     let sysComment = [];
+    if (extraDayGuests > 0) sysComment.push(`👥 Денні гості (без ночівлі): ${extraDayGuests} чол.`);
     if (selectedEarlyTime) sysComment.push(`🕒 Ранній заїзд: з ${selectedEarlyTime}`);
     if (selectedLateTime) sysComment.push(`🕒 Пізній виїзд: до ${selectedLateTime}`);
     if (sysComment.length > 0) {
@@ -2226,12 +2271,13 @@ function calcTotal(nights) {
     const amountToDiscount = base + extraGuestFee;
     const discountAmount = Math.round(amountToDiscount * discountPercent);
     
-    // 🟢 ДОДАЄМО СУМУ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ
+    // 🟢 ДОДАЄМО СУМУ ПОСЛУГ ТА ДЕННИХ ГОСТЕЙ
     const earlyFee = selectedEarlyTime ? priceEarly : 0;
     const lateFee = selectedLateTime ? priceLate : 0;
+    const dayGuestFee = extraDayGuests * 500 * nights; // 500 грн * кількість * ночі
     
     // Фінальна сума
-    const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee;
+    const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee;
     
     // Передплата (50%)
     const prepayment = Math.round(totalPrice / 2);
@@ -2240,8 +2286,9 @@ function calcTotal(nights) {
         basePrice: base, 
         extraGuestFee, 
         petFee, 
-        earlyFee, // 🟢 Передаємо далі
-        lateFee,  // 🟢 Передаємо далі
+        earlyFee, 
+        lateFee,  
+        dayGuestFee: dayGuestFee, // 🟢 Передаємо денних гостей
         discountAmount, 
         discountPercent, 
         totalPrice, 
