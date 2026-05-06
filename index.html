@@ -1062,7 +1062,27 @@
                             <button class="cnt-btn" id="dayGuestPlus" onclick="changeDayGuests(1)">+</button>
                         </div>
                     </div>
-
+                    <!-- 🟢 НОВИЙ РЯДОК: ЧАН ТА УБД -->
+                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div>
+                            <div class="guests-label">Карпатський Чан</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата по факту</div>
+                        </div>
+                        <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
+                            <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
+                            <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
+                        </div>
+                    </div>
+                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div>
+                            <div class="guests-label">Знижка УБД</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">-10% (потрібне посвідчення)</div>
+                        </div>
+                        <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
+                            <div class="pet-opt active" id="ubdNo" onclick="setUbd(false)" style="padding: 8px;">Ні</div>
+                            <div class="pet-opt" id="ubdYes" onclick="setUbd(true)" style="padding: 8px;">Так</div>
+                        </div>
+                    </div>
                     <div class="pets-toggle">
                         <div class="pet-opt active" id="petNo" onclick="setPet(false)">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1225,6 +1245,8 @@ let selectedCheckOut = null;
 let guestCount = 2;
 let extraDayGuests = 0;
 let hasPets = false;
+let hasVat = false;
+let hasUbd = false;
 let calBase = new Date(); calBase.setDate(1);
 let showAllAmenities = false;
 
@@ -1608,6 +1630,12 @@ function showDetail(cabinId) {
     guestCount = 2;
     extraDayGuests = 0;
     hasPets = false;
+    hasVat = false;
+    hasUbd = false;
+    if(document.getElementById('vatNo')) document.getElementById('vatNo').classList.add('active');
+    if(document.getElementById('vatYes')) document.getElementById('vatYes').classList.remove('active');
+    if(document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
+    if(document.getElementById('ubdYes')) document.getElementById('ubdYes').classList.remove('active');
 
     // Скидаємо UI карток послуг
     const cardEarly = document.getElementById('cardEarly');
@@ -1844,14 +1872,26 @@ function renderCalendar() {
 function selectDate(ds) {
     playClick(); // 🔊
     const d = new Date(ds);
+    const room = roomsList.find(r => r.id == currentCabinId);
+    const ranges = getBookedRanges(room ? room.name : '');
+
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
+        if (ranges.some(r => r.end.getTime() === d.getTime() && r.hasLate)) {
+            toast('Попередній гість виїжджає пізно. Заїзд у цей день неможливий.');
+            return;
+        }
         selectedCheckIn = d; selectedCheckOut = null;
     } else if (d <= selectedCheckIn) {
+        if (ranges.some(r => r.end.getTime() === d.getTime() && r.hasLate)) {
+            toast('Попередній гість виїжджає пізно. Заїзд у цей день неможливий.');
+            return;
+        }
         selectedCheckIn = d; selectedCheckOut = null;
     } else {
-        // Перевірка на перетин зайнятих дат
-        const room = roomsList.find(r => r.id == currentCabinId);
-        const ranges = getBookedRanges(room ? room.name : '');
+        if (ranges.some(r => r.start.getTime() === d.getTime() && r.hasEarly)) {
+            toast('Наступний гість заїжджає рано. Виїзд у цей день неможливий.');
+            return;
+        }
         let hasConflict = false;
         let cur = new Date(selectedCheckIn); cur.setDate(cur.getDate() + 1);
         while (cur < d) {
@@ -1934,6 +1974,21 @@ function setPet(val) {
     
     updateProceedBtn();
 }
+    function setVat(val) {
+    playClick(); hasVat = val;
+    document.getElementById('vatNo').classList.toggle('active', !val);
+    document.getElementById('vatYes').classList.toggle('active', val);
+    if(document.getElementById('drawer-step-checkout').classList.contains('active')) renderCheckout();
+    else updateProceedBtn();
+}
+
+function setUbd(val) {
+    playClick(); hasUbd = val;
+    document.getElementById('ubdNo').classList.toggle('active', !val);
+    document.getElementById('ubdYes').classList.toggle('active', val);
+    if(document.getElementById('drawer-step-checkout').classList.contains('active')) renderCheckout();
+    else updateProceedBtn();
+}
 
     // ─── СТАН ДЛЯ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ ───
 let selectedEarlyTime = null;
@@ -1946,7 +2001,18 @@ function toggleService(type) {
     playClick(); // 🔊
     const card = document.getElementById(type === 'early' ? 'cardEarly' : 'cardLate');
     const label = document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate');
-    const price = type === 'early' ? priceEarly : priceLate;
+    const room = roomsList.find(r => r.id == currentCabinId);
+    let price = 0;
+    let isPromo = false;
+    
+    if (selectedCheckIn && selectedCheckOut) {
+        let nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
+        if (type === 'early') price = Math.round(getDayPrice(room, selectedCheckIn) * 0.5);
+        if (type === 'late') {
+            isPromo = (nights === 2 && selectedCheckIn.getDay() === 5 && selectedCheckOut.getDay() === 0);
+            price = isPromo ? 0 : Math.round(getDayPrice(room, selectedCheckOut) * 0.5);
+        }
+    }
 
     // Якщо картка була активна — ми її вимикаємо
     if (card.classList.contains('active')) {
@@ -1985,7 +2051,18 @@ function selectTime(type, time, element) {
     element.classList.add('selected');
     
     const label = document.getElementById(type === 'early' ? 'labelPriceEarly' : 'labelPriceLate');
-    const price = type === 'early' ? priceEarly : priceLate;
+    const room = roomsList.find(r => r.id == currentCabinId);
+    let price = 0;
+    let isPromo = false;
+    
+    if (selectedCheckIn && selectedCheckOut) {
+        let nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
+        if (type === 'early') price = Math.round(getDayPrice(room, selectedCheckIn) * 0.5);
+        if (type === 'late') {
+            isPromo = (nights === 2 && selectedCheckIn.getDay() === 5 && selectedCheckOut.getDay() === 0);
+            price = isPromo ? 0 : Math.round(getDayPrice(room, selectedCheckOut) * 0.5);
+        }
+    }
     const prefixText = type === 'early' ? 'з' : 'до';
     
     // Зберігаємо вибір
@@ -1995,7 +2072,7 @@ function selectTime(type, time, element) {
         selectedLateTime = time;
     }
     
-    label.innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">${prefixText} ${time}</span> +${price} грн`;
+    label.innerHTML = `<span style="color:var(--text); font-weight:500; font-size:12px; margin-right:6px;">${prefixText} ${time}</span> ${isPromo ? '<span style="color:var(--success)">Безкоштовно</span>' : '+'+price+' грн'}`;
     
     // Перераховуємо ціну
     if(document.getElementById('drawer-step-checkout').classList.contains('active')) {
@@ -2065,6 +2142,15 @@ function renderCheckout() {
         `;
     }
 
+    if (hasVat) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: var(--accent);">
+                <span>Карпатський Чан</span>
+                <span style="font-weight: 600;">Оплата на місці</span>
+            </div>
+        `;
+    }
+    
     if (calc.lateFee > 0) {
         rows += `
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
@@ -2115,6 +2201,8 @@ async function submitBooking() {
     let comment = document.getElementById('fComment').value.trim();
     let sysComment = [];
     if (extraDayGuests > 0) sysComment.push(`👥 Денні гості (без ночівлі): ${extraDayGuests} чол.`);
+    if (hasVat) sysComment.push(`♨️ Чан: Так`);
+    if (hasUbd) sysComment.push(`🇺🇦 УБД: Так`);
     if (selectedEarlyTime) sysComment.push(`🕒 Ранній заїзд: з ${selectedEarlyTime}`);
     if (selectedLateTime) sysComment.push(`🕒 Пізній виїзд: до ${selectedLateTime}`);
     if (sysComment.length > 0) {
@@ -2267,19 +2355,33 @@ function calcTotal(nights) {
         }
     });
 
+    // Знижка УБД
+    if (hasUbd) discountPercent += 0.10;
+
     // Знижка діє на (базова вартість + додаткові гості)
     const amountToDiscount = base + extraGuestFee;
     const discountAmount = Math.round(amountToDiscount * discountPercent);
     
-    // 🟢 ДОДАЄМО СУМУ ПОСЛУГ ТА ДЕННИХ ГОСТЕЙ
-    const earlyFee = selectedEarlyTime ? priceEarly : 0;
-    const lateFee = selectedLateTime ? priceLate : 0;
-    const dayGuestFee = extraDayGuests * 500; // 500 грн * кількість (одноразово)
+    // 🟢 50% ДЛЯ РАННЬОГО/ПІЗНЬОГО ВИЇЗДУ ТА АКЦІЯ
+    let earlyFee = 0;
+    let lateFee = 0;
+    let isPromoLateOut = false;
+
+    if (nights === 2 && selectedCheckIn.getDay() === 5 && selectedCheckOut.getDay() === 0) {
+        isPromoLateOut = true;
+    }
+
+    if (selectedEarlyTime) {
+        earlyFee = Math.round(getDayPrice(room, selectedCheckIn) * 0.5);
+    }
+    if (selectedLateTime) {
+        lateFee = isPromoLateOut ? 0 : Math.round(getDayPrice(room, selectedCheckOut) * 0.5);
+    }
+
+    const dayGuestFee = extraDayGuests * 500; 
     
     // Фінальна сума
     const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee;
-    
-    // Передплата (50%)
     const prepayment = Math.round(totalPrice / 2);
 
     return { 
@@ -2288,7 +2390,7 @@ function calcTotal(nights) {
         petFee, 
         earlyFee, 
         lateFee,  
-        dayGuestFee: dayGuestFee, // 🟢 Передаємо денних гостей
+        dayGuestFee: dayGuestFee, 
         discountAmount, 
         discountPercent, 
         totalPrice, 
@@ -2358,7 +2460,16 @@ function getBookedRanges(cottageName) {
         .map(b => {
             const s = new Date(b.checkIn); s.setHours(0,0,0,0);
             const e = new Date(b.checkOut); e.setHours(0,0,0,0);
-            return { start: s, end: e };
+            const comment = b.comment ? String(b.comment) : "";
+            
+            let hasEarly = comment.includes('Ранній заїзд');
+            let hasLate = comment.includes('Пізній виїзд');
+            
+            // Авто-перевірка акції Пт-Нд
+            let nights = Math.round((e - s) / 86400000);
+            if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
+
+            return { start: s, end: e, hasEarly, hasLate };
         });
 }
 
