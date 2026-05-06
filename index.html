@@ -1065,7 +1065,7 @@
                     <!-- 🟢 НОВИЙ РЯДОК: ЧАН ТА УБД -->
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
-                            <div class="guests-label">Карпатський Чан</div>
+                            <div class="guests-label">Чан</div>
                             <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата по факту</div>
                         </div>
                         <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
@@ -1217,7 +1217,7 @@
             </div>
             
             <h2>Бронювання підтверджено</h2>
-            <p>Оплата пройшла успішно. Ваші апартаменти заброньовано, деталі вказані нижче.</p>
+            <p>Оплата пройшла успішно. Котедж заброньовано, деталі вказані нижче.</p>
 
             <div class="success-receipt" id="successDetail"></div>
 
@@ -2168,7 +2168,7 @@ function renderCheckout() {
     if (hasVat) {
         rows += `
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: var(--accent);">
-                <span>Карпатський Чан</span>
+                <span>Чан</span>
                 <span style="font-weight: 600;">Оплата на місці</span>
             </div>
         `;
@@ -2469,7 +2469,7 @@ function renderSuccessReceipt() {
         // 🟢 ДОДАТКОВІ ПОСЛУГИ: Формуємо рядки, якщо вони були обрані
         let extraHtml = '';
         if (b.dayGuests > 0) extraHtml += `<div class="receipt-row"><span class="receipt-label">Денні гості:</span> <span class="receipt-val">${b.dayGuests} чол.</span></div>`;
-        if (b.hasVat) extraHtml += `<div class="receipt-row"><span class="receipt-label">Карпатський Чан:</span> <span class="receipt-val" style="color:var(--accent);">Оплата на місці</span></div>`;
+        if (b.hasVat) extraHtml += `<div class="receipt-row"><span class="receipt-label">Чан:</span> <span class="receipt-val" style="color:var(--accent);">Оплата на місці</span></div>`;
         if (b.hasUbd) extraHtml += `<div class="receipt-row"><span class="receipt-label">Знижка УБД:</span> <span class="receipt-val" style="color:var(--accent);">Застосовано</span></div>`;
 
         document.getElementById('successDetail').innerHTML = `
