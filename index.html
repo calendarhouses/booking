@@ -1643,13 +1643,13 @@ function showDetail(cabinId) {
     if (cardEarly) {
         cardEarly.classList.remove('active');
         cardEarly.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
-        document.getElementById('labelPriceEarly').innerHTML = `+${priceEarly} грн`;
+        document.getElementById('labelPriceEarly').innerHTML = `Оберіть дати`; // 🟢 Змінили текст
         cardEarly.style.opacity = '1'; cardEarly.style.pointerEvents = 'auto';
     }
     if (cardLate) {
         cardLate.classList.remove('active');
         cardLate.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
-        document.getElementById('labelPriceLate').innerHTML = `+${priceLate} грн`;
+        document.getElementById('labelPriceLate').innerHTML = `Оберіть дати`; // 🟢 Змінили текст
         cardLate.style.opacity = '1'; cardLate.style.pointerEvents = 'auto';
     }
     
@@ -1993,8 +1993,6 @@ function setUbd(val) {
     // ─── СТАН ДЛЯ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ ───
 let selectedEarlyTime = null;
 let selectedLateTime = null;
-const priceEarly = 500; // Жорстко 500 грн
-const priceLate = 500;  // Жорстко 500 грн
 
 // Функція відкриття/закриття карток
 function toggleService(type) {
@@ -2541,20 +2539,24 @@ function playClick() {
     osc.stop(audioCtx.currentTime + 0.015); 
 }
 
-    // ─── ПЕРЕВІРКА ДОСТУПНОСТІ РАННЬОГО/ПІЗНЬОГО ЗАЇЗДУ ───
-function checkServiceAvailability() {
+    function checkServiceAvailability() {
     const cardEarly = document.getElementById('cardEarly');
     const cardLate = document.getElementById('cardLate');
     const labelEarly = document.getElementById('labelPriceEarly');
     const labelLate = document.getElementById('labelPriceLate');
 
-    // Якщо карток немає або дати ще не обрані повністю - виходимо
     if (!cardEarly || !cardLate || !selectedCheckIn || !selectedCheckOut) return;
 
     const room = roomsList.find(r => r.id == currentCabinId);
     const ranges = getBookedRanges(room ? room.name : '');
+    
+    // 🟢 ДИНАМІЧНА ЦІНА ДЛЯ ПІДКАЗОК
+    let ePrice = Math.round(getDayPrice(room, selectedCheckIn) * 0.5);
+    let nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
+    let isPromo = (nights === 2 && selectedCheckIn.getDay() === 5 && selectedCheckOut.getDay() === 0);
+    let lPrice = isPromo ? 0 : Math.round(getDayPrice(room, selectedCheckOut) * 0.5);
 
-    // 1. Перевіряємо ранній заїзд (ЗАЛІЗОБЕТОННА перевірка по тексту дати)
+    // 1. Перевіряємо ранній заїзд
     const isSomeoneLeaving = ranges.some(r => r.end.toDateString() === selectedCheckIn.toDateString());
     
     if (isSomeoneLeaving) {
@@ -2562,17 +2564,16 @@ function checkServiceAvailability() {
         cardEarly.style.pointerEvents = 'none'; // Забороняємо клікати
         labelEarly.innerHTML = '<span style="color:var(--danger); font-size:11px; font-weight:700; text-transform:uppercase;">Зайнято до 15:00</span>';
         
-        // Тихо скидаємо вибір, якщо він був
         cardEarly.classList.remove('active');
         selectedEarlyTime = null;
         cardEarly.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
     } else {
         cardEarly.style.opacity = '1';
-        cardEarly.style.pointerEvents = 'auto'; // Дозволяємо клікати
-        if (!cardEarly.classList.contains('active')) labelEarly.innerHTML = `+${priceEarly} грн`;
+        cardEarly.style.pointerEvents = 'auto'; 
+        if (!cardEarly.classList.contains('active')) labelEarly.innerHTML = `+${ePrice} грн`; // 🟢 Ставимо реальні 50%
     }
 
-    // 2. Перевіряємо пізній виїзд (ЗАЛІЗОБЕТОННА перевірка)
+    // 2. Перевіряємо пізній виїзд
     const isSomeoneArriving = ranges.some(r => r.start.toDateString() === selectedCheckOut.toDateString());
 
     if (isSomeoneArriving) {
@@ -2580,14 +2581,15 @@ function checkServiceAvailability() {
         cardLate.style.pointerEvents = 'none';
         labelLate.innerHTML = '<span style="color:var(--danger); font-size:11px; font-weight:700; text-transform:uppercase;">Бронь з 15:00</span>';
         
-        // Тихо скидаємо вибір
         cardLate.classList.remove('active');
         selectedLateTime = null;
         cardLate.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
     } else {
         cardLate.style.opacity = '1';
         cardLate.style.pointerEvents = 'auto';
-        if (!cardLate.classList.contains('active')) labelLate.innerHTML = `+${priceLate} грн`;
+        if (!cardLate.classList.contains('active')) {
+            labelLate.innerHTML = isPromo ? `<span style="color:var(--success)">Безкоштовно</span>` : `+${lPrice} грн`; // 🟢 Враховуємо акцію Пт-Нд
+        }
     }
 }
     
