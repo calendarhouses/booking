@@ -2475,20 +2475,6 @@ function getBookedRanges(cottageName) {
             return { start: s, end: e, hasEarly, hasLate };
         });
 }
-            const s = new Date(b.checkIn); s.setHours(0,0,0,0);
-            const e = new Date(b.checkOut); e.setHours(0,0,0,0);
-            const comment = b.comment ? String(b.comment) : "";
-            
-            let hasEarly = comment.includes('Ранній заїзд');
-            let hasLate = comment.includes('Пізній виїзд');
-            
-            // Авто-перевірка акції Пт-Нд
-            let nights = Math.round((e - s) / 86400000);
-            if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
-
-            return { start: s, end: e, hasEarly, hasLate };
-        });
-}
 
 function getNextFreeDate(cottageName) {
     const today = new Date(); today.setHours(0,0,0,0);
