@@ -2453,12 +2453,18 @@ function dateStr(d) {
 }
 
 function getBookedRanges(cottageName) {
+    // 🟢 Бронебійна нормалізація: робимо малі літери і видаляємо ВСІ пробіли та символи "№"
+    const searchName = String(cottageName || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
+    
     return allBookings
-        // 🟢 МАГІЯ ТУТ: Шукаємо точний збіг по всій назві, а не тільки по першому слову!
         .filter(b => {
             if (String(b.status).toLowerCase().includes('скас')) return false;
-            const bCottage = String(b.cottage || '').trim();
-            return bCottage === cottageName || bCottage.includes(cottageName);
+            
+            // Так само нормалізуємо назву з бази
+            const bCottage = String(b.cottage || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
+            
+            // Тепер "family2" 100% співпаде з "family2", незалежно від того, як воно записано в базі
+            return bCottage === searchName || bCottage.includes(searchName);
         })
         .map(b => {
             const s = new Date(b.checkIn); s.setHours(0,0,0,0);
