@@ -2273,20 +2273,26 @@ async function submitBooking() {
             return;
         }
 
-        // 🟢 МАГІЯ: Якщо Гугл повернув дані, кидаємо клієнта на сторінку оплати (як у боті)
+        // 🟢 МАГІЯ: Формуємо об'єкт для збереження в пам'ять (з усіма деталями)
+        const sessionData = {
+            cottage: bookingData.cottage,
+            checkIn: bookingData.checkIn,
+            checkOut: bookingData.checkOut,
+            guests: bookingData.guests,
+            pets: bookingData.pets,
+            totalPrice: calc.totalPrice,
+            prepayment: json.paymentData ? json.paymentData.amount : 0,
+            earlyTime: selectedEarlyTime,
+            lateTime: selectedLateTime,
+            dayGuests: extraDayGuests,
+            hasVat: hasVat,
+            hasUbd: hasUbd
+        };
+        // Зберігаємо в браузер, щоб чек міг це прочитати після оплати
+        sessionStorage.setItem('lastBooking', JSON.stringify(sessionData));
+
         if (json.paymentData) {
             const pd = json.paymentData;
-            
-            // 🟢 ЗБЕРІГАЄМО ДАНІ ДЛЯ ЕКРАНУ УСПІХУ 🟢
-            sessionStorage.setItem('lastBooking', JSON.stringify({
-                cottage: bookingData.cottage,
-                checkIn: bookingData.checkIn,
-                checkOut: bookingData.checkOut,
-                guests: bookingData.guests,
-                pets: bookingData.pets,
-                totalPrice: calc.totalPrice,
-                prepayment: pd.amount // Це рівно ті 50%
-            }));
             
             // Створюємо приховану форму
             const form = document.createElement("form");
@@ -2338,7 +2344,9 @@ async function submitBooking() {
             
         } else {
             // Якщо оплата не потрібна (сума 0)
-            showSuccess(bookingData, calc);
+            document.getElementById('preloader').style.display = 'none';
+            renderSuccessReceipt();
+            showScreen('success');
         }
 
     } catch(e) {
@@ -2444,7 +2452,7 @@ function calcTotal(nights) {
         return price;
     }
 
-    // --- ФОРМУВАННЯ ЧЕКУ ---
+   // --- ФОРМУВАННЯ ЧЕКУ ---
 function renderSuccessReceipt() {
     const dataStr = sessionStorage.getItem('lastBooking');
     if (!dataStr) return; // Якщо відкрили сторінку без бронювання
@@ -2454,15 +2462,26 @@ function renderSuccessReceipt() {
         const inD = new Date(b.checkIn).toLocaleDateString('uk-UA', { day:'numeric', month:'long' });
         const outD = new Date(b.checkOut).toLocaleDateString('uk-UA', { day:'numeric', month:'long' });
         
+        // 🟢 ДИНАМІЧНИЙ ЧАС: Беремо з пам'яті, або ставимо стандартний
+        const inTime = b.earlyTime ? b.earlyTime : "15:00";
+        const outTime = b.lateTime ? b.lateTime : "11:00";
+
+        // 🟢 ДОДАТКОВІ ПОСЛУГИ: Формуємо рядки, якщо вони були обрані
+        let extraHtml = '';
+        if (b.dayGuests > 0) extraHtml += `<div class="receipt-row"><span class="receipt-label">Денні гості:</span> <span class="receipt-val">${b.dayGuests} чол.</span></div>`;
+        if (b.hasVat) extraHtml += `<div class="receipt-row"><span class="receipt-label">Карпатський Чан:</span> <span class="receipt-val" style="color:var(--accent);">Оплата на місці</span></div>`;
+        if (b.hasUbd) extraHtml += `<div class="receipt-row"><span class="receipt-label">Знижка УБД:</span> <span class="receipt-val" style="color:var(--accent);">Застосовано</span></div>`;
+
         document.getElementById('successDetail').innerHTML = `
             <div class="receipt-header">
                 <div class="receipt-title">Бронь котеджу</div>
                 <div class="receipt-room">${b.cottage}</div>
             </div>
-            <div class="receipt-row"><span class="receipt-label">Заїзд:</span> <span class="receipt-val">${inD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">з 15:00</span></span></div>
-            <div class="receipt-row"><span class="receipt-label">Виїзд:</span> <span class="receipt-val">${outD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">до 11:00</span></span></div>
+            <div class="receipt-row"><span class="receipt-label">Заїзд:</span> <span class="receipt-val">${inD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">з ${inTime}</span></span></div>
+            <div class="receipt-row"><span class="receipt-label">Виїзд:</span> <span class="receipt-val">${outD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">до ${outTime}</span></span></div>
             <div class="receipt-row"><span class="receipt-label">Гості:</span> <span class="receipt-val">${b.guests} ${guestWord(b.guests)}</span></div>
             ${b.pets === 'Так' ? `<div class="receipt-row"><span class="receipt-label">Тварини:</span> <span class="receipt-val">З твариною</span></div>` : ''}
+            ${extraHtml}
             
             <div class="receipt-total">
                 <span style="font-size:14px; font-weight:600;">Внесено аванс</span>
