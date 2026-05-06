@@ -1875,31 +1875,42 @@ function selectDate(ds) {
     const room = roomsList.find(r => r.id == currentCabinId);
     const ranges = getBookedRanges(room ? room.name : '');
 
-    if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
-        if (ranges.some(r => r.end.getTime() === d.getTime() && r.hasLate)) {
-            toast('Попередній гість виїжджає пізно. Заїзд у цей день неможливий.');
-            return;
-        }
-        selectedCheckIn = d; selectedCheckOut = null;
-    } else if (d <= selectedCheckIn) {
-        if (ranges.some(r => r.end.getTime() === d.getTime() && r.hasLate)) {
-            toast('Попередній гість виїжджає пізно. Заїзд у цей день неможливий.');
-            return;
-        }
-        selectedCheckIn = d; selectedCheckOut = null;
+    // 🟢 Якщо клікнули на повністю червону (зайняту) дату - скидаємо вибір, щоб вийти з "пастки"
+    const isClickBlocked = ranges.some(r => d >= r.start && d < r.end);
+    if (isClickBlocked) {
+        selectedCheckIn = null;
+        selectedCheckOut = null;
+        renderCalendar();
+        updateProceedBtn();
+        return; 
+    }
+
+    if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut) || d <= selectedCheckIn) {
+        // Починаємо нове виділення
+        selectedCheckIn = d; 
+        selectedCheckOut = null;
     } else {
-        if (ranges.some(r => r.start.getTime() === d.getTime() && r.hasEarly)) {
-            toast('Наступний гість заїжджає рано. Виїзд у цей день неможливий.');
-            return;
-        }
+        // Намагаємось обрати дату виїзду
         let hasConflict = false;
-        let cur = new Date(selectedCheckIn); cur.setDate(cur.getDate() + 1);
+        let cur = new Date(selectedCheckIn); 
+        cur.setDate(cur.getDate() + 1);
+        
         while (cur < d) {
-            if (ranges.some(r => cur >= r.start && cur < r.end)) { hasConflict = true; break; }
+            if (ranges.some(r => cur >= r.start && cur < r.end)) { 
+                hasConflict = true; 
+                break; 
+            }
             cur.setDate(cur.getDate() + 1);
         }
-        if (hasConflict) { toast('Ці дати вже зайняті — оберіть інші'); return; }
-        selectedCheckOut = d;
+        
+        if (hasConflict) { 
+            toast('Між цими датами є зайнята бронь. Починаємо новий вибір.'); 
+            // 🟢 ФІКС ПАСТКИ: Робимо клікнуту дату новим заїздом!
+            selectedCheckIn = d; 
+            selectedCheckOut = null;
+        } else {
+            selectedCheckOut = d;
+        }
     }
     renderCalendar();
     updateProceedBtn();
@@ -2453,17 +2464,13 @@ function dateStr(d) {
 }
 
 function getBookedRanges(cottageName) {
-    // 🟢 Бронебійна нормалізація: робимо малі літери і видаляємо ВСІ пробіли та символи "№"
+    // Нормалізація назви (щоб Family 2 і FAMILY №2 працювали однаково)
     const searchName = String(cottageName || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
     
     return allBookings
         .filter(b => {
             if (String(b.status).toLowerCase().includes('скас')) return false;
-            
-            // Так само нормалізуємо назву з бази
             const bCottage = String(b.cottage || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
-            
-            // Тепер "family2" 100% співпаде з "family2", незалежно від того, як воно записано в базі
             return bCottage === searchName || bCottage.includes(searchName);
         })
         .map(b => {
@@ -2477,6 +2484,14 @@ function getBookedRanges(cottageName) {
             // Авто-перевірка акції Пт-Нд
             let nights = Math.round((e - s) / 86400000);
             if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
+
+            // 🟢 МАГІЯ: Розширюємо "червону зону" броні, якщо є гнучкий графік
+            if (hasEarly) {
+                s.setDate(s.getDate() - 1); // Закриваємо ніч перед заїздом
+            }
+            if (hasLate) {
+                e.setDate(e.getDate() + 1); // Закриваємо ніч після виїзду
+            }
 
             return { start: s, end: e, hasEarly, hasLate };
         });
