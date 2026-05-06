@@ -1139,11 +1139,17 @@
                         <div class="srv-body">
                             <div style="font-size:12px; color:var(--text); font-weight:500;">Оберіть годину виїзду:</div>
                             <div class="time-chips">
-                                <div class="t-chip" onclick="selectTime('late', '12:00', this)">12:00</div>
-                                <div class="t-chip" onclick="selectTime('late', '13:00', this)">13:00</div>
-                                <div class="t-chip" onclick="selectTime('late', '14:00', this)">14:00</div>
-                                <div class="t-chip" onclick="selectTime('late', '15:00', this)">15:00</div>
-                            </div>
+                                        <div class="t-chip" onclick="selectTime('late', '12:00', this)">12:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '13:00', this)">13:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '14:00', this)">14:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '15:00', this)">15:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '16:00', this)">16:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '17:00', this)">17:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '18:00', this)">18:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '19:00', this)">19:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '20:00', this)">20:00</div>
+                                        <div class="t-chip" onclick="selectTime('late', '21:00', this)">21:00</div>
+                                    </div>
                         </div>
                     </div>
                 </div>
@@ -1704,11 +1710,19 @@ function showDetail(cabinId) {
 
     renderAmenities(cfg.amenities);
 
-    // Знижки
-    let currentDiscounts = discountsList.length > 0 ? discountsList : [
-        { condition: "Від 2 діб", discount: "15%" }, { condition: "Від 3 діб", discount: "20%" },
-        { condition: "Від 7 діб", discount: "43%" }, { condition: "Від 14 діб", discount: "57%" }
-    ];
+    // 🟢 ВІЗУАЛЬНИЙ ФІЛЬТР ЗНИЖОК ДЛЯ КОНКРЕТНОГО КОТЕДЖУ
+    let currentDiscounts = discountsList.filter(d => {
+        return (d.roomsIds && (d.roomsIds.includes("all") || d.roomsIds.includes(String(currentCabinId)))) || 
+               (!d.roomsIds && String(d.rooms).includes("Всі"));
+    });
+
+    // Якщо раптом з бази нічого не прийшло - ставимо дефолтні
+    if (currentDiscounts.length === 0) {
+        currentDiscounts = [
+            { condition: "Від 2 діб", discount: "15%" }, { condition: "Від 3 діб", discount: "20%" },
+            { condition: "Від 7 діб", discount: "43%" }, { condition: "Від 14 діб", discount: "57%" }
+        ];
+    }
     
     const discCont = document.getElementById('detailDiscounts');
     if (discCont) {
@@ -2357,7 +2371,11 @@ function calcTotal(nights) {
     discountsList.forEach(d => {
         const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0;
         const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
-        const appliesToRoom = d.roomsIds && (d.roomsIds.includes('all') || d.roomsIds.includes(String(currentCabinId)));
+        
+        // 🟢 МАГІЯ: Розумна перевірка прив'язки до номеру (підтримуємо і нові, і старі записи з бази)
+        const appliesToRoom = 
+            (d.roomsIds && (d.roomsIds.includes("all") || d.roomsIds.includes(String(currentCabinId)))) || 
+            (!d.roomsIds && String(d.rooms).includes("Всі"));
         
         if (nights >= condNights && appliesToRoom && pct > discountPercent) {
             discountPercent = pct;
