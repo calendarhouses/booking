@@ -774,11 +774,8 @@ async function initApp() {
     const pendingPayment = localStorage.getItem('pendingPayment');
     const lastBookingStr = localStorage.getItem('lastBooking');
 
-    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ (Без race condition і підвисань)
-    if ((urlParams.get('payment') === 'success' || pendingPayment) && lastBookingStr) {
-        
-        // Знімаємо мітку, щоб чек не вискакував при кожному оновленні сторінки
-        localStorage.removeItem('pendingPayment'); 
+    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ
+    if (urlParams.get('payment') === 'success' && lastBookingStr) {
         window.history.replaceState({}, document.title, window.location.pathname);
         
         // Миттєво ховаємо прелоадер
@@ -1422,9 +1419,6 @@ async function submitBooking() {
                 prepayment: pd.amount, earlyTime: selectedEarlyTime, lateTime: selectedLateTime,
                 dayGuests: extraDayGuests, hasVat: hasVat, hasUbd: hasUbd
             }));
-            
-            // 🟢 СТАВИМО МІТКУ: Людина пішла на оплату
-            localStorage.setItem('pendingPayment', 'true');
             
             const form = document.createElement("form"); form.method = "POST"; form.action = "https://secure.wayforpay.com/pay"; form.style.display = "none";
             
