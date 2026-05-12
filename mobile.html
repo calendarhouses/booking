@@ -1456,7 +1456,44 @@ function renderSuccessReceipt() {
 }
 
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function getBookedRanges(cottageName) { return allBookings.filter(b => String(b.cottage||'').includes(cottageName.split(' ')[0]) && !String(b.status).toLowerCase().includes('скас')).map(b => ({ start: new Date(b.checkIn).setHours(0,0,0,0), end: new Date(b.checkOut).setHours(0,0,0,0) })); }
+function getBookedRanges(cottageName) {
+    // 1. Нормалізуємо назву (щоб FAMILY №2 і Family 2 вважалися одним і тим же, і не плуталися з Family 3)
+    const searchName = String(cottageName || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
+    
+    return allBookings
+        .filter(b => {
+            if (String(b.status).toLowerCase().includes('скас')) return false;
+            const bCottage = String(b.cottage || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
+            // 2. Шукаємо ТОЧНИЙ збіг, а не просто перше слово
+            return bCottage === searchName;
+        })
+        .map(b => {
+            // 3. Безпечно читаємо дати (навіть якщо вони з крапками чи рисками)
+            let inStr = b.checkIn.includes('.') ? b.checkIn.split('.').reverse().join('-') : b.checkIn;
+            let outStr = b.checkOut.includes('.') ? b.checkOut.split('.').reverse().join('-') : b.checkOut;
+            
+            const s = new Date(inStr); s.setHours(0,0,0,0);
+            const e = new Date(outStr); e.setHours(0,0,0,0);
+            const comment = b.comment ? String(b.comment) : "";
+            
+            let hasEarly = comment.includes('Ранній заїзд');
+            let hasLate = comment.includes('Пізній виїзд');
+            
+            // Авто-перевірка акції Пт-Нд
+            let nights = Math.round((e - s) / 86400000);
+            if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
+
+            // РОЗШИРЮЄМО "червону зону", якщо гість замовив гнучкий графік
+            if (hasEarly) {
+                s.setDate(s.getDate() - 1); 
+            }
+            if (hasLate) {
+                e.setDate(e.getDate() + 1); 
+            }
+
+            return { start: s, end: e };
+        });
+}
 function getNextFreeDate(cottageName) {
     const today = new Date(); today.setHours(0,0,0,0); const ranges = getBookedRanges(cottageName);
     let d = new Date(today);
