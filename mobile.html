@@ -771,29 +771,35 @@ function getCabinConfig(id) { return CABIN_CONFIG[id] || CABIN_CONFIG.default; }
 
 async function initApp() {
     const urlParams = new URLSearchParams(window.location.search);
-    const pendingPayment = localStorage.getItem('pendingPayment');
     const lastBookingStr = localStorage.getItem('lastBooking');
 
     // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ 
-    if (urlParams.get('payment') === 'success' && lastBookingStr) { 
-        // 1. Спочатку знімаємо блокування скролу (краще пустим рядком)
-        document.body.style.overflow = ''; 
-        document.documentElement.style.overflow = ''; 
-        document.body.classList.add('ready'); 
+    if (urlParams.get('payment') === 'success') {
         
-        // 2. Формуємо чек і перемикаємо екран на success ДО зміни URL
-        renderSuccessReceipt();  
-        showScreen('success');  
+        // ❌ ТИМЧАСОВО ЗАКРИЛИ ЦЕЙ РЯДОК, ЩОБ ТИ БАЧИЛА ?payment=success В АДРЕСНОМУ РЯДКУ
+        // window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Миттєво ховаємо прелоадер
+        document.getElementById('preloader').style.display = 'none';
         
-        // 3. Ховаємо прелоадер
-        document.getElementById('preloader').style.display = 'none'; 
-        
-        // 4. МАГІЯ: Змінюємо URL з мікрозатримкою, щоб Safari встиг відмалювати чек
-        setTimeout(() => {
-            window.history.replaceState({}, document.title, window.location.pathname); 
-        }, 50);
-        
-        return; // 🛑 Жорстко зупиняємо подальше завантаження сайту 
+        // Розблоковуємо екран намертво
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
+        document.body.classList.add('ready');
+
+        // Примусово знімаємо клас анімації, через який Safari робить невидимим блок
+        const successWrap = document.querySelector('.success-wrap');
+        if (successWrap) successWrap.classList.remove('fade-in');
+
+        // Малюємо чек (або виводимо повідомлення, якщо пам'ять телефону стерлась)
+        if (lastBookingStr) {
+            renderSuccessReceipt(); 
+        } else {
+            document.getElementById('successDetail').innerHTML = '<div style="text-align:center; padding: 20px; color: red;">Оплата пройшла, але пам\'ять телефону стерла дані чеку під час редіректу.</div>';
+        }
+
+        showScreen('success'); 
+        return; // 🛑 Жорстко зупиняємо подальше завантаження сайту
     }
 
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
