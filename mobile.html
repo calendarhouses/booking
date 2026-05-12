@@ -1429,7 +1429,7 @@ async function submitBooking() {
             const form = document.createElement("form"); form.method = "POST"; form.action = "https://secure.wayforpay.com/pay"; form.style.display = "none";
             
             // 🟢 ТУТ БУЛА ПОМИЛКА: використовуємо firstName, lastName
-            const params = { merchantAccount: pd.merchantAccount, merchantDomainName: pd.merchantDomainName, merchantSignature: pd.signature, orderReference: pd.orderReference, orderDate: pd.orderDate, amount: pd.amount, currency: pd.currency, clientFirstName: firstName, clientLastName: lastName, clientPhone: bData.phone, language: "UA", returnUrl: window.location.origin + window.location.pathname + "?payment=success" };
+            const params = { merchantAccount: pd.merchantAccount, merchantDomainName: pd.merchantDomainName, merchantSignature: pd.signature, orderReference: pd.orderReference, orderDate: pd.orderDate, amount: pd.amount, currency: pd.currency, clientFirstName: firstName, clientLastName: lastName, clientPhone: bData.phone, language: "UA", returnUrl: window.location.origin + window.location.pathname.replace('mobile.html', '') + "?payment=success" };
             
             for (const key in params) { const input = document.createElement("input"); input.type = "hidden"; input.name = key; input.value = params[key]; form.appendChild(input); }
             const arrayParams = { 'productName[]': pd.productName, 'productPrice[]': pd.amount, 'productCount[]': pd.productCount };
