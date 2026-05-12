@@ -969,16 +969,20 @@ function showDetail(cabinId) {
     // Скидаємо UI карток послуг
     const cardEarly = document.getElementById('cardEarly');
     const cardLate = document.getElementById('cardLate');
+    
+    // Оскільки дати ще не обрані, беремо для підказки 50% від базової ціни буднього дня
+    let defaultHalfPrice = Math.round((room.priceWeekday || 4000) * 0.5);
+
     if (cardEarly) {
         cardEarly.classList.remove('active');
         cardEarly.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
-        document.getElementById('labelPriceEarly').innerHTML = `+${priceEarly} грн`;
+        document.getElementById('labelPriceEarly').innerHTML = `+${defaultHalfPrice} грн`;
         cardEarly.style.opacity = '1'; cardEarly.style.pointerEvents = 'auto';
     }
     if (cardLate) {
         cardLate.classList.remove('active');
         cardLate.querySelectorAll('.t-chip').forEach(c => c.classList.remove('selected'));
-        document.getElementById('labelPriceLate').innerHTML = `+${priceLate} грн`;
+        document.getElementById('labelPriceLate').innerHTML = `+${defaultHalfPrice} грн`;
         cardLate.style.opacity = '1'; cardLate.style.pointerEvents = 'auto';
     }
     
@@ -1410,25 +1414,37 @@ function calcTotal(nights) {
     for (let i = 0; i < nights; i++) {
         let d = new Date(selectedCheckIn); d.setDate(d.getDate() + i); base += getDayPrice(room, d);
     }
-    const extraGuests = Math.max(0, guestCount - room.capacity);
+    const extraGuests = Math.max(0, guestCount - (room.capacity || 2));
     const extraPrice = room.extraGuestPrice !== undefined ? room.extraGuestPrice : 2500;
     const extraGuestFee = extraGuests * extraPrice * nights;
     const petFee = hasPets ? (500 + 200 * nights) : 0;
     
     let discountPercent = 0;
-    discountsList.forEach(d => {
-        const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0; const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
-        const appliesToRoom = d.roomsIds && (d.roomsIds.includes('all') || d.roomsIds.includes(String(currentCabinId)));
-        if (nights >= condNights && appliesToRoom && pct > discountPercent) discountPercent = pct;
-    });
+    if (typeof discountsList !== 'undefined') {
+        discountsList.forEach(d => {
+            const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0; 
+            const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
+            const appliesToRoom = d.roomsIds && (d.roomsIds.includes('all') || d.roomsIds.includes(String(currentCabinId)));
+            if (nights >= condNights && appliesToRoom && pct > discountPercent) discountPercent = pct;
+        });
+    }
+    
+    // 🟢 ДОДАЄМО 10% ЗНИЖКИ ДЛЯ УБД
+    if (hasUbd) discountPercent += 0.10;
 
     const amountToDiscount = base + extraGuestFee;
     const discountAmount = Math.round(amountToDiscount * discountPercent);
     
-    // 🟢 ДОДАЄМО СУМУ ПОСЛУГ ТА ДЕННИХ ГОСТЕЙ
-    const earlyFee = selectedEarlyTime ? priceEarly : 0;
-    const lateFee = selectedLateTime ? priceLate : 0;
-    const dayGuestFee = extraDayGuests * 500; // 500 грн * кількість (одноразово)
+    // 🟢 ДИНАМІЧНИЙ РОЗРАХУНОК ГНУЧКОГО ГРАФІКА
+    let earlyFee = 0;
+    let lateFee = 0;
+    if (selectedCheckIn && selectedCheckOut) {
+        let isPromo = (nights === 2 && selectedCheckIn.getDay() === 5 && selectedCheckOut.getDay() === 0);
+        if (selectedEarlyTime) earlyFee = Math.round(getDayPrice(room, selectedCheckIn) * 0.5);
+        if (selectedLateTime && !isPromo) lateFee = Math.round(getDayPrice(room, selectedCheckOut) * 0.5);
+    }
+
+    const dayGuestFee = extraDayGuests * 500; 
     
     // Фінальна сума
     const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee;
@@ -1439,7 +1455,7 @@ function calcTotal(nights) {
         petFee, 
         earlyFee, 
         lateFee,  
-        dayGuestFee: dayGuestFee, // 🟢 Передаємо денних гостей
+        dayGuestFee: dayGuestFee,
         discountAmount, 
         discountPercent, 
         totalPrice, 
