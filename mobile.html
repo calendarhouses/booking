@@ -707,7 +707,7 @@
 <!-- ЕКРАН УСПІХУ -->
 <div id="screen-success" class="screen">
     <div class="page-wrap" style="padding-top: 60px;">
-        <div class="success-wrap fade-in">
+        <div class="success-wrap">
             <div class="success-icon-premium"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
             <h2>Підтверджено</h2>
             <p>Оплата пройшла успішно. Ваші апартаменти заброньовано.</p>
@@ -774,22 +774,26 @@ async function initApp() {
     const pendingPayment = localStorage.getItem('pendingPayment');
     const lastBookingStr = localStorage.getItem('lastBooking');
 
-    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ
-    if (urlParams.get('payment') === 'success' && lastBookingStr) {
-        window.history.replaceState({}, document.title, window.location.pathname);
+    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ 
+    if (urlParams.get('payment') === 'success' && lastBookingStr) { 
+        // 1. Спочатку знімаємо блокування скролу (краще пустим рядком)
+        document.body.style.overflow = ''; 
+        document.documentElement.style.overflow = ''; 
+        document.body.classList.add('ready'); 
         
-        // Миттєво ховаємо прелоадер
-        document.getElementById('preloader').style.display = 'none';
+        // 2. Формуємо чек і перемикаємо екран на success ДО зміни URL
+        renderSuccessReceipt();  
+        showScreen('success');  
         
-        // Розблоковуємо екран намертво
-        document.body.style.overflow = 'auto';
-        document.documentElement.style.overflow = 'auto';
-        document.body.classList.add('ready');
+        // 3. Ховаємо прелоадер
+        document.getElementById('preloader').style.display = 'none'; 
         
-        // Малюємо чек і перемикаємо екран
-        renderSuccessReceipt(); 
-        showScreen('success'); 
-        return; // 🛑 Жорстко зупиняємо подальше завантаження сайту
+        // 4. МАГІЯ: Змінюємо URL з мікрозатримкою, щоб Safari встиг відмалювати чек
+        setTimeout(() => {
+            window.history.replaceState({}, document.title, window.location.pathname); 
+        }, 50);
+        
+        return; // 🛑 Жорстко зупиняємо подальше завантаження сайту 
     }
 
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
