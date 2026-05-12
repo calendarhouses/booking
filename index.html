@@ -2220,15 +2220,16 @@ async function submitBooking() {
     const lastName  = document.getElementById('fLastName').value.trim();
     const phone     = document.getElementById('fPhone').value.trim();
     
-    // 🟢 МАГІЯ ТУТ: Беремо коментар гостя і клеїмо до нього системні дані
+    // 🟢 Формуємо коментар (ІДЕНТИЧНО ДЛЯ ПК ТА МОБІЛКИ)
     let comment = document.getElementById('fComment').value.trim();
     let sysComment = [];
-    if (extraDayGuests > 0) sysComment.push(`👥 Денні гості (без ночівлі): ${extraDayGuests} чол.`);
+    if (extraDayGuests > 0) sysComment.push(`👥 Денні гості: ${extraDayGuests}`); 
     if (hasVat) sysComment.push(`♨️ Чан: Так`);
     if (hasUbd) sysComment.push(`🇺🇦 УБД: Так`);
     if (selectedEarlyTime) sysComment.push(`🕒 Ранній заїзд: з ${selectedEarlyTime}`);
     if (selectedLateTime) sysComment.push(`🕒 Пізній виїзд: до ${selectedLateTime}`);
-    if (sysComment.length > 0) {
+
+    if (sysComment.length > 0) { 
         comment = sysComment.join(' | ') + (comment ? '\n\nКоментар гостя: ' + comment : '');
     }
     // 🟢 КІНЕЦЬ МАГІЇ
