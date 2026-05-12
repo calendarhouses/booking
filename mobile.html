@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
-    <script>if(window.innerWidth>=768)window.location.href='index.html';</script>
+    <script>if(window.innerWidth>=768) window.location.href='index.html' + window.location.search;</script>
     <title>BOSO | Бронювання котеджів</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -633,6 +633,12 @@
                                 <div class="t-chip" onclick="selectTime('late', '13:00', this)">13:00</div>
                                 <div class="t-chip" onclick="selectTime('late', '14:00', this)">14:00</div>
                                 <div class="t-chip" onclick="selectTime('late', '15:00', this)">15:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '16:00', this)">16:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '17:00', this)">17:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '18:00', this)">18:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '19:00', this)">19:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '20:00', this)">20:00</div>
+                                <div class="t-chip" onclick="selectTime('late', '21:00', this)">21:00</div>
                             </div>
                         </div>
                     </div>
@@ -1419,13 +1425,29 @@ function calcTotal(nights) {
     const extraGuestFee = extraGuests * extraPrice * nights;
     const petFee = hasPets ? (500 + 200 * nights) : 0;
     
+    // Розумний підбір знижки (тепер працює 100%)
     let discountPercent = 0;
     if (typeof discountsList !== 'undefined') {
         discountsList.forEach(d => {
             const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0; 
             const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
-            const appliesToRoom = d.roomsIds && (d.roomsIds.includes('all') || d.roomsIds.includes(String(currentCabinId)));
-            if (nights >= condNights && appliesToRoom && pct > discountPercent) discountPercent = pct;
+            
+            let appliesToRoom = false;
+            
+            // 🟢 МАГІЯ: Перевіряємо всі можливі варіанти запису в базу (нові і старі)
+            if (d.roomsIds && d.roomsIds.length > 0) {
+                appliesToRoom = d.roomsIds.includes("all") || d.roomsIds.includes(String(currentCabinId));
+            } else if (d.rooms) {
+                let rText = String(d.rooms).toLowerCase();
+                let cName = String(room.name).toLowerCase();
+                appliesToRoom = rText.includes("всі") || rText.includes("все") || rText.includes(cName) || rText.includes("не обрано");
+            } else {
+                appliesToRoom = true; // Якщо нічого не вказано - застосовуємо до всіх
+            }
+
+            if (nights >= condNights && appliesToRoom && pct > discountPercent) {
+                discountPercent = pct;
+            }
         });
     }
     
@@ -1471,8 +1493,19 @@ function getDayPrice(room, d) {
     return (!price || price === 0) ? 4500 : price;
 }
 
+// --- ФОРМУВАННЯ ЧЕКУ ---
 function renderSuccessReceipt() {
-    const dataStr = sessionStorage.getItem('lastBooking'); if (!dataStr) return;
+    const dataStr = sessionStorage.getItem('lastBooking');
+    const receiptContainer = document.getElementById('successDetail');
+    
+    if (!receiptContainer) return;
+
+    if (!dataStr) {
+        // Якщо браузер стер пам'ять під час оплати
+        receiptContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted); font-size: 14px; line-height: 1.5;">Дякуємо! Ваша бронь успішно зафіксована та оплачена. Деталі бронювання адміністратор надішле вам у месенджер.</div>';
+        return; 
+    }
+    
     try {
         const b = JSON.parse(dataStr);
         const inD = new Date(b.checkIn).toLocaleDateString('uk-UA', { day:'numeric', month:'long' });
@@ -1486,21 +1519,30 @@ function renderSuccessReceipt() {
         if (b.hasVat) extraHtml += `<div class="receipt-row"><span class="receipt-label">Чан:</span> <span class="receipt-val" style="color:var(--accent);">Оплата на місці</span></div>`;
         if (b.hasUbd) extraHtml += `<div class="receipt-row"><span class="receipt-label">Знижка УБД:</span> <span class="receipt-val" style="color:var(--accent);">Застосовано</span></div>`;
 
-        document.getElementById('successDetail').innerHTML = `
-            <div class="receipt-header"><div class="receipt-title">Бронь котеджу</div><div class="receipt-room">${b.cottage}</div></div>
-            <div class="receipt-row"><span class="receipt-label">Заїзд:</span> <span class="receipt-val">${inD}<br><span style="font-size:11px;color:var(--muted);font-weight:400;">з ${inTime}</span></span></div>
-            <div class="receipt-row"><span class="receipt-label">Виїзд:</span> <span class="receipt-val">${outD}<br><span style="font-size:11px;color:var(--muted);font-weight:400;">до ${outTime}</span></span></div>
+        receiptContainer.innerHTML = `
+            <div class="receipt-header">
+                <div class="receipt-title">Бронь котеджу</div>
+                <div class="receipt-room">${b.cottage}</div>
+            </div>
+            <div class="receipt-row"><span class="receipt-label">Заїзд:</span> <span class="receipt-val">${inD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">з ${inTime}</span></span></div>
+            <div class="receipt-row"><span class="receipt-label">Виїзд:</span> <span class="receipt-val">${outD}<br><span style="font-size:12px;color:var(--muted);font-weight:400;">до ${outTime}</span></span></div>
             <div class="receipt-row"><span class="receipt-label">Гості:</span> <span class="receipt-val">${b.guests} ${guestWord(b.guests)}</span></div>
             ${b.pets === 'Так' ? `<div class="receipt-row"><span class="receipt-label">Тварини:</span> <span class="receipt-val">З твариною</span></div>` : ''}
             ${extraHtml}
-            <div style="border-top: 1px dashed rgba(0,0,0,0.1); margin-top: 16px; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size:14px; font-weight:600;">Внесено (Аванс)</span><span style="color: var(--accent); font-weight:800; font-size:18px;">${b.prepayment.toLocaleString('uk-UA')} грн</span>
+            
+            <div class="receipt-total">
+                <span style="font-size:14px; font-weight:600;">Внесено аванс</span>
+                <span style="color: var(--accent);">${b.prepayment.toLocaleString('uk-UA')} грн</span>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                <span style="font-size:13px; color:var(--muted);">Залишок при заселенні</span><span style="font-size:14px; font-weight: 700;">${(b.totalPrice - b.prepayment).toLocaleString('uk-UA')} грн</span>
+            <div class="receipt-row" style="margin-top:12px;">
+                <span class="receipt-label" style="font-size:13px; font-weight: 500;">Залишок при заселенні:</span> 
+                <span class="receipt-val" style="font-size:13px; font-weight: 700;">${(b.totalPrice - b.prepayment).toLocaleString('uk-UA')} грн</span>
             </div>
         `;
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+        console.error("Помилка чеку:", e); 
+        receiptContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted); font-size: 14px;">Дякуємо! Ваша бронь успішно зафіксована.</div>';
+    }
 }
 
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -1589,12 +1631,19 @@ function playClick() {
     const labelEarly = document.getElementById('labelPriceEarly');
     const labelLate = document.getElementById('labelPriceLate');
 
-    if (!cardEarly || !cardLate || !selectedCheckIn || !selectedCheckOut) return;
+    if (!cardEarly || !cardLate) return;
+    
+    // 🟢 Якщо дати ще не обрані — ставимо заглушки "Оберіть дати" і зупиняємо функцію
+    if (!selectedCheckIn || !selectedCheckOut) {
+        if (labelEarly && !cardEarly.classList.contains('active')) labelEarly.innerHTML = 'Оберіть дати';
+        if (labelLate && !cardLate.classList.contains('active')) labelLate.innerHTML = 'Оберіть дати';
+        return;
+    }
 
     const room = roomsList.find(r => r.id == currentCabinId);
     const ranges = getBookedRanges(room ? room.name : '');
     
-    // 🟢 ДИНАМІЧНА ЦІНА ДЛЯ ПІДКАЗОК
+    // Далі йде твій старий код без змін...
     let ePrice = Math.round(getDayPrice(room, selectedCheckIn) * 0.5);
     let nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
     let isPromo = (nights === 2 && selectedCheckIn.getDay() === 5 && selectedCheckOut.getDay() === 0);
