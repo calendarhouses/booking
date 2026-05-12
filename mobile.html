@@ -403,6 +403,9 @@
         .btn-tg svg { width: 20px; height: 20px; fill: currentColor; }
         .btn-home-link { font-size: 13px; font-weight: 600; text-transform: uppercase; color: var(--muted); text-decoration: none; }
 
+        /* Animations */
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         /* 🚀 ХОВАЄМО ПАНЕЛІ ДО КІНЦЯ АНІМАЦІЇ */
         .sticky-cta, .bottom-nav { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
         body.ready .sticky-cta, body.ready .bottom-nav { opacity: 1; pointer-events: auto; }
@@ -771,7 +774,14 @@ async function initApp() {
     if (urlParams.get('payment') === 'success') {
         window.history.replaceState({}, document.title, window.location.pathname);
         document.getElementById('preloader').style.display = 'none';
-        renderSuccessReceipt(); showScreen('success'); return;
+        
+        // 🟢 ФІКС: Жорстко розблоковуємо скрол і показуємо інтерфейс
+        document.body.style.overflow = 'auto'; 
+        document.body.classList.add('ready');
+        
+        renderSuccessReceipt(); 
+        showScreen('success'); 
+        return;
     }
 
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
@@ -1394,7 +1404,7 @@ async function submitBooking() {
         if (json.paymentData) {
             const pd = json.paymentData;
             // Зберігаємо всі деталі для чеку
-            sessionStorage.setItem('lastBooking', JSON.stringify({ 
+            localStorage.setItem('lastBooking', JSON.stringify({ 
                 cottage: bData.cottage, checkIn: bData.checkIn, checkOut: bData.checkOut, 
                 guests: bData.guests, pets: bData.pets, totalPrice: calc.totalPrice, 
                 prepayment: pd.amount, earlyTime: selectedEarlyTime, lateTime: selectedLateTime,
@@ -1495,7 +1505,7 @@ function getDayPrice(room, d) {
 
 // --- ФОРМУВАННЯ ЧЕКУ ---
 function renderSuccessReceipt() {
-    const dataStr = sessionStorage.getItem('lastBooking');
+    const dataStr = localStorage.getItem('lastBooking'); // 🟢 ФІКС
     const receiptContainer = document.getElementById('successDetail');
     
     if (!receiptContainer) return;
@@ -1593,7 +1603,7 @@ function nightWord(n) { const v = Math.abs(n) % 100, v1 = v % 10; if (v > 10 && 
 function guestWord(n) { const v = Math.abs(n) % 100, v1 = v % 10; if (v > 10 && v < 20) return 'гостей'; if (v1 > 1 && v1 < 5) return 'гості'; if (v1 === 1) return 'гість'; return 'гостей'; }
 function toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
-document.addEventListener('DOMContentLoaded', initApp);
+initApp();
 
 // ─── ГЕНЕРАТОР ПРЕМІУМ-ЗВУКУ КЛІКУ (Стиль Telegram) ───
 let audioCtx = null;
