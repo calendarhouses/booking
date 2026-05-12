@@ -774,32 +774,59 @@ async function initApp() {
     const urlParams = new URLSearchParams(window.location.search);
     const lastBookingStr = localStorage.getItem('lastBooking');
 
-    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ 
+    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ З РЕАЛЬНОЮ ПЕРЕВІРКОЮ БАЗИ
     if (urlParams.get('payment') === 'success') {
+        let isPaid = false;
         
-        window.history.replaceState({}, document.title, window.location.pathname);
-
-        // Миттєво ховаємо прелоадер
-        document.getElementById('preloader').style.display = 'none';
-        
-        // Розблоковуємо екран намертво
-        document.body.style.overflow = 'auto';
-        document.documentElement.style.overflow = 'auto';
-        document.body.classList.add('ready');
-
-        // Примусово знімаємо клас анімації, через який Safari робить невидимим блок
-        const successWrap = document.querySelector('.success-wrap');
-        if (successWrap) successWrap.classList.remove('fade-in');
-
-        // Малюємо чек (або виводимо повідомлення, якщо пам'ять телефону стерлась)
         if (lastBookingStr) {
-            renderSuccessReceipt(); 
+            try {
+                const b = JSON.parse(lastBookingStr);
+                if (b.orderId) {
+                    // Робимо 3 спроби перевірки (даємо WayForPay час відправити вебхук)
+                    for (let i = 0; i < 3; i++) {
+                        const res = await fetch(`${API_URL}?action=checkStatus&orderId=${b.orderId}`);
+                        const data = await res.json();
+                        
+                        if (data.status === "Нова бронь") {
+                            isPaid = true;
+                            break;
+                        }
+                        await new Promise(r => setTimeout(r, 1500)); // Затримка між спробами
+                    }
+                }
+            } catch (e) { console.error("Помилка перевірки:", e); }
         } else {
-            document.getElementById('successDetail').innerHTML = '<div style="text-align:center; padding: 20px; color: red;">Оплата пройшла, але пам\'ять телефону стерла дані чеку під час редіректу.</div>';
+            // Якщо пам'ять стерлась, ми не знаємо ID броні, але WayForPay повернув success.
+            // Допускаємо, що все ок (покажеться наш красивий фолбек з Кроку 2)
+            isPaid = true;
         }
 
-        showScreen('success'); 
-        return; // 🛑 Жорстко зупиняємо подальше завантаження сайту
+        if (isPaid) {
+            // ОПЛАТА 100% УСПІШНА
+            document.getElementById('preloader').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.overflow = 'auto';
+            document.body.classList.add('ready');
+
+            // Прибираємо конфліктну анімацію для Safari
+            const successWrap = document.querySelector('.success-wrap');
+            if (successWrap) successWrap.classList.remove('fade-in');
+
+            renderSuccessReceipt(); 
+            showScreen('success'); 
+            
+            // Змінюємо URL непомітно для користувача
+            setTimeout(() => {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 50);
+            return; // 🛑 Зупиняємо завантаження сайту
+            
+        } else {
+            // ОПЛАТУ ВІДХИЛЕНО АБО СКАСОВАНО
+            toast('❌ Оплату відхилено. Спробуйте ще раз або оберіть іншу карту.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            // НЕ робимо return! Даємо сайту завантажитись, щоб клієнт міг спробувати ще раз
+        }
     }
 
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
@@ -1524,14 +1551,20 @@ function getDayPrice(room, d) {
 
 // --- ФОРМУВАННЯ ЧЕКУ ---
 function renderSuccessReceipt() {
-    const dataStr = localStorage.getItem('lastBooking'); // 🟢 ФІКС
+    const dataStr = localStorage.getItem('lastBooking'); 
     const receiptContainer = document.getElementById('successDetail');
     
     if (!receiptContainer) return;
 
     if (!dataStr) {
-        // Якщо браузер стер пам'ять під час оплати
-        receiptContainer.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted); font-size: 14px; line-height: 1.5;">Дякуємо! Ваша бронь успішно зафіксована та оплачена. Деталі бронювання адміністратор надішле вам у месенджер.</div>';
+        // 🟢 КРАСИВИЙ ПРЕМІАЛЬНИЙ ФОЛБЕК (Замість червоного тексту)
+        receiptContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px 10px;">
+                <svg viewBox="0 0 24 24" style="width: 48px; height: 48px; stroke: var(--accent); fill: none; stroke-width: 1.5; margin-bottom: 16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 20px; color: var(--text); margin-bottom: 8px;">Бронь зафіксована</h3>
+                <p style="font-size: 14px; color: var(--muted); line-height: 1.5;">Ми отримали вашу заявку. Точні деталі бронювання та інформація про заселення будуть надіслані вам у месенджер.</p>
+            </div>
+        `;
         return; 
     }
     
