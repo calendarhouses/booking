@@ -777,8 +777,7 @@ async function initApp() {
     // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ 
     if (urlParams.get('payment') === 'success') {
         
-        // ❌ ТИМЧАСОВО ЗАКРИЛИ ЦЕЙ РЯДОК, ЩОБ ТИ БАЧИЛА ?payment=success В АДРЕСНОМУ РЯДКУ
-        // window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname);
 
         // Миттєво ховаємо прелоадер
         document.getElementById('preloader').style.display = 'none';
