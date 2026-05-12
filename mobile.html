@@ -771,17 +771,52 @@ function getCabinConfig(id) { return CABIN_CONFIG[id] || CABIN_CONFIG.default; }
 
 async function initApp() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment') === 'success') {
+    const pendingPayment = localStorage.getItem('pendingPayment');
+    const lastBookingStr = localStorage.getItem('lastBooking');
+
+    // 🟢 ЗАХИСТ 1: Примусове розблокування скролу через 6 сек, якщо щось зависло
+    setTimeout(() => {
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
+    }, 6000);
+
+    // 🟢 ЗАХИСТ 2: Перевірка оплати
+    // Якщо повернулися з каси (за посиланням або по мітці в пам'яті)
+    if ((urlParams.get('payment') === 'success' || pendingPayment) && lastBookingStr) {
+        
+        localStorage.removeItem('pendingPayment'); // Знімаємо мітку
         window.history.replaceState({}, document.title, window.location.pathname);
-        document.getElementById('preloader').style.display = 'none';
         
-        // 🟢 ФІКС: Жорстко розблоковуємо скрол і показуємо інтерфейс
-        document.body.style.overflow = 'auto'; 
-        document.body.classList.add('ready');
-        
-        renderSuccessReceipt(); 
-        showScreen('success'); 
-        return;
+        const booking = JSON.parse(lastBookingStr);
+        const logo = document.querySelector('.pulse-logo');
+        if (logo) logo.innerText = "ПЕРЕВІРКА..."; // Змінюємо текст прелоадера
+
+        try {
+            // Питаємо базу: який статус у броні, яку ми щойно відправили?
+            const checkRes = await fetch(`${API_URL}?action=checkStatus&orderId=${booking.orderId}`);
+            const statusJson = await checkRes.json();
+
+            // Твій скрипт (doPost) при успішній оплаті ставить статус "Нова бронь"
+            if (statusJson.status === "Нова бронь") {
+                document.getElementById('preloader').style.display = 'none';
+                
+                // 🟢 Розблоковуємо екран намертво
+                document.body.style.overflow = 'auto';
+                document.documentElement.style.overflow = 'auto';
+                document.body.classList.add('ready');
+                
+                renderSuccessReceipt(); 
+                showScreen('success'); 
+                return; // Зупиняємо звичайне завантаження!
+            } else {
+                console.log("Оплата не пройшла. Завантажуємо сайт.");
+                if (logo) logo.innerText = "BOSO"; // Повертаємо лого
+                // Якщо не "Нова бронь", код просто піде далі і завантажить котеджі
+            }
+        } catch (e) {
+            console.error("Помилка зв'язку. Завантажуємо сайт.", e);
+            if (logo) logo.innerText = "BOSO";
+        }
     }
 
     const minLoadTime = new Promise(resolve => setTimeout(resolve, 1200));
@@ -1403,13 +1438,17 @@ async function submitBooking() {
 
         if (json.paymentData) {
             const pd = json.paymentData;
-            // Зберігаємо всі деталі для чеку
+            // Зберігаємо всі деталі для чеку + orderId
             localStorage.setItem('lastBooking', JSON.stringify({ 
+                orderId: pd.orderReference, // 🟢 ДОДАЄМО ЗБЕРЕЖЕННЯ ID БРОНІ
                 cottage: bData.cottage, checkIn: bData.checkIn, checkOut: bData.checkOut, 
                 guests: bData.guests, pets: bData.pets, totalPrice: calc.totalPrice, 
                 prepayment: pd.amount, earlyTime: selectedEarlyTime, lateTime: selectedLateTime,
                 dayGuests: extraDayGuests, hasVat: hasVat, hasUbd: hasUbd
             }));
+            
+            // 🟢 СТАВИМО МІТКУ: Людина пішла на оплату
+            localStorage.setItem('pendingPayment', 'true');
             
             const form = document.createElement("form"); form.method = "POST"; form.action = "https://secure.wayforpay.com/pay"; form.style.display = "none";
             
