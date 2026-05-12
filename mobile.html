@@ -1360,17 +1360,19 @@ async function submitBooking() {
         comment = sysComment.join(' | ') + (comment ? '\n\nКоментар гостя: ' + comment : '');
     }
 
+    // 🟢 ТУТ БУЛА ПОМИЛКА: використовуємо правильні назви змінних
     if (!firstName) { toast('Введіть ім\'я'); return; }
-    if (!ph || ph.length < 9) { toast('Введіть номер'); return; }
+    if (!phone || phone.length < 9) { toast('Введіть номер'); return; }
 
     const room = roomsList.find(r => r.id == currentCabinId);
     const calc = calcTotal(Math.round((selectedCheckOut - selectedCheckIn) / 86400000));
     const btn = document.getElementById('bookBtn'); btn.disabled = true; btn.innerText = 'Зачекайте...';
 
+    // 🟢 ТУТ БУЛА ПОМИЛКА: використовуємо firstName, lastName, phone, comment
     const bData = {
         checkIn: dateStr(selectedCheckIn), checkOut: dateStr(selectedCheckOut), cottage: room?.name || '',
-        name: `${fn} ${ln}`.trim(), phone: '+380' + ph.replace(/\D/g,''), guests: guestCount,
-        pets: hasPets ? 'Так' : 'Ні', status: 'Очікує оплату', totalPrice: calc.totalPrice, paidAmount: 0, source: 'Сайт', comment: cm
+        name: `${firstName} ${lastName}`.trim(), phone: '+380' + phone.replace(/\D/g,''), guests: guestCount,
+        pets: hasPets ? 'Так' : 'Ні', status: 'Очікує оплату', totalPrice: calc.totalPrice, paidAmount: 0, source: 'Сайт', comment: comment
     };
 
     try {
@@ -1390,7 +1392,10 @@ async function submitBooking() {
             }));
             
             const form = document.createElement("form"); form.method = "POST"; form.action = "https://secure.wayforpay.com/pay"; form.style.display = "none";
-            const params = { merchantAccount: pd.merchantAccount, merchantDomainName: pd.merchantDomainName, merchantSignature: pd.signature, orderReference: pd.orderReference, orderDate: pd.orderDate, amount: pd.amount, currency: pd.currency, clientFirstName: fn, clientLastName: ln, clientPhone: bData.phone, language: "UA", returnUrl: window.location.origin + window.location.pathname + "?payment=success" };
+            
+            // 🟢 ТУТ БУЛА ПОМИЛКА: використовуємо firstName, lastName
+            const params = { merchantAccount: pd.merchantAccount, merchantDomainName: pd.merchantDomainName, merchantSignature: pd.signature, orderReference: pd.orderReference, orderDate: pd.orderDate, amount: pd.amount, currency: pd.currency, clientFirstName: firstName, clientLastName: lastName, clientPhone: bData.phone, language: "UA", returnUrl: window.location.origin + window.location.pathname + "?payment=success" };
+            
             for (const key in params) { const input = document.createElement("input"); input.type = "hidden"; input.name = key; input.value = params[key]; form.appendChild(input); }
             const arrayParams = { 'productName[]': pd.productName, 'productPrice[]': pd.amount, 'productCount[]': pd.productCount };
             for (const key in arrayParams) { const input = document.createElement("input"); input.type = "hidden"; input.name = key; input.value = arrayParams[key]; form.appendChild(input); }
