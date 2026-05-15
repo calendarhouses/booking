@@ -784,22 +784,21 @@ async function initApp() {
             try {
                 const b = JSON.parse(lastBookingStr);
                 if (b.orderId) {
-                    // Робимо 3 спроби перевірки (даємо WayForPay час відправити вебхук)
-                    for (let i = 0; i < 3; i++) {
+                    // 🟢 Робимо 5 спроб (даємо WayForPay до 7 секунд на відправку вебхука)
+                    for (let i = 0; i < 5; i++) {
                         const res = await fetch(`${API_URL}?action=checkStatus&orderId=${b.orderId}`);
                         const data = await res.json();
                         
-                        if (data.status === "Нова бронь") {
+                        // 🚀 ВИПРАВЛЕНО: Чекаємо статус "Підтверджено"!
+                        if (data.status === "Підтверджено") {
                             isPaid = true;
                             break;
                         }
-                        await new Promise(r => setTimeout(r, 1500)); // Затримка між спробами
+                        await new Promise(r => setTimeout(r, 1500)); // Затримка 1.5с
                     }
                 }
             } catch (e) { console.error("Помилка перевірки:", e); }
         } else {
-            // Якщо пам'ять стерлась, ми не знаємо ID броні, але WayForPay повернув success.
-            // Допускаємо, що все ок (покажеться наш красивий фолбек з Кроку 2)
             isPaid = true;
         }
 
@@ -817,15 +816,13 @@ async function initApp() {
             showScreen('success'); 
 
             // ==========================================
-            // 🚀 🟢 ГЕНЕРУЄМО І ВІДПРАВЛЯЄМО ЧЕК У ТЕЛЕГРАМ!
+            // 🚀 ГЕНЕРУЄМО І ВІДПРАВЛЯЄМО ЧЕК У ТЕЛЕГРАМ!
             // ==========================================
             try {
                 const bInfo = JSON.parse(lastBookingStr);
-                // Запобіжник: щоб чек відправлявся лише один раз (навіть якщо оновити сторінку)
                 if (!localStorage.getItem('receiptSent_' + bInfo.orderId)) {
                     localStorage.setItem('receiptSent_' + bInfo.orderId, 'true');
                     
-                    // Даємо екрану 500мс, щоб всі шрифти довантажилися
                     setTimeout(() => {
                         capturePremiumCard(bInfo).then(base64Image => {
                             if (base64Image) {
@@ -839,22 +836,20 @@ async function initApp() {
                                 });
                             }
                         });
-                    }, 500);
+                    }, 500); // Чекаємо підвантаження шрифтів
                 }
             } catch(e) { console.error("Помилка скріншоту:", e); }
             // ==========================================
             
-            // Змінюємо URL непомітно для користувача
             setTimeout(() => {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }, 50);
-            return; // 🛑 Зупиняємо завантаження сайту
+            return; 
             
         } else {
-            // ОПЛАТУ ВІДХИЛЕНО АБО СКАСОВАНО
-            toast('❌ Оплату відхилено. Спробуйте ще раз або оберіть іншу карту.');
+            // ОПЛАТУ ВІДХИЛЕНО (АБО БАНК НЕ ПІДТВЕРДИВ)
+            toast('❌ Оплату не підтверджено банком. Спробуйте ще раз.');
             window.history.replaceState({}, document.title, window.location.pathname);
-            // НЕ робимо return! Даємо сайту завантажитись, щоб клієнт міг спробувати ще раз
         }
     }
 
