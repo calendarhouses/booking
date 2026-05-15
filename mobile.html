@@ -14,6 +14,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     <script>if(window.innerWidth>=768) window.location.href='index.html' + window.location.search;</script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script>window.history.replaceState(null, document.title, '/');</script>
     <title>BOSO | Бронювання котеджів</title>
     
@@ -809,12 +810,39 @@ async function initApp() {
             document.documentElement.style.overflow = 'auto';
             document.body.classList.add('ready');
 
-            // Прибираємо конфліктну анімацію для Safari
             const successWrap = document.querySelector('.success-wrap');
             if (successWrap) successWrap.classList.remove('fade-in');
 
             renderSuccessReceipt(); 
             showScreen('success'); 
+
+            // ==========================================
+            // 🚀 🟢 ГЕНЕРУЄМО І ВІДПРАВЛЯЄМО ЧЕК У ТЕЛЕГРАМ!
+            // ==========================================
+            try {
+                const bInfo = JSON.parse(lastBookingStr);
+                // Запобіжник: щоб чек відправлявся лише один раз (навіть якщо оновити сторінку)
+                if (!localStorage.getItem('receiptSent_' + bInfo.orderId)) {
+                    localStorage.setItem('receiptSent_' + bInfo.orderId, 'true');
+                    
+                    // Даємо екрану 500мс, щоб всі шрифти довантажилися
+                    setTimeout(() => {
+                        capturePremiumCard(bInfo).then(base64Image => {
+                            if (base64Image) {
+                                bInfo.action = 'sendSuccessScreenshot';
+                                bInfo.screenshot = base64Image;
+                                
+                                fetch(API_URL, { 
+                                    method: 'POST', 
+                                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                                    body: JSON.stringify(bInfo) 
+                                });
+                            }
+                        });
+                    }, 500);
+                }
+            } catch(e) { console.error("Помилка скріншоту:", e); }
+            // ==========================================
             
             // Змінюємо URL непомітно для користувача
             setTimeout(() => {
@@ -1505,11 +1533,18 @@ async function submitBooking() {
             const pd = json.paymentData;
             // Зберігаємо всі деталі для чеку + orderId
             localStorage.setItem('lastBooking', JSON.stringify({ 
-                orderId: pd.orderReference, // 🟢 ДОДАЄМО ЗБЕРЕЖЕННЯ ID БРОНІ
+                orderId: pd.orderReference, 
                 cottage: bData.cottage, checkIn: bData.checkIn, checkOut: bData.checkOut, 
                 guests: bData.guests, pets: bData.pets, totalPrice: calc.totalPrice, 
                 prepayment: pd.amount, earlyTime: selectedEarlyTime, lateTime: selectedLateTime,
-                dayGuests: extraDayGuests, hasVat: hasVat, hasUbd: hasUbd
+                dayGuests: extraDayGuests, hasVat: hasVat, hasUbd: hasUbd,
+                
+                // 🟢 ДОДАЛИ ВСІ ДАНІ ДЛЯ ІДЕАЛЬНОГО ЧЕКУ
+                name: bData.name, phone: bData.phone, comment: bData.comment,
+                basePrice: calc.basePrice, extraGuestFee: calc.extraGuestFee,
+                petFee: calc.petFee, dayGuestFee: calc.dayGuestFee,
+                earlyFee: calc.earlyFee, lateFee: calc.lateFee, discountAmount: calc.discountAmount,
+                paidAmount: pd.amount, status: "Підтверджено", source: "Сайт"
             }));
             
             const form = document.createElement("form"); form.method = "POST"; form.action = "https://secure.wayforpay.com/pay"; form.style.display = "none";
