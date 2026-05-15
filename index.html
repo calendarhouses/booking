@@ -1845,7 +1845,24 @@ function renderCalendar() {
             const d = new Date(year, month, day); d.setHours(0,0,0,0);
             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
             const isPast = d < today;
-            const isBooked = bookedRanges.some(r => d >= r.start && d < r.end);
+
+            // 🟢 НОВА РОЗУМНА ПЕРЕВІРКА
+            let isBooked = false;
+            bookedRanges.forEach(r => {
+                if (d > r.start && d < r.end) isBooked = true; // Всередині броні
+                
+                if (d.getTime() === r.start.getTime()) {
+                    // Якщо у наступного гостя РАННІЙ заїзд - цей день повністю закритий
+                    if (r.hasEarly) isBooked = true;
+                    // Якщо ЗВИЧАЙНИЙ - день закритий для заїзду, але відкриється для виїзду, коли оберуть дату старту
+                    else if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) isBooked = true;
+                }
+                
+                if (d.getTime() === r.end.getTime() && r.hasLate) {
+                    isBooked = true; // Пізній виїзд закриває день для нового заїзду
+                }
+            });
+
             const price = getDayPrice(room, d);
             const priceStr = price ? price : '';
 
@@ -1889,39 +1906,36 @@ function selectDate(ds) {
     const room = roomsList.find(r => r.id == currentCabinId);
     const ranges = getBookedRanges(room ? room.name : '');
 
-    // 🟢 Якщо клікнули на повністю червону (зайняту) дату - скидаємо вибір, щоб вийти з "пастки"
-    const isClickBlocked = ranges.some(r => d >= r.start && d < r.end);
+    let isClickBlocked = false;
+    ranges.forEach(r => {
+        if (d > r.start && d < r.end) isClickBlocked = true;
+        if (d.getTime() === r.end.getTime() && r.hasLate) isClickBlocked = true;
+        if (d.getTime() === r.start.getTime()) {
+            if (r.hasEarly) isClickBlocked = true; // Ранній заїзд - не можна виїхати
+            else if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) isClickBlocked = true;
+        }
+    });
+
     if (isClickBlocked) {
-        selectedCheckIn = null;
-        selectedCheckOut = null;
-        renderCalendar();
-        updateProceedBtn();
+        selectedCheckIn = null; selectedCheckOut = null;
+        renderCalendar(); updateProceedBtn();
         return; 
     }
 
     if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut) || d <= selectedCheckIn) {
-        // Починаємо нове виділення
-        selectedCheckIn = d; 
-        selectedCheckOut = null;
+        selectedCheckIn = d; selectedCheckOut = null;
     } else {
-        // Намагаємось обрати дату виїзду
         let hasConflict = false;
-        let cur = new Date(selectedCheckIn); 
-        cur.setDate(cur.getDate() + 1);
-        
+        let cur = new Date(selectedCheckIn); cur.setDate(cur.getDate() + 1);
         while (cur < d) {
-            if (ranges.some(r => cur >= r.start && cur < r.end)) { 
-                hasConflict = true; 
-                break; 
+            if (ranges.some(r => (cur > r.start && cur < r.end) || (cur.getTime() === r.start.getTime() && r.hasEarly))) { 
+                hasConflict = true; break; 
             }
             cur.setDate(cur.getDate() + 1);
         }
-        
         if (hasConflict) { 
-            toast('Між цими датами є зайнята бронь. Починаємо новий вибір.'); 
-            // 🟢 ФІКС ПАСТКИ: Робимо клікнуту дату новим заїздом!
-            selectedCheckIn = d; 
-            selectedCheckOut = null;
+            toast('Цей період перетинається з іншою бронню'); 
+            selectedCheckIn = d; selectedCheckOut = null;
         } else {
             selectedCheckOut = d;
         }
@@ -2502,7 +2516,6 @@ function dateStr(d) {
 }
 
 function getBookedRanges(cottageName) {
-    // Нормалізація назви (щоб Family 2 і FAMILY №2 працювали однаково)
     const searchName = String(cottageName || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
     
     return allBookings
@@ -2516,21 +2529,14 @@ function getBookedRanges(cottageName) {
             const e = new Date(b.checkOut); e.setHours(0,0,0,0);
             const comment = b.comment ? String(b.comment) : "";
             
-            let hasEarly = comment.includes('Ранній заїзд');
-            let hasLate = comment.includes('Пізній виїзд');
+            let hasEarly = comment.includes('🕒 Ранній заїзд');
+            let hasLate = comment.includes('🕒 Пізній виїзд');
             
             // Авто-перевірка акції Пт-Нд
             let nights = Math.round((e - s) / 86400000);
             if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
 
-            // 🟢 МАГІЯ: Розширюємо "червону зону" броні, якщо є гнучкий графік
-            if (hasEarly) {
-                s.setDate(s.getDate() - 1); // Закриваємо ніч перед заїздом
-            }
-            if (hasLate) {
-                e.setDate(e.getDate() + 1); // Закриваємо ніч після виїзду
-            }
-
+            // 🟢 ТУТ БІЛЬШЕ НІЧОГО НЕ ЗСУВАЄМО!
             return { start: s, end: e, hasEarly, hasLate };
         });
 }
