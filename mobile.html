@@ -1690,12 +1690,6 @@ function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padSta
             let nights = Math.round((e - s) / 86400000);
             if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
 
-            // 🟢 РАННІЙ ЗАЇЗД БІЛЬШЕ НЕ БЛОКУЄ ПОПЕРЕДНІЙ ДЕНЬ!
-            // А от пізній виїзд фізично забирає наступний день:
-            if (hasLate) {
-                e.setDate(e.getDate() + 1); 
-            }
-
             return { start: s, end: e, hasEarly, hasLate };
         });
 }
