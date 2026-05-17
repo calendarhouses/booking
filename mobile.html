@@ -102,7 +102,7 @@
         .cabin-card.is-visible { opacity: 1; transform: translateY(0); }
 
         /* Слайдер (Touch-ready) */
-        .slider-wrap { position: relative; width: 100%; height: 320px; overflow: hidden; background: #E5E1DC; }
+        .slider-wrap { position: relative; width: 100%; height: 320px; overflow: hidden; background: #E5E1DC; touch-action: pan-y; }
         .slider-track { display: flex; height: 100%; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
         .slide { min-width: 100%; height: 100%; position: relative; overflow: hidden; }
         .slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; } /* Блокуємо drag картинки */
@@ -172,7 +172,7 @@
        /* 1. Більший відступ для контенту, щоб він не ховався за високим футером */
         .drawer-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 20px 120px; -webkit-overflow-scrolling: touch; }
         
-        .detail-slider-wrap { height: 280px; border-radius: 20px; overflow: hidden; margin-bottom: 20px; position: relative; }
+        .detail-slider-wrap { height: 280px; border-radius: 20px; overflow: hidden; margin-bottom: 20px; position: relative; touch-action: pan-y; }
         .detail-title { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: var(--text); letter-spacing: -0.5px; }
         
         .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; color: #8A8D86; }
@@ -776,86 +776,80 @@ async function initApp() {
     const urlParams = new URLSearchParams(window.location.search);
     const lastBookingStr = localStorage.getItem('lastBooking');
 
-    // 🟢 1. БЕЗВІДМОВНИЙ ПОКАЗ ЧЕКУ З РЕАЛЬНОЮ ПЕРЕВІРКОЮ БАЗИ
+    // 🟢 1. ПЕРЕВІРКА ПЛАТЕЖУ ПІСЛЯ ПОВЕРНЕННЯ З БАНКУ
     if (urlParams.get('payment') === 'success') {
         let isPaid = false;
+        
+        // Змінюємо текст прелоадера, щоб клієнт розумів, що йде перевірка
+        const pulseLogo = document.querySelector('.pulse-logo');
+        if (pulseLogo) pulseLogo.innerText = "ОПЛАТА...";
         
         if (lastBookingStr) {
             try {
                 const b = JSON.parse(lastBookingStr);
                 if (b.orderId) {
-                    // 🟢 Робимо 5 спроб (даємо WayForPay до 7 секунд на відправку вебхука)
+                    // Робимо до 5 спроб (чекаємо вебхук від WayForPay)
                     for (let i = 0; i < 5; i++) {
                         const res = await fetch(`${API_URL}?action=checkStatus&orderId=${b.orderId}`);
                         const data = await res.json();
                         
-                        // 🚀 ВИПРАВЛЕНО: Чекаємо статус "Підтверджено"!
                         if (data.status === "Підтверджено") {
                             isPaid = true;
                             break;
                         }
-                        await new Promise(r => setTimeout(r, 1500)); // Затримка 1.5с
+                        await new Promise(r => setTimeout(r, 1500));
                     }
                 }
             } catch (e) { console.error("Помилка перевірки:", e); }
-        } else {
-            isPaid = true;
         }
 
+        // Очищаємо URL від payment=success
+        window.history.replaceState({}, document.title, window.location.pathname);
+
         if (isPaid) {
-            // ОПЛАТА 100% УСПІШНА
+            // ✅ ОПЛАТА ПРОЙШЛА УСПІШНО
             document.getElementById('preloader').style.display = 'none';
             document.body.style.overflow = 'auto';
             document.documentElement.style.overflow = 'auto';
             document.body.classList.add('ready');
 
-            const successWrap = document.querySelector('.success-wrap');
-            if (successWrap) successWrap.classList.remove('fade-in');
-
             renderSuccessReceipt(); 
             showScreen('success'); 
 
-            // ==========================================
-            // 🚀 ГЕНЕРУЄМО І ВІДПРАВЛЯЄМО ЧЕК У ТЕЛЕГРАМ!
-            // ==========================================
+            // 🚀 МАГІЯ СТВОРЕННЯ ДВОХ ЧЕКІВ ДЛЯ ТЕЛЕГРАМУ
             try {
                 const bInfo = JSON.parse(lastBookingStr);
                 if (!localStorage.getItem('receiptSent_' + bInfo.orderId)) {
                     localStorage.setItem('receiptSent_' + bInfo.orderId, 'true');
                     
                     setTimeout(() => {
-                        // 🟢 МАГІЯ: Тепер малюємо ОДРАЗУ ДВА чеки паралельно!
                         Promise.all([
                             capturePremiumCard(bInfo),
                             captureCleaningCard(bInfo)
                         ]).then(([base64Admin, base64Cleaning]) => {
                             bInfo.action = 'sendSuccessScreenshot';
-                            
-                            // Записуємо обидва скріни у посилку
                             if (base64Admin) bInfo.screenshot = base64Admin;
                             if (base64Cleaning) bInfo.screenshotCleaning = base64Cleaning;
                             
-                            // Відправляємо на сервер
                             fetch(API_URL, { 
                                 method: 'POST', 
                                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                                 body: JSON.stringify(bInfo) 
                             });
                         });
-                    }, 500); // Чекаємо 0.5с, щоб шрифти точно відрендерились
+                    }, 500);
                 }
-            } catch(e) { console.error("Помилка скріншоту:", e); }
-            // ==========================================
+            } catch(e) { console.error(e); }
             
-            setTimeout(() => {
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }, 50);
-            return; 
+            return; // 🛑 ЗУПИНЯЄМО скрипт, ми залишаємось на екрані успіху!
             
         } else {
-            // ОПЛАТУ ВІДХИЛЕНО (АБО БАНК НЕ ПІДТВЕРДИВ)
+            // ❌ ОПЛАТА ВІДХИЛЕНА
             toast('❌ Оплату не підтверджено банком. Спробуйте ще раз.');
-            window.history.replaceState({}, document.title, window.location.pathname);
+            if (pulseLogo) pulseLogo.innerText = "BOSO"; // Повертаємо лого
+            
+            // ТУТ НЕМАЄ RETURN! 
+            // Скрипт піде далі, спокійно завантажить список котеджів і покаже кнопку "Почати".
         }
     }
 
