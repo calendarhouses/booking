@@ -1068,7 +1068,7 @@
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
                             <div class="guests-label">Денні гості</div>
-                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн, 10:00 - 21:00)</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн)</div>
                         </div>
                         <div class="counter-wrap">
                             <button class="cnt-btn" id="dayGuestMinus" onclick="changeDayGuests(-1)" disabled>−</button>
@@ -1077,12 +1077,11 @@
                         </div>
                     </div>
                     <!-- 🟢 НОВИЙ РЯДОК: ЧАН ТА УБД -->
-                    <div class="guests-row" id="vatRow" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
-    <div>
-        <div class="guests-label">Чан</div>
-        <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата по факту</div>
-    </div>
-    </div>
+                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div>
+                            <div class="guests-label">Чан</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата по факту</div>
+                        </div>
                         <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
                             <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
                             <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
@@ -1715,13 +1714,6 @@ function showDetail(cabinId) {
     if(elDayGuestMinus) elDayGuestMinus.disabled = true;
     document.getElementById('petNo').classList.add('active');
     document.getElementById('petYes').classList.remove('active');
-// 🟢 ЛОГІКА СКРИТТЯ ЧАНА ДЛЯ JUNIOR ТА FAMILY 2
-const vatRow = document.getElementById('vatRow'); // Нам треба обгорнути блок чану в <div id="vatRow">...</div>
-if (cabinId == 1 || cabinId == 2) {
-    if(vatRow) vatRow.style.display = 'none';
-} else {
-    if(vatRow) vatRow.style.display = 'flex';
-}
 
     // Слайдер (Рендеримо фотографії поточного котеджу)
     const ds = document.getElementById('detailSlider');
