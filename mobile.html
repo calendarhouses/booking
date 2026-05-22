@@ -571,29 +571,28 @@
                         </div>
                     </div>
 
-                    <!-- 🟢 НОВИЙ РЯДОК: Денні гості -->
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
-                        <div>
-                            <div class="guests-label">Денні гості</div>
-                            <div style="font-size:11px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн)</div>
-                        </div>
-                        <div class="counter-wrap">
-                            <button class="cnt-btn" id="dayGuestMinus" onclick="changeDayGuests(-1)" disabled>−</button>
-                            <span class="cnt-val" id="dayGuestCount">0</span>
-                            <button class="cnt-btn" id="dayGuestPlus" onclick="changeDayGuests(1)">+</button>
-                        </div>
-                    </div>
+    <div>
+        <div class="guests-label">Денні гості</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">Без ночівлі (+500 грн, 10:00 - 21:00)</div>
+    </div>
+    <div class="counter-wrap">
+        <button class="cnt-btn" id="dayGuestMinus" onclick="changeDayGuests(-1)" disabled>−</button>
+        <span class="cnt-val" id="dayGuestCount">0</span>
+        <button class="cnt-btn" id="dayGuestPlus" onclick="changeDayGuests(1)">+</button>
+    </div>
+</div>
 
-                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
-                        <div>
-                            <div class="guests-label">Чан</div>
-                            <div style="font-size:11px; color:var(--muted); margin-top:2px;">Оплата на місці</div>
-                        </div>
-                        <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 130px;">
-                            <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
-                            <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
-                        </div>
-                    </div>
+<div class="guests-row" id="vatRow" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+    <div>
+        <div class="guests-label">Чан</div>
+        <div style="font-size:11px; color:var(--muted); margin-top:2px;">Оплата на місці</div>
+    </div>
+    <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 130px;">
+        <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
+        <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
+    </div>
+</div>
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
                             <div class="guests-label">Знижка УБД</div>
@@ -1068,6 +1067,18 @@ function showDetail(cabinId) {
     playClick(); // 🔊
     currentCabinId = cabinId; const room = roomsList.find(r => r.id == cabinId); if (!room) return;
     const cfg = getCabinConfig(cabinId);
+
+    // 🟢 ЛОГІКА СКРИТТЯ ЧАНА ДЛЯ JUNIOR ТА FAMILY 2
+    const vatRow = document.getElementById('vatRow');
+    const room = roomsList.find(r => r.id == cabinId);
+    
+    // Якщо котедж Junior (ID 1) або Family 2 (ID 2) - ховаємо
+    if (cabinId == 1 || cabinId == 2) {
+        if(vatRow) vatRow.style.display = 'none';
+        setVat(false); // Примусово вимикаємо чан, щоб не рахувало
+    } else {
+        if(vatRow) vatRow.style.display = 'flex';
+    }
 
     // 🟢 ГЛОБАЛЬНЕ ОЧИЩЕННЯ ПАМ'ЯТІ (Щоб котеджі не плутали дати та гостей)
     selectedCheckIn = null;
