@@ -584,16 +584,16 @@
                         </div>
                     </div>
 
-                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
-                        <div>
-                            <div class="guests-label">Чан</div>
-                            <div style="font-size:11px; color:var(--muted); margin-top:2px;">Оплата на місці</div>
-                        </div>
-                        <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 130px;">
-                            <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
-                            <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
-                        </div>
-                    </div>
+                    <div class="guests-row" id="vatContainer" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+    <div>
+        <div class="guests-label">Чан</div>
+        <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата на місці</div>
+    </div>
+    <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
+        <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
+        <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
+    </div>
+</div>
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
                             <div class="guests-label">Знижка УБД</div>
