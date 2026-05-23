@@ -1394,6 +1394,7 @@ async function init() {
     const skeleton = document.getElementById('skeletonLoader');
     if (skeleton) skeleton.style.display = 'none';
     renderCabinList();
+    setInterval(refreshLiveData, 5 * 60 * 1000);
 
     // 5. Ховаємо смужку і чекаємо кліку на "Почати", щоб дозволити звук
     const preloader = document.getElementById('preloader');
@@ -2397,6 +2398,11 @@ async function submitBooking() {
             btn.disabled = false; btn.innerText = 'Забронювати';
             return;
         }
+        if (json.error === 'MIN_STAY') {
+            toast(`❌ Мінімальний термін проживання — ${json.requiredMin} ${nightWord(json.requiredMin)}`);
+            btn.disabled = false; btn.innerText = 'Забронювати';
+            return;
+        }
 
         const sessionData = {
             orderId: json.paymentData ? json.paymentData.orderReference : ('BOSO-' + Date.now()),
@@ -2666,6 +2672,27 @@ function validateStayRestrictions(room, checkIn, checkOut) {
     const nights = Math.round((checkOut - checkIn) / 86400000);
     const requiredMin = getBookingMinNightsRequired(room, checkIn, checkOut);
     return { ok: !(requiredMin > 0 && nights < requiredMin), requiredMin, nights };
+}
+
+async function refreshLiveData() {
+    try {
+        const res = await fetch(API_URL + '?action=initData&t=' + Date.now());
+        const data = await res.json();
+        if (!data) return;
+        allBookings = data.bookings || allBookings;
+        const sd = data.settings || {};
+        if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
+        if (sd.discountsList) discountsList = sd.discountsList;
+        if (sd.customPrices) customPrices = sd.customPrices;
+        if (sd.restrictions) restrictions = sd.restrictions;
+        if (currentCabinId) {
+            const calEl = document.getElementById('drawer-step-calendar');
+            if (calEl && calEl.classList.contains('active')) {
+                renderCalendar();
+                updateProceedBtn();
+            }
+        }
+    } catch (e) {}
 }
 
 function getBookedRanges(cottageName) {

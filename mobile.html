@@ -899,6 +899,7 @@ async function initApp() {
     }
 
     renderCabinList();
+    setInterval(refreshLiveData, 5 * 60 * 1000);
 
     const preloader = document.getElementById('preloader');
     const introOverlay = document.getElementById('introOverlay');
@@ -1613,6 +1614,7 @@ async function submitBooking() {
         const json = await res.json();
         
         if (json.error === 'OVERLAP') { toast('❌ Дати вже зайняті!'); btn.disabled = false; btn.innerText = 'Спробувати ще'; return; }
+        if (json.error === 'MIN_STAY') { toast(`❌ Мінімум ${json.requiredMin} ${nightWord(json.requiredMin)}`); btn.disabled = false; btn.innerText = 'Спробувати ще'; return; }
 
         if (json.paymentData) {
             const pd = json.paymentData;
@@ -1812,6 +1814,27 @@ function validateStayRestrictions(room, checkIn, checkOut) {
     return { ok: !(requiredMin > 0 && nights < requiredMin), requiredMin, nights };
 }
 
+async function refreshLiveData() {
+    try {
+        const res = await fetch(API_URL + '?action=initData&t=' + Date.now());
+        const data = await res.json();
+        if (!data) return;
+        allBookings = data.bookings || allBookings;
+        const sd = data.settings || {};
+        if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
+        if (sd.discountsList) discountsList = sd.discountsList;
+        if (sd.customPrices) customPrices = sd.customPrices;
+        if (sd.restrictions) restrictions = sd.restrictions;
+        if (currentCabinId) {
+            const calEl = document.getElementById('drawer-step-calendar');
+            if (calEl && calEl.classList.contains('active')) {
+                renderCalendar();
+                updateProceedBtn();
+            }
+        }
+    } catch (e) {}
+}
+
     function getBookedRanges(cottageName) {
     // 1. Нормалізуємо назву
     const searchName = String(cottageName || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
@@ -1820,7 +1843,7 @@ function validateStayRestrictions(room, checkIn, checkOut) {
         .filter(b => {
             if (String(b.status).toLowerCase().includes('скас')) return false;
             const bCottage = String(b.cottage || '').toLowerCase().replace(/№/g, '').replace(/\s+/g, '');
-            return bCottage === searchName;
+            return bCottage === searchName || bCottage.includes(searchName);
         })
         .map(b => {
             // 3. Безпечно читаємо дати
