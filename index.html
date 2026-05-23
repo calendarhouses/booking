@@ -1086,7 +1086,7 @@
         <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
     </div>
 </div>
-                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                    <div class="guests-row" id="ubdContainer" style="display: none; margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
                             <div class="guests-label">Знижка УБД</div>
                             <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">-10% (потрібне посвідчення)</div>
@@ -1703,6 +1703,7 @@ function showDetail(cabinId) {
     if(document.getElementById('vatYes')) document.getElementById('vatYes').classList.remove('active');
     if(document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
     if(document.getElementById('ubdYes')) document.getElementById('ubdYes').classList.remove('active');
+    updateUbdVisibility();
 
     // Скидаємо UI карток послуг
     const cardEarly = document.getElementById('cardEarly');
@@ -2010,6 +2011,25 @@ function resetDates() {
     renderCalendar(); updateProceedBtn();
 }
 
+function updateUbdVisibility() {
+    const container = document.getElementById('ubdContainer');
+    if (!container) return;
+
+    let nights = 0;
+    if (selectedCheckIn && selectedCheckOut) {
+        nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
+    }
+
+    const showUbd = nights === 1;
+    container.style.display = showUbd ? 'flex' : 'none';
+
+    if (!showUbd && hasUbd) {
+        hasUbd = false;
+        if (document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
+        if (document.getElementById('ubdYes')) document.getElementById('ubdYes').classList.remove('active');
+    }
+}
+
 function updateProceedBtn() {
     const btn = document.getElementById('proceedBtn'); if (!btn) return;
     
@@ -2020,6 +2040,8 @@ function updateProceedBtn() {
         btn.disabled = false; 
         btn.innerText = 'Продовжити'; 
     }
+
+    updateUbdVisibility();
     
     // 🟢 МАГІЯ: Як тільки дати змінилися - перевіряємо, чи вільні години для заїзду/виїзду
     if (typeof checkServiceAvailability === 'function') {
@@ -2300,7 +2322,9 @@ async function submitBooking() {
     let sysComment = [];
     if (extraDayGuests > 0) sysComment.push(`👥 Денні гості: ${extraDayGuests}`); 
     if (hasVat) sysComment.push(`♨️ Чан: Так`);
-    if (hasUbd) sysComment.push(`🇺🇦 УБД: Так`);
+    const ubdNights = (selectedCheckIn && selectedCheckOut)
+        ? Math.round((selectedCheckOut - selectedCheckIn) / 86400000) : 0;
+    if (hasUbd && ubdNights === 1) sysComment.push(`🇺🇦 УБД: Так`);
     if (selectedEarlyTime) sysComment.push(`🕒 Ранній заїзд: з ${selectedEarlyTime}`);
     if (selectedLateTime) sysComment.push(`🕒 Пізній виїзд: до ${selectedLateTime}`);
 
@@ -2481,8 +2505,8 @@ function calcTotal(nights) {
         }
     });
 
-    // Знижка УБД
-    if (hasUbd) discountPercent += 0.10;
+    // Знижка УБД (лише 1 ніч)
+    if (hasUbd && nights === 1) discountPercent += 0.10;
 
     // Знижка діє на (базова вартість + додаткові гості)
     const amountToDiscount = base + extraGuestFee;
