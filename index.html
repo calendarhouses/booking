@@ -1076,17 +1076,16 @@
                             <button class="cnt-btn" id="dayGuestPlus" onclick="changeDayGuests(1)">+</button>
                         </div>
                     </div>
-                    <!-- 🟢 НОВИЙ РЯДОК: ЧАН ТА УБД -->
-                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
-                        <div>
-                            <div class="guests-label">Чан</div>
-                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата по факту</div>
-                        </div>
-                        <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
-                            <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
-                            <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
-                        </div>
-                    </div>
+                    <div class="guests-row" id="vatContainer" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+    <div>
+        <div class="guests-label">Чан</div>
+        <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">Оплата на місці</div>
+    </div>
+    <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
+        <div class="pet-opt active" id="vatNo" onclick="setVat(false)" style="padding: 8px;">Ні</div>
+        <div class="pet-opt" id="vatYes" onclick="setVat(true)" style="padding: 8px;">Так</div>
+    </div>
+</div>
                     <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
                         <div>
                             <div class="guests-label">Знижка УБД</div>
@@ -1683,8 +1682,23 @@ function showDetail(cabinId) {
     guestCount = 2;
     extraDayGuests = 0;
     hasPets = false;
-    hasVat = false;
     hasUbd = false;
+    if(document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
+    if(document.getElementById('ubdYes')) document.getElementById('ubdYes').classList.remove('active');
+
+    // 🟢 ЛОГІКА СКРИТТЯ ЧАНА ДЛЯ JUNIOR (1) ТА FAMILY 2 (2)
+    const vatContainer = document.getElementById('vatContainer');
+    hasVat = false; // Скидаємо стан
+    
+    if (cabinId == 1 || cabinId == 2) {
+        // Ховаємо блок чану
+        if(vatContainer) vatContainer.style.display = 'none';
+    } else {
+        // Показуємо блок чану для інших
+        if(vatContainer) vatContainer.style.display = 'flex';
+    }
+    
+    // Скидаємо кнопки чану візуально
     if(document.getElementById('vatNo')) document.getElementById('vatNo').classList.add('active');
     if(document.getElementById('vatYes')) document.getElementById('vatYes').classList.remove('active');
     if(document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
