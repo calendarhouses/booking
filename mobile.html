@@ -1063,11 +1063,22 @@ function handleTouchEnd(e, id) {
     touchStartX = 0; touchEndX = 0; // Скидаємо
 }
 
-// ─── ПАНЕЛЬ БРОНЮВАННЯ ───
 function showDetail(cabinId) {
-    playClick(); // 🔊
-    currentCabinId = cabinId; const room = roomsList.find(r => r.id == cabinId); if (!room) return;
+    playClick();
+    currentCabinId = cabinId; 
+    const room = roomsList.find(r => r.id == cabinId); 
+    if (!room) return;
     const cfg = getCabinConfig(cabinId);
+
+    // 🟢 ЛОГІКА СКРИТТЯ ЧАНА ДЛЯ JUNIOR ТА FAMILY 2
+    const vatContainer = document.getElementById('vatContainer');
+    // Припустимо, ID 1 — це Junior, ID 2 — Family №2
+    if (cabinId == 1 || cabinId == 2) {
+        if(vatContainer) vatContainer.style.display = 'none';
+        setVat(false); // Примусово скидаємо вибір, щоб не рахувало
+    } else {
+        if(vatContainer) vatContainer.style.display = 'flex';
+    }
 
     // 🟢 ГЛОБАЛЬНЕ ОЧИЩЕННЯ ПАМ'ЯТІ (Щоб котеджі не плутали дати та гостей)
     selectedCheckIn = null;
