@@ -1257,6 +1257,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx1RYoMJySplZ18Wv54PQjx
 let roomsList = [];
 let discountsList = [];
 let customPrices = {};
+let restrictions = {}; // { roomId: { "YYYY-MM-DD": minNights } }
 let allBookings = [];
 let currentCabinId = null;
 let selectedCheckIn = null;
@@ -1373,6 +1374,7 @@ async function init() {
             if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
             if (sd.discountsList) discountsList = sd.discountsList;
             if (sd.customPrices) customPrices = sd.customPrices;
+            if (sd.restrictions) restrictions = sd.restrictions;
         } catch(e) {
             console.error(e);
             discountsList = [
@@ -2000,6 +2002,11 @@ function selectDate(ds) {
             selectedCheckIn = d; selectedCheckOut = null;
         } else {
             selectedCheckOut = d;
+            const stayCheck = validateStayRestrictions(room, selectedCheckIn, selectedCheckOut);
+            if (!stayCheck.ok) {
+                toast(`Для обраних дат мінімум ${stayCheck.requiredMin} ${nightWord(stayCheck.requiredMin)}`);
+                selectedCheckOut = null;
+            }
         }
     }
     renderCalendar();
@@ -2032,13 +2039,25 @@ function updateUbdVisibility() {
 
 function updateProceedBtn() {
     const btn = document.getElementById('proceedBtn'); if (!btn) return;
-    
-    if (!selectedCheckIn || !selectedCheckOut) { 
-        btn.disabled = true; 
-        btn.innerText = 'Оберіть дати'; 
-    } else { 
-        btn.disabled = false; 
-        btn.innerText = 'Продовжити'; 
+    const room = roomsList.find(r => r.id == currentCabinId);
+
+    if (!selectedCheckIn || !selectedCheckOut) {
+        btn.disabled = true;
+        if (selectedCheckIn && !selectedCheckOut) {
+            const minOnStart = room ? getRestrictionMinNights(room.id, selectedCheckIn) : 0;
+            btn.innerText = minOnStart > 1 ? `Мінімум ${minOnStart} ${nightWord(minOnStart)}` : 'Оберіть дату виїзду';
+        } else {
+            btn.innerText = 'Оберіть дати';
+        }
+    } else {
+        const stayCheck = validateStayRestrictions(room, selectedCheckIn, selectedCheckOut);
+        if (!stayCheck.ok) {
+            btn.disabled = true;
+            btn.innerText = `Мінімум ${stayCheck.requiredMin} ${nightWord(stayCheck.requiredMin)}`;
+        } else {
+            btn.disabled = false;
+            btn.innerText = 'Продовжити';
+        }
     }
 
     updateUbdVisibility();
@@ -2338,6 +2357,12 @@ async function submitBooking() {
     if (!selectedCheckIn || !selectedCheckOut) { toast('Оберіть дати'); return; }
 
     const room = roomsList.find(r => r.id == currentCabinId);
+    const stayCheck = validateStayRestrictions(room, selectedCheckIn, selectedCheckOut);
+    if (!stayCheck.ok) {
+        toast(`Для обраних дат потрібно мінімум ${stayCheck.requiredMin} ${nightWord(stayCheck.requiredMin)}`);
+        return;
+    }
+
     const nights = Math.round((selectedCheckOut - selectedCheckIn) / 86400000);
     const calc = calcTotal(nights);
 
@@ -2613,6 +2638,34 @@ function renderSuccessReceipt() {
 // ─── UTILS ─────────────────────────────────────────────────────────────────
 function dateStr(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getRestrictionMinNights(roomId, dateObj) {
+    const ds = dateStr(dateObj);
+    const rid = String(roomId);
+    if (restrictions[roomId] && restrictions[roomId][ds]) return Number(restrictions[roomId][ds]) || 0;
+    if (restrictions[rid] && restrictions[rid][ds]) return Number(restrictions[rid][ds]) || 0;
+    return 0;
+}
+
+function getBookingMinNightsRequired(room, checkIn, checkOut) {
+    if (!room) return 0;
+    let maxMin = 0;
+    const d = new Date(checkIn); d.setHours(0, 0, 0, 0);
+    const end = new Date(checkOut); end.setHours(0, 0, 0, 0);
+    while (d < end) {
+        const m = getRestrictionMinNights(room.id, d);
+        if (m > maxMin) maxMin = m;
+        d.setDate(d.getDate() + 1);
+    }
+    return maxMin;
+}
+
+function validateStayRestrictions(room, checkIn, checkOut) {
+    if (!room || !checkIn || !checkOut) return { ok: true, requiredMin: 0, nights: 0 };
+    const nights = Math.round((checkOut - checkIn) / 86400000);
+    const requiredMin = getBookingMinNightsRequired(room, checkIn, checkOut);
+    return { ok: !(requiredMin > 0 && nights < requiredMin), requiredMin, nights };
 }
 
 function getBookedRanges(cottageName) {
