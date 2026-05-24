@@ -1316,50 +1316,69 @@ function getCabinConfig(cabinId) {
 }
 
 async function init() {
-    // 🟢 ПЕРЕВІРКА ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ
+    // 🟢 ПЕРЕВІРКА ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ (з підтвердженням у базі, як на mobile)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('payment') === 'success') {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        document.getElementById('preloader').style.display = 'none';
-        
-        // Малюємо чек на екрані
-        renderSuccessReceipt();
-        showScreen('success');
-
-        // 🚀 ГЕНЕРУЄМО І ВІДПРАВЛЯЄМО ЧЕК У ТЕЛЕГРАМ!
+        let isPaid = false;
         const lastBookingStr = sessionStorage.getItem('lastBooking');
+
         if (lastBookingStr) {
             try {
-                const bInfo = JSON.parse(lastBookingStr);
-                const orderId = bInfo.orderId || ('BOSO-' + Date.now()); // Страховка ідентифікатора
-                
-                if (!sessionStorage.getItem('receiptSent_' + orderId)) {
-                    sessionStorage.setItem('receiptSent_' + orderId, 'true');
-                    
-                    setTimeout(() => {
-                        // 🟢 МАГІЯ: Тепер малюємо ОДРАЗУ ДВА чеки паралельно!
-                        Promise.all([
-                            capturePremiumCard(bInfo),
-                            captureCleaningCard(bInfo)
-                        ]).then(([base64Admin, base64Cleaning]) => {
-                            bInfo.action = 'sendSuccessScreenshot';
-                            
-                            // Записуємо обидва скріни у посилку
-                            if (base64Admin) bInfo.screenshot = base64Admin;
-                            if (base64Cleaning) bInfo.screenshotCleaning = base64Cleaning;
-                            
-                            // Відправляємо на сервер
-                            fetch(API_URL, { 
-                                method: 'POST', 
-                                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                                body: JSON.stringify(bInfo) 
-                            });
-                        });
-                    }, 500); // Чекаємо 0.5с, щоб шрифти точно відрендерились
+                const b = JSON.parse(lastBookingStr);
+                if (b.orderId) {
+                    for (let i = 0; i < 5; i++) {
+                        const res = await fetch(`${API_URL}?action=checkStatus&orderId=${encodeURIComponent(b.orderId)}`);
+                        const data = await res.json();
+                        if (data.status === 'Підтверджено') {
+                            isPaid = true;
+                            break;
+                        }
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
                 }
-            } catch(e) { console.error("Помилка скріншоту:", e); }
+            } catch (e) { console.error('Помилка перевірки оплати:', e); }
+        } else {
+            isPaid = true;
         }
-        return;
+
+        if (isPaid) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            document.getElementById('preloader').style.display = 'none';
+
+            renderSuccessReceipt();
+            showScreen('success');
+
+            if (lastBookingStr) {
+                try {
+                    const bInfo = JSON.parse(lastBookingStr);
+                    const orderId = bInfo.orderId;
+                    if (orderId && !sessionStorage.getItem('receiptSent_' + orderId)) {
+                        sessionStorage.setItem('receiptSent_' + orderId, 'true');
+
+                        setTimeout(() => {
+                            Promise.all([
+                                capturePremiumCard(bInfo),
+                                captureCleaningCard(bInfo)
+                            ]).then(([base64Admin, base64Cleaning]) => {
+                                bInfo.action = 'sendSuccessScreenshot';
+                                if (base64Admin) bInfo.screenshot = base64Admin;
+                                if (base64Cleaning) bInfo.screenshotCleaning = base64Cleaning;
+
+                                fetch(API_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                    body: JSON.stringify(bInfo)
+                                });
+                            });
+                        }, 500);
+                    }
+                } catch (e) { console.error('Помилка скріншоту:', e); }
+            }
+            return;
+        }
+
+        toast('❌ Оплату не підтверджено банком. Спробуйте ще раз.');
+        window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     // 1. Запускаємо таймер-мінімум (щоб смужка точно встигла красиво виїхати)
