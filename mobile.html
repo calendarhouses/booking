@@ -285,7 +285,9 @@
         .cal-day .day-price { font-size: 9px; color: var(--muted); font-weight: 500; margin-top: 2px; }
         .cal-day.selected-start .day-price, .cal-day.selected-end .day-price { color: rgba(255,255,255,0.9); }
         .cal-day.disabled, .cal-day.past { opacity: 0.3; text-decoration: line-through; pointer-events: none;}
-        .cal-day.booked { background: #FFF0F0 !important; color: #DC2626 !important; pointer-events: none;}
+        .cal-day.booked { background: #FFF0F0 !important; color: #DC2626 !important; pointer-events: none; }
+        .cal-day.booked .day-price { color: #DC2626 !important; opacity: 0.85; }
+        .cal-day.booked.turnover-selectable { pointer-events: auto; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.35); }
 
         /* Гості та Форми */
         .guests-block, .form-block { background: var(--white); border-radius: 20px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
@@ -1199,20 +1201,26 @@ function renderCalendar() {
         const isWeekend = d.getDay() === 0 || d.getDay() === 6;
         const isPast = d < today;
         
-        // 🟢 РОЗУМНА ПЕРЕВІРКА ЗАЙНЯТОСТІ ДАТ
-        let isBooked = false;
+        let isOccupied = false;
+        let clickBlocked = false;
         bookedRanges.forEach(r => {
-            if (d > r.start && d < r.end) isBooked = true; // Всередині броні
-            
-            if (d.getTime() === r.start.getTime()) {
-                // Якщо у наступного гостя РАННІЙ заїзд - цей день повністю закритий
-                if (r.hasEarly) isBooked = true;
-                // Якщо ЗВИЧАЙНИЙ - день закритий для заїзду, але відкриється для виїзду
-                else if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) isBooked = true;
+            if (d > r.start && d < r.end) {
+                isOccupied = true;
+                clickBlocked = true;
             }
-            
+            if (d.getTime() === r.start.getTime()) {
+                isOccupied = true;
+                if (r.hasEarly) {
+                    clickBlocked = true;
+                } else if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
+                    clickBlocked = true;
+                } else if (selectedCheckIn && !selectedCheckOut && d <= selectedCheckIn) {
+                    clickBlocked = true;
+                }
+            }
             if (d.getTime() === r.end.getTime() && r.hasLate) {
-                isBooked = true; // Пізній виїзд закриває день
+                isOccupied = true;
+                clickBlocked = true;
             }
         });
 
@@ -1221,16 +1229,17 @@ function renderCalendar() {
 
         let cls = 'cal-day';
         if (isPast) cls += ' past'; 
-        else if (isBooked) cls += ' booked'; 
+        else if (isOccupied) cls += ' booked'; 
         else if (isWeekend) cls += ' weekend';
         if (d.toDateString() === today.toDateString()) cls += ' today';
+        if (isOccupied && !clickBlocked && !isPast) cls += ' turnover-selectable';
 
         const ds = dateStr(d);
         if (selectedCheckIn && ds === dateStr(selectedCheckIn)) cls += ' selected-start';
         if (selectedCheckOut && ds === dateStr(selectedCheckOut)) cls += ' selected-end';
         if (selectedCheckIn && selectedCheckOut && d > selectedCheckIn && d < selectedCheckOut) cls += ' in-range';
 
-        const clickable = !isPast && !isBooked;
+        const clickable = !isPast && !clickBlocked;
         html += `<div class="${cls}" ${clickable ? `onclick="selectDate('${ds}')"` : ''}>
             ${day}
             ${priceStr ? `<div class="day-price">${priceStr}</div>` : ''}
