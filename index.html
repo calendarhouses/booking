@@ -728,6 +728,10 @@
             font-size: 48px; font-weight: 800; letter-spacing: 4px; 
             animation: pulseAnim 1.5s infinite; color: var(--text); 
         }
+        .preloader-status {
+            font-size: 14px; font-weight: 500; color: #6B7280;
+            text-align: center; max-width: 260px; line-height: 1.45;
+        }
         
         @keyframes pulseAnim { 
             0% { transform: scale(1); opacity: 1; } 
@@ -916,6 +920,7 @@
 <div id="preloader">
     <div class="preloader-content">
         <div class="pulse-logo">BOSO</div>
+        <p id="preloaderStatus" class="preloader-status" style="display: none;"></p>
         <div class="progress-bar-wrap">
             <div class="progress-bar-fill"></div>
         </div>
@@ -1257,6 +1262,11 @@
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const API_URL = "https://script.google.com/macros/s/AKfycbx1RYoMJySplZ18Wv54PQjxzHnZqIb3Wsw63oG-PAOKMvuXEym8Y7aFS-L_pxvfX6o4DQ/exec";
+// 🧪 ТЕСТ: 1 грн передплата (0 = вимкнено, знову 50%)
+const SITE_TEST_PREPAYMENT_UAH = 1;
+function getSitePrepaymentAmount(half) {
+    return SITE_TEST_PREPAYMENT_UAH > 0 ? SITE_TEST_PREPAYMENT_UAH : half;
+}
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let roomsList = [];
@@ -1315,8 +1325,43 @@ function getCabinConfig(cabinId) {
     return CABIN_CONFIG[cabinId] || CABIN_CONFIG.default;
 }
 
+const PAYMENT_CONFIRM_MAX_ATTEMPTS = 30;
+const PAYMENT_CONFIRM_DELAY_MS = 2000;
+
+function setPreloaderPaymentStatus(text) {
+    const statusEl = document.getElementById('preloaderStatus');
+    const preloader = document.getElementById('preloader');
+    if (preloader) preloader.style.display = 'flex';
+    if (statusEl) {
+        statusEl.style.display = text ? 'block' : 'none';
+        statusEl.textContent = text || '';
+    }
+}
+
+async function waitForPaymentConfirmation(orderId) {
+    setPreloaderPaymentStatus('Підтверджуємо оплату...');
+    for (let i = 0; i < PAYMENT_CONFIRM_MAX_ATTEMPTS; i++) {
+        try {
+            const res = await fetch(`${API_URL}?action=checkStatus&orderId=${encodeURIComponent(orderId)}`);
+            const data = await res.json();
+            if (data.status === 'Підтверджено') {
+                setPreloaderPaymentStatus('');
+                return true;
+            }
+        } catch (e) { console.error('Помилка перевірки оплати:', e); }
+        if (i > 0 && i % 4 === 0) {
+            setPreloaderPaymentStatus('Підтверджуємо оплату... зачекайте ще трохи');
+        }
+        if (i < PAYMENT_CONFIRM_MAX_ATTEMPTS - 1) {
+            await new Promise(r => setTimeout(r, PAYMENT_CONFIRM_DELAY_MS));
+        }
+    }
+    setPreloaderPaymentStatus('');
+    return false;
+}
+
 async function init() {
-    // 🟢 ПЕРЕВІРКА ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ (з підтвердженням у базі, як на mobile)
+    // 🟢 ПЕРЕВІРКА ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ (чекаємо вебхук WayForPay до ~60 с)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('payment') === 'success') {
         let isPaid = false;
@@ -1326,19 +1371,9 @@ async function init() {
             try {
                 const b = JSON.parse(lastBookingStr);
                 if (b.orderId) {
-                    for (let i = 0; i < 5; i++) {
-                        const res = await fetch(`${API_URL}?action=checkStatus&orderId=${encodeURIComponent(b.orderId)}`);
-                        const data = await res.json();
-                        if (data.status === 'Підтверджено') {
-                            isPaid = true;
-                            break;
-                        }
-                        await new Promise(r => setTimeout(r, 1500));
-                    }
+                    isPaid = await waitForPaymentConfirmation(b.orderId);
                 }
             } catch (e) { console.error('Помилка перевірки оплати:', e); }
-        } else {
-            isPaid = true;
         }
 
         if (isPaid) {
@@ -1377,7 +1412,8 @@ async function init() {
             return;
         }
 
-        toast('❌ Оплату не підтверджено банком. Спробуйте ще раз.');
+        document.getElementById('preloader').style.display = 'none';
+        toast('⏳ Оплата ще підтверджується. Якщо кошти вже списані — оновіть сторінку через хвилину. Повторно платити не потрібно.');
         window.history.replaceState({}, document.title, window.location.pathname);
     }
     
@@ -2595,7 +2631,7 @@ function calcTotal(nights) {
     
     // Фінальна сума
     const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee;
-    const prepayment = Math.round(totalPrice / 2);
+    const prepayment = getSitePrepaymentAmount(Math.round(totalPrice / 2));
 
     return { 
         basePrice: base, 
