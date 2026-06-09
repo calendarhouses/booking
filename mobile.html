@@ -1816,9 +1816,9 @@ function getDateAvailability(d, ranges) {
             clickBlocked = true;
             return;
         }
-        if (d.getTime() === r.end.getTime()) {
+        if (d.getTime() === r.end.getTime() && r.hasLate) {
             isOccupied = true;
-            if (r.hasLate) clickBlocked = true;
+            clickBlocked = true;
             return;
         }
         if (d.getTime() === r.start.getTime()) {
