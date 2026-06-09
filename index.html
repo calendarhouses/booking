@@ -1388,14 +1388,13 @@ async function init() {
                     const bInfo = JSON.parse(lastBookingStr);
                     const orderId = bInfo.orderId;
                     if (orderId && !sessionStorage.getItem('receiptSent_' + orderId)) {
-                        sessionStorage.setItem('receiptSent_' + orderId, 'true');
-
                         setTimeout(() => {
                             Promise.all([
                                 capturePremiumCard(bInfo),
                                 captureCleaningCard(bInfo)
                             ]).then(([base64Admin, base64Cleaning]) => {
                                 bInfo.action = 'sendSuccessScreenshot';
+                                bInfo.forceResend = false;
                                 if (base64Admin) bInfo.screenshot = base64Admin;
                                 if (base64Cleaning) bInfo.screenshotCleaning = base64Cleaning;
 
@@ -1403,7 +1402,12 @@ async function init() {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                                     body: JSON.stringify(bInfo)
-                                });
+                                }).then(res => res.json()).then(json => {
+                                    if (json && json.success) {
+                                        sessionStorage.setItem('receiptSent_' + orderId, 'true');
+                                        sessionStorage.removeItem('lastBooking');
+                                    }
+                                }).catch(e => console.error('Помилка відправки чеку:', e));
                             });
                         }, 500);
                     }

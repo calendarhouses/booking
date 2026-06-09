@@ -878,28 +878,27 @@ async function initApp() {
             try {
                 const bInfo = JSON.parse(lastBookingStr);
                 if (!localStorage.getItem('receiptSent_' + bInfo.orderId)) {
-                    localStorage.setItem('receiptSent_' + bInfo.orderId, 'true');
-                    
                     setTimeout(() => {
-                        // 🟢 МАГІЯ: Тепер малюємо ОДРАЗУ ДВА чеки паралельно!
                         Promise.all([
                             capturePremiumCard(bInfo),
                             captureCleaningCard(bInfo)
                         ]).then(([base64Admin, base64Cleaning]) => {
                             bInfo.action = 'sendSuccessScreenshot';
-                            
-                            // Записуємо обидва скріни у посилку
+                            bInfo.forceResend = false;
                             if (base64Admin) bInfo.screenshot = base64Admin;
                             if (base64Cleaning) bInfo.screenshotCleaning = base64Cleaning;
-                            
-                            // Відправляємо на сервер
                             fetch(API_URL, { 
                                 method: 'POST', 
                                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
                                 body: JSON.stringify(bInfo) 
-                            });
+                            }).then(res => res.json()).then(json => {
+                                if (json && json.success) {
+                                    localStorage.setItem('receiptSent_' + bInfo.orderId, 'true');
+                                    localStorage.removeItem('lastBooking');
+                                }
+                            }).catch(e => console.error('Помилка відправки чеку:', e));
                         });
-                    }, 500); // Чекаємо 0.5с, щоб шрифти точно відрендерились
+                    }, 500);
                 }
             } catch(e) { console.error("Помилка скріншоту:", e); }
             // ==========================================
