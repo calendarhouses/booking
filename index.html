@@ -1975,29 +1975,7 @@ function renderCalendar() {
             const isWeekend = d.getDay() === 0 || d.getDay() === 6;
             const isPast = d < today;
 
-            // Зайнятість: isOccupied — завжди червона плашка; clickBlocked — не можна клікнути
-            let isOccupied = false;
-            let clickBlocked = false;
-            bookedRanges.forEach(r => {
-                if (d > r.start && d < r.end) {
-                    isOccupied = true;
-                    clickBlocked = true;
-                }
-                if (d.getTime() === r.start.getTime()) {
-                    isOccupied = true;
-                    if (r.hasEarly) {
-                        clickBlocked = true;
-                    } else if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) {
-                        clickBlocked = true;
-                    } else if (selectedCheckIn && !selectedCheckOut && d <= selectedCheckIn) {
-                        clickBlocked = true;
-                    }
-                }
-                if (d.getTime() === r.end.getTime() && r.hasLate) {
-                    isOccupied = true;
-                    clickBlocked = true;
-                }
-            });
+            const { isOccupied, clickBlocked } = getDateAvailability(d, bookedRanges);
 
             const price = getDayPrice(room, d);
             const priceStr = price ? price : '';
@@ -2039,19 +2017,11 @@ function renderCalendar() {
 
 function selectDate(ds) {
     playClick(); // 🔊
-    const d = new Date(ds);
+    const d = parseLocalDate(ds);
     const room = roomsList.find(r => r.id == currentCabinId);
     const ranges = getBookedRanges(room ? room.name : '');
 
-    let isClickBlocked = false;
-    ranges.forEach(r => {
-        if (d > r.start && d < r.end) isClickBlocked = true;
-        if (d.getTime() === r.end.getTime() && r.hasLate) isClickBlocked = true;
-        if (d.getTime() === r.start.getTime()) {
-            if (r.hasEarly) isClickBlocked = true; // Ранній заїзд - не можна виїхати
-            else if (!selectedCheckIn || (selectedCheckIn && selectedCheckOut)) isClickBlocked = true;
-        }
-    });
+    const { clickBlocked: isClickBlocked } = getDateAvailability(d, ranges);
 
     if (isClickBlocked) {
         selectedCheckIn = null; selectedCheckOut = null;
@@ -2718,6 +2688,44 @@ function dateStr(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
+function parseLocalDate(ds) {
+    const [y, m, day] = ds.split('-').map(Number);
+    const d = new Date(y, m - 1, day);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function getDateAvailability(d, ranges) {
+    const pickingCheckout = !!(selectedCheckIn && !selectedCheckOut);
+    let isOccupied = false;
+    let clickBlocked = false;
+
+    ranges.forEach(r => {
+        if (d > r.start && d < r.end) {
+            isOccupied = true;
+            clickBlocked = true;
+            return;
+        }
+        if (d.getTime() === r.end.getTime()) {
+            isOccupied = true;
+            if (r.hasLate) clickBlocked = true;
+            return;
+        }
+        if (d.getTime() === r.start.getTime()) {
+            isOccupied = true;
+            if (r.hasEarly) {
+                clickBlocked = true;
+            } else if (!pickingCheckout) {
+                clickBlocked = true;
+            } else if (d.getTime() <= selectedCheckIn.getTime()) {
+                clickBlocked = true;
+            }
+        }
+    });
+
+    return { isOccupied, clickBlocked };
+}
+
 function getRestrictionMinNights(roomId, dateObj) {
     const ds = dateStr(dateObj);
     const rid = String(roomId);
@@ -2781,14 +2789,9 @@ function getBookedRanges(cottageName) {
             const e = new Date(b.checkOut); e.setHours(0,0,0,0);
             const comment = b.comment ? String(b.comment) : "";
             
-            let hasEarly = comment.includes('🕒 Ранній заїзд');
-            let hasLate = comment.includes('🕒 Пізній виїзд');
-            
-            // Авто-перевірка акції Пт-Нд
-            let nights = Math.round((e - s) / 86400000);
-            if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
+            const hasEarly = comment.includes('Ранній заїзд');
+            const hasLate = comment.includes('Пізній виїзд');
 
-            // 🟢 ТУТ БІЛЬШЕ НІЧОГО НЕ ЗСУВАЄМО!
             return { start: s, end: e, hasEarly, hasLate };
         });
 }
