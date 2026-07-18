@@ -1905,7 +1905,10 @@ async function refreshLiveData() {
             const comment = b.comment ? String(b.comment) : "";
             
             const hasEarly = comment.includes('Ранній заїзд');
-            const hasLate = comment.includes('Пізній виїзд');
+            let hasLate = comment.includes('Пізній виїзд');
+            // Акція Пт–Нд (2 ночі) = пізній виїзд у неділю (як у адмінці)
+            const nights = Math.round((e - s) / 86400000);
+            if (nights === 2 && s.getDay() === 5 && e.getDay() === 0) hasLate = true;
 
             return { start: s, end: e, hasEarly, hasLate };
         });
