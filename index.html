@@ -1086,6 +1086,16 @@
                             <button class="cnt-btn" id="dayGuestPlus" onclick="changeDayGuests(1)">+</button>
                         </div>
                     </div>
+                    <div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
+                        <div>
+                            <div class="guests-label">Дитяче ліжечко</div>
+                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">+500 грн за весь період</div>
+                        </div>
+                        <div class="pets-toggle" style="margin-top: 0; padding-top: 0; border: none; flex: 0 0 auto; width: 140px;">
+                            <div class="pet-opt active" id="cribNo" onclick="setCrib(false)" style="padding: 8px;">Ні</div>
+                            <div class="pet-opt" id="cribYes" onclick="setCrib(true)" style="padding: 8px;">Так</div>
+                        </div>
+                    </div>
                     <div class="guests-row" id="vatContainer" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">
     <div>
         <div class="guests-label">Чан</div>
@@ -1280,8 +1290,10 @@ let selectedCheckOut = null;
 let guestCount = 2;
 let extraDayGuests = 0;
 let hasPets = false;
+let hasCrib = false;
 let hasVat = false;
 let hasUbd = false;
+const CRIB_FEE = 500;
 let calBase = new Date(); calBase.setDate(1);
 let showAllAmenities = false;
 
@@ -1749,9 +1761,12 @@ function showDetail(cabinId) {
     guestCount = 2;
     extraDayGuests = 0;
     hasPets = false;
+    hasCrib = false;
     hasUbd = false;
     if(document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
     if(document.getElementById('ubdYes')) document.getElementById('ubdYes').classList.remove('active');
+    if(document.getElementById('cribNo')) document.getElementById('cribNo').classList.add('active');
+    if(document.getElementById('cribYes')) document.getElementById('cribYes').classList.remove('active');
 
     // 🟢 ЛОГІКА СКРИТТЯ ЧАНА ДЛЯ JUNIOR (1) ТА FAMILY 2 (2)
     const vatContainer = document.getElementById('vatContainer');
@@ -2158,6 +2173,16 @@ function setPet(val) {
     
     updateProceedBtn();
 }
+function setCrib(val) {
+    playClick();
+    hasCrib = val;
+    const cribNo = document.getElementById('cribNo');
+    const cribYes = document.getElementById('cribYes');
+    if (cribNo) cribNo.classList.toggle('active', !val);
+    if (cribYes) cribYes.classList.toggle('active', val);
+    if (document.getElementById('drawer-step-checkout') && document.getElementById('drawer-step-checkout').classList.contains('active')) renderCheckout();
+    else updateProceedBtn();
+}
     function setVat(val) {
     playClick(); hasVat = val;
     document.getElementById('vatNo').classList.toggle('active', !val);
@@ -2314,6 +2339,15 @@ function renderCheckout() {
             </div>
         `;
     }
+
+    if (calc.cribFee > 0) {
+        rows += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
+                <span>Дитяче ліжечко</span>
+                <span style="font-weight: 600; color: #1A1A1A;">+${calc.cribFee.toLocaleString('uk-UA')} грн</span>
+            </div>
+        `;
+    }
     
     if (calc.earlyFee > 0) {
         rows += `
@@ -2383,6 +2417,7 @@ async function submitBooking() {
     let comment = document.getElementById('fComment').value.trim();
     let sysComment = [];
     if (extraDayGuests > 0) sysComment.push(`👥 Денні гості: ${extraDayGuests}`); 
+    if (hasCrib) sysComment.push(`🛏️ Дитяче ліжечко: Так`);
     if (hasVat) sysComment.push(`♨️ Чан: Так`);
     const ubdNights = (selectedCheckIn && selectedCheckOut)
         ? Math.round((selectedCheckOut - selectedCheckIn) / 86400000) : 0;
@@ -2424,7 +2459,14 @@ async function submitBooking() {
         totalPrice: calc.totalPrice,
         paidAmount: 0,
         source:     'Сайт',
-        comment:    comment // 🚀 Передаємо наш склеєний коментар!
+        comment:    comment,
+        cribFee:    calc.cribFee || 0,
+        dayGuestFee: calc.dayGuestFee || 0,
+        petFee:     calc.petFee || 0,
+        earlyFee:   calc.earlyFee || 0,
+        lateFee:    calc.lateFee || 0,
+        extraGuestFee: calc.extraGuestFee || 0,
+        basePrice:  calc.basePrice || 0
     };
 
     try {
@@ -2460,6 +2502,7 @@ async function submitBooking() {
             dayGuests: extraDayGuests,
             hasVat: hasVat,
             hasUbd: hasUbd,
+            hasCrib: hasCrib,
             
             // 🟢 ДОДАНО ДЛЯ ПРЕМІУМ-ЧЕКУ В ТГ:
             name: bookingData.name,
@@ -2469,6 +2512,7 @@ async function submitBooking() {
             extraGuestFee: calc.extraGuestFee,
             petFee: calc.petFee,
             dayGuestFee: calc.dayGuestFee,
+            cribFee: calc.cribFee,
             earlyFee: calc.earlyFee,
             lateFee: calc.lateFee,
             discountAmount: calc.discountAmount,
@@ -2601,10 +2645,11 @@ function calcTotal(nights) {
         lateFee = isPromoLateOut ? 0 : Math.round(getDayPrice(room, selectedCheckOut) * 0.5);
     }
 
-    const dayGuestFee = extraDayGuests * 500; 
+    const dayGuestFee = extraDayGuests * 500;
+    const cribFee = hasCrib ? CRIB_FEE : 0;
     
     // Фінальна сума
-    const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee;
+    const totalPrice = amountToDiscount - discountAmount + petFee + earlyFee + lateFee + dayGuestFee + cribFee;
     const prepayment = getSitePrepaymentAmount(Math.round(totalPrice / 2));
 
     return { 
@@ -2613,7 +2658,8 @@ function calcTotal(nights) {
         petFee, 
         earlyFee, 
         lateFee,  
-        dayGuestFee: dayGuestFee, 
+        dayGuestFee: dayGuestFee,
+        cribFee: cribFee,
         discountAmount, 
         discountPercent, 
         totalPrice, 
@@ -2657,6 +2703,7 @@ function renderSuccessReceipt() {
         // 🟢 ДОДАТКОВІ ПОСЛУГИ: Формуємо рядки, якщо вони були обрані
         let extraHtml = '';
         if (b.dayGuests > 0) extraHtml += `<div class="receipt-row"><span class="receipt-label">Денні гості:</span> <span class="receipt-val">${b.dayGuests} чол.</span></div>`;
+        if (b.hasCrib || Number(b.cribFee) > 0) extraHtml += `<div class="receipt-row"><span class="receipt-label">Дитяче ліжечко:</span> <span class="receipt-val">+${Number(b.cribFee) || CRIB_FEE} грн</span></div>`;
         if (b.hasVat) extraHtml += `<div class="receipt-row"><span class="receipt-label">Чан:</span> <span class="receipt-val" style="color:var(--accent);">Оплата на місці</span></div>`;
         if (b.hasUbd) extraHtml += `<div class="receipt-row"><span class="receipt-label">Знижка УБД:</span> <span class="receipt-val" style="color:var(--accent);">Застосовано</span></div>`;
 
@@ -2983,6 +3030,9 @@ async function capturePremiumCard(b) {
     let rawComment = b.comment ? String(b.comment) : "";
     let hasVat = rawComment.includes('♨️ Чан: Так');
     let hasUBD = rawComment.includes('🇺🇦 УБД: Так');
+    let hasCribFlag = rawComment.includes('🛏️ Дитяче ліжечко');
+    let cribFeeAmt = Number(b.cribFee);
+    if (!Number.isFinite(cribFeeAmt) || cribFeeAmt < 0) cribFeeAmt = hasCribFlag ? 500 : 0;
 
     let matchDay = rawComment.match(/👥 Денні гості[^:]*:\s*(\d+)/);
     let dayGuestsCount = matchDay ? matchDay[1] : 0;
@@ -3002,12 +3052,13 @@ async function capturePremiumCard(b) {
 
     let discAmt = Number(b.discountAmount) || 0;
     let basePrice = Number(b.basePrice);
-    const feeSum = (Number(b.extraGuestFee) || 0) + (Number(b.petFee) || 0) + (Number(b.dayGuestFee) || 0) + (Number(b.earlyFee) || 0) + (Number(b.lateFee) || 0);
+    const feeSum = (Number(b.extraGuestFee) || 0) + (Number(b.petFee) || 0) + (Number(b.dayGuestFee) || 0) + (Number(b.earlyFee) || 0) + (Number(b.lateFee) || 0) + (cribFeeAmt || 0);
     if (!Number.isFinite(basePrice) || (basePrice <= 0 && total > 0)) {
         basePrice = Math.max(0, total + discAmt - feeSum);
     }
 
     let cleanComment = rawComment.replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
+                                 .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
                                  .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
                                  .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
                                  .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
@@ -3034,6 +3085,9 @@ async function capturePremiumCard(b) {
     if (b.dayGuestFee > 0) {
         let label = dayGuestsCount > 0 ? `Денні гості (${dayGuestsCount}):` : `Денні гості:`;
         extraHtml += `<div style="${rowStyle}"><span style="${labelStyle}">${iconUsers} ${label}</span> <span style="${valStyle}">+${b.dayGuestFee} ₴</span></div>`;
+    }
+    if (cribFeeAmt > 0) {
+        extraHtml += `<div style="${rowStyle}"><span style="${labelStyle}">${iconCottage} Дитяче ліжечко:</span> <span style="${valStyle}">+${cribFeeAmt} ₴</span></div>`;
     }
     if (b.earlyFee > 0) {
         let label = earlyTime ? `Ранній заїзд (з ${earlyTime}):` : `Ранній заїзд:`;
