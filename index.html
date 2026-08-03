@@ -1636,6 +1636,21 @@ function getCabinFeaturesHTML(name) {
     return `<div class="premium-features">${features}</div>`;
 }
 
+// Мінімальна ціна «від … / ніч»: спочатку майбутні ціни з конструктора, інакше база номера
+function getRoomFromPrice(room) {
+    if (!room) return 4500;
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const customs = (customPrices && (customPrices[room.id] || customPrices[String(room.id)])) || {};
+    const future = Object.keys(customs)
+        .filter(ds => ds >= todayStr && Number(customs[ds]) > 0)
+        .map(ds => Number(customs[ds]));
+    if (future.length) return Math.min(...future);
+    const base = [Number(room.priceWeekday) || 0, Number(room.priceWeekend) || 0].filter(p => p > 0);
+    if (base.length) return Math.min(...base);
+    return 4500;
+}
+
 // ─── CABIN LIST ТА АНІМАЦІЯ ────────────────────────────────────────────────
 function renderCabinList() {
     const cont = document.getElementById('cabinsContainer');
@@ -1646,14 +1661,7 @@ function renderCabinList() {
     cont.innerHTML = roomsList.map(r => {
         const cfg = getCabinConfig(r.id);
         
-        // 🟢 РОЗУМНИЙ ПОШУК МІНІМАЛЬНОЇ ЦІНИ (З урахуванням Конструктора цін)
-        let minPrice = (r.priceWeekday > 0) ? Math.min(r.priceWeekday, r.priceWeekend) : 0;
-        if (minPrice === 0 && customPrices[r.id]) {
-            const prices = Object.values(customPrices[r.id]).filter(p => p > 0);
-            if (prices.length > 0) minPrice = Math.min(...prices);
-        }
-        if (minPrice === 0) minPrice = 4500; // Резервна ціна, якщо взагалі порожньо
-        
+        const minPrice = getRoomFromPrice(r);
         const nextFree = getNextFreeDate(r.name);
         const imgs = cfg.images;
         const shortDesc = cfg.description.split('.')[0] + '.';
@@ -1833,15 +1841,7 @@ function showDetail(cabinId) {
     
     const elPrice = document.getElementById('ctaPrice');
     if (elPrice) {
-        // Розумний пошук мінімальної ціни (як на головній сторінці)
-        let minPrice = (room.priceWeekday > 0) ? Math.min(room.priceWeekday, room.priceWeekend) : 0;
-        if (minPrice === 0 && customPrices[room.id]) {
-            const prices = Object.values(customPrices[room.id]).filter(p => p > 0);
-            if (prices.length > 0) minPrice = Math.min(...prices);
-        }
-        if (minPrice === 0) minPrice = 4500; // Резервна ціна
-        
-        elPrice.innerText = minPrice.toLocaleString('uk-UA');
+        elPrice.innerText = getRoomFromPrice(room).toLocaleString('uk-UA');
     }
     
     const elMeta = document.getElementById('detailMeta');

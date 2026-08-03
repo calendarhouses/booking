@@ -1042,15 +1042,27 @@ function getCabinFeaturesHTML(name) {
     return `<div class="premium-features">${features}</div>`;
 }
 
+function getRoomFromPrice(room) {
+    if (!room) return 4500;
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const customs = (customPrices && (customPrices[room.id] || customPrices[String(room.id)])) || {};
+    const future = Object.keys(customs)
+        .filter(ds => ds >= todayStr && Number(customs[ds]) > 0)
+        .map(ds => Number(customs[ds]));
+    if (future.length) return Math.min(...future);
+    const base = [Number(room.priceWeekday) || 0, Number(room.priceWeekend) || 0].filter(p => p > 0);
+    if (base.length) return Math.min(...base);
+    return 4500;
+}
+
 function renderCabinList() {
     const cont = document.getElementById('cabinsContainer');
     if (!roomsList.length) { cont.innerHTML = '<div style="text-align:center; padding:40px;">Котеджів не знайдено</div>'; return; }
     
     cont.innerHTML = roomsList.map(r => {
         const cfg = getCabinConfig(r.id);
-        let minPrice = (r.priceWeekday > 0) ? Math.min(r.priceWeekday, r.priceWeekend) : 4500;
-        if (customPrices[r.id]) { const prices = Object.values(customPrices[r.id]).filter(p => p > 0); if (prices.length) minPrice = Math.min(...prices); }
-        
+        const minPrice = getRoomFromPrice(r);
         return `
         <div class="cabin-card">
             <div class="slider-wrap" id="card-slider-${r.id}" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event, '${r.id}')">
@@ -1187,9 +1199,7 @@ function showDetail(cabinId) {
     document.getElementById('detailTitle').innerText = `${room.name} (${room.desc})`;
     document.getElementById('detailDesc').innerText = cfg.description;
     
-    let minPrice = (room.priceWeekday > 0) ? Math.min(room.priceWeekday, room.priceWeekend) : 4500;
-    if (customPrices[room.id]) { const prices = Object.values(customPrices[room.id]).filter(p => p > 0); if (prices.length) minPrice = Math.min(...prices); }
-    document.getElementById('ctaPrice').innerText = minPrice.toLocaleString('uk-UA');
+    document.getElementById('ctaPrice').innerText = getRoomFromPrice(room).toLocaleString('uk-UA');
 
     const amList = document.getElementById('amenitiesList');
     if(amList) amList.innerHTML = cfg.amenities.slice(0, 4).map(a => `<div class="amenity-item">${a.icon} ${a.label}</div>`).join('');
