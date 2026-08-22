@@ -290,6 +290,8 @@
         .cal-day.booked { background: #FFF0F0 !important; color: #DC2626 !important; pointer-events: none; }
         .cal-day.booked .day-price { color: #DC2626 !important; opacity: 0.85; }
         .cal-day.booked.turnover-selectable { pointer-events: auto; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.35); }
+        .cal-day.closed { background: #FEE2E2 !important; color: #B91C1C !important; pointer-events: none; }
+        .cal-day.closed .day-price { color: #B91C1C !important; opacity: 0.85; }
 
         /* Гості та Форми */
         .guests-block, .form-block { background: var(--white); border-radius: 20px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
@@ -778,7 +780,7 @@ function getSitePrepaymentAmount(half) {
 const initialFetchPromise = fetch(API_URL + '?action=initData&t=' + Date.now()).then(res => res.json()).catch(() => null);
 
 // ─── STATE ───
-let roomsList = []; let discountsList = []; let customPrices = {}; let restrictions = {}; let allBookings = [];
+let roomsList = []; let discountsList = []; let customPrices = {}; let restrictions = {}; let closedDates = {}; let allBookings = [];
 let currentCabinId = null; let selectedCheckIn = null; let selectedCheckOut = null;
 let guestCount = 2; let extraDayGuests = 0; let hasPets = false; let hasCrib = false; let hasVat = false; let hasUbd = false; let calBase = new Date(); calBase.setDate(1);
 const CRIB_FEE = 500;
@@ -939,6 +941,7 @@ async function initApp() {
         if (sd.discountsList) discountsList = sd.discountsList;
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
+        if (sd.closedDates) closedDates = sd.closedDates;
     } else {
         // Fallback якщо Гугл лежить
         discountsList = [{ condition:"Від 2 діб", discount:"15%", roomsIds:["all"] }];
@@ -1259,23 +1262,25 @@ function renderCalendar() {
         const isPast = d < today;
         
         const { isOccupied, clickBlocked } = getDateAvailability(d, bookedRanges);
+        const isClosed = room ? isDateClosed(room.id, d) : false;
 
         const price = getDayPrice(room, d);
         const priceStr = price ? price : '';
 
         let cls = 'cal-day';
         if (isPast) cls += ' past'; 
+        else if (isClosed) cls += ' closed';
         else if (isOccupied) cls += ' booked'; 
         else if (isWeekend) cls += ' weekend';
         if (d.toDateString() === today.toDateString()) cls += ' today';
-        if (isOccupied && !clickBlocked && !isPast) cls += ' turnover-selectable';
+        if (isOccupied && !clickBlocked && !isPast && !isClosed) cls += ' turnover-selectable';
 
         const ds = dateStr(d);
         if (selectedCheckIn && ds === dateStr(selectedCheckIn)) cls += ' selected-start';
         if (selectedCheckOut && ds === dateStr(selectedCheckOut)) cls += ' selected-end';
         if (selectedCheckIn && selectedCheckOut && d > selectedCheckIn && d < selectedCheckOut) cls += ' in-range';
 
-        const clickable = !isPast && !clickBlocked;
+        const clickable = !isPast && !clickBlocked && !isClosed;
         html += `<div class="${cls}" ${clickable ? `onclick="selectDate('${ds}')"` : ''}>
             ${day}
             ${priceStr ? `<div class="day-price">${priceStr}</div>` : ''}
@@ -1321,19 +1326,29 @@ function selectDate(ds) {
                 hasConflict = true; 
                 break; 
             }
+            if (room && isDateClosed(room.id, cur)) {
+                hasConflict = true;
+                break;
+            }
             cur.setDate(cur.getDate() + 1);
         }
         
         if (hasConflict) { 
-            toast('Ці дати вже зайняті, оберіть інші'); 
+            toast('Цей період недоступний для бронювання'); 
             selectedCheckIn = d; 
             selectedCheckOut = null;
         } else {
             selectedCheckOut = d;
+            const closedCheck = validateStayClosedDates(room, selectedCheckIn, selectedCheckOut);
+            if (!closedCheck.ok) {
+                toast('У періоді є закриті дати');
+                selectedCheckOut = null;
+            } else {
             const stayCheck = validateStayRestrictions(room, selectedCheckIn, selectedCheckOut);
             if (!stayCheck.ok) {
                 toast(`Для обраних дат мінімум ${stayCheck.requiredMin} ${nightWord(stayCheck.requiredMin)}`);
                 selectedCheckOut = null;
+            }
             }
         }
     }
@@ -1373,8 +1388,12 @@ function updateProceedBtn() {
             btn.innerText = 'Оберіть дати';
         }
     } else {
+        const closedCheck = validateStayClosedDates(room, selectedCheckIn, selectedCheckOut);
         const stayCheck = validateStayRestrictions(room, selectedCheckIn, selectedCheckOut);
-        if (!stayCheck.ok) {
+        if (!closedCheck.ok) {
+            btn.disabled = true;
+            btn.innerText = 'Є закриті дати';
+        } else if (!stayCheck.ok) {
             btn.disabled = true;
             btn.innerText = `Мінімум ${stayCheck.requiredMin} ${nightWord(stayCheck.requiredMin)}`;
         } else {
@@ -1650,6 +1669,11 @@ async function submitBooking() {
     if (!selectedCheckIn || !selectedCheckOut) { toast('Оберіть дати'); return; }
 
     const room = roomsList.find(r => r.id == currentCabinId);
+    const closedCheck = validateStayClosedDates(room, selectedCheckIn, selectedCheckOut);
+    if (!closedCheck.ok) {
+        toast('Обраний період містить закриті дати');
+        return;
+    }
     const stayCheck = validateStayRestrictions(room, selectedCheckIn, selectedCheckOut);
     if (!stayCheck.ok) {
         toast(`Для обраних дат потрібно мінімум ${stayCheck.requiredMin} ${nightWord(stayCheck.requiredMin)}`);
@@ -1674,6 +1698,7 @@ async function submitBooking() {
         
         if (json.error === 'OVERLAP') { toast('❌ Дати вже зайняті!'); btn.disabled = false; btn.innerText = 'Спробувати ще'; return; }
         if (json.error === 'MIN_STAY') { toast(`❌ Мінімум ${json.requiredMin} ${nightWord(json.requiredMin)}`); btn.disabled = false; btn.innerText = 'Спробувати ще'; return; }
+        if (json.error === 'CLOSED_DATES') { toast('❌ Обраний період містить закриті дати'); btn.disabled = false; btn.innerText = 'Спробувати ще'; return; }
 
         if (json.paymentData) {
             const pd = json.paymentData;
@@ -1856,6 +1881,11 @@ function parseLocalDate(ds) {
 }
 
 function getDateAvailability(d, ranges) {
+    const room = roomsList.find(r => r.id == currentCabinId);
+    if (room && isDateClosed(room.id, d)) {
+        return { isOccupied: true, clickBlocked: true };
+    }
+
     const pickingCheckout = !!(selectedCheckIn && !selectedCheckOut);
     let isOccupied = false;
     let clickBlocked = false;
@@ -1894,6 +1924,25 @@ function getRestrictionMinNights(roomId, dateObj) {
     return 0;
 }
 
+function isDateClosed(roomId, dateObj) {
+    const ds = dateStr(dateObj);
+    const rid = String(roomId);
+    if (closedDates[roomId] && closedDates[roomId][ds]) return true;
+    if (closedDates[rid] && closedDates[rid][ds]) return true;
+    return false;
+}
+
+function validateStayClosedDates(room, checkIn, checkOut) {
+    if (!room || !checkIn || !checkOut) return { ok: true };
+    const d = new Date(checkIn); d.setHours(0, 0, 0, 0);
+    const end = new Date(checkOut); end.setHours(0, 0, 0, 0);
+    while (d < end) {
+        if (isDateClosed(room.id, d)) return { ok: false };
+        d.setDate(d.getDate() + 1);
+    }
+    return { ok: true };
+}
+
 function getBookingMinNightsRequired(room, checkIn, checkOut) {
     if (!room) return 0;
     let maxMin = 0;
@@ -1925,6 +1974,7 @@ async function refreshLiveData() {
         if (sd.discountsList) discountsList = sd.discountsList;
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
+        if (sd.closedDates) closedDates = sd.closedDates;
         if (currentCabinId) {
             const calEl = document.getElementById('drawer-step-calendar');
             if (calEl && calEl.classList.contains('active')) {
