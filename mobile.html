@@ -2211,6 +2211,7 @@ async function capturePremiumCard(b) {
     let total = Number(b.totalPrice) || 0;
     let paid = Number(b.paidAmount) || 0;
     let balance = total - paid;
+    const isFullPay = String(b.amountKind || '') === 'full' || (paid > 0 && total > 0 && paid >= total);
 
     let rawComment = b.comment ? String(b.comment) : "";
     let hasVat = rawComment.includes('♨️ Чан: Так');
@@ -2314,7 +2315,7 @@ async function capturePremiumCard(b) {
     if (statusClass.includes('скас')) { finText = "СКАСОВАНО"; finBg = "#F3F4F6"; finColor = "#6B7280"; finBorder = "#E5E7EB"; } 
     else if (total === 0) { finText = "БЕЗ ЦІНИ"; finBg = "#F3F4F6"; finColor = "#4B5563"; finBorder = "#E5E7EB"; } 
     else if (paid === 0) { finText = `ОЧІКУЄ АВАНС: ${Math.round(total / 2)} ₴`; finBg = "#FEF3C7"; finColor = "#B45309"; finBorder = "#FDE68A"; } 
-    else if (balance <= 0) { finText = `ОПЛАЧЕНО ПОВНІСТЮ`; finBg = "#D1FAE5"; finColor = "#059669"; finBorder = "#A7F3D0"; } 
+    else if (isFullPay || balance <= 0) { finText = `ОПЛАЧЕНО ПОВНІСТЮ`; finBg = "#D1FAE5"; finColor = "#059669"; finBorder = "#A7F3D0"; } 
     else { finText = `ЗАЛИШОК ДО СПЛАТИ: ${balance} ₴`; finBg = "#FEE2E2"; finColor = "#DC2626"; finBorder = "#FECACA"; }
 
     card.innerHTML = `
@@ -2353,7 +2354,7 @@ async function capturePremiumCard(b) {
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: #6B7280; font-weight: 700; font-size: 16px; display:flex; align-items:center;">
-                        ${iconPaid} Внесено:
+                        ${iconPaid} ${isFullPay ? 'Повна оплата:' : 'Внесено аванс:'}
                     </span> 
                     <span style="font-weight: 900; color: #059669; font-size: 18px;">${paid} ₴</span>
                 </div>
