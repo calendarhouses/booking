@@ -411,6 +411,37 @@
         .receipt-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; }
         .receipt-label { color: var(--muted); }
         .receipt-val { font-weight: 600; text-align: right; }
+        .receipt-pay-block {
+            margin-top: 16px;
+            padding: 16px 14px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #F7FAF3 0%, #F0F5EA 100%);
+            border: 1px solid rgba(85, 107, 47, 0.18);
+            text-align: center;
+        }
+        .receipt-pay-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+        .receipt-pay-amount {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.15;
+        }
+        .receipt-pay-rest {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(85, 107, 47, 0.25);
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .receipt-pay-rest strong { color: var(--text); font-weight: 700; }
         
         .btn-tg { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: var(--accent); color: #fff; border-radius: 14px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; margin-bottom: 20px; }
         .btn-tg svg { width: 20px; height: 20px; fill: currentColor; }
@@ -774,7 +805,7 @@
 // 🚀 РАННІЙ СТАРТ
 const API_URL = "https://script.google.com/macros/s/AKfycbx1RYoMJySplZ18Wv54PQjxzHnZqIb3Wsw63oG-PAOKMvuXEym8Y7aFS-L_pxvfX6o4DQ/exec";
 // 🧪 ТЕСТ: 1 грн передплата (0 = вимкнено, знову 50%)
-const SITE_TEST_PREPAYMENT_UAH = 1;
+const SITE_TEST_PREPAYMENT_UAH = 0;
 function getSitePrepaymentAmount(half) {
     return SITE_TEST_PREPAYMENT_UAH > 0 ? SITE_TEST_PREPAYMENT_UAH : half;
 }
@@ -858,23 +889,26 @@ async function waitForPaymentConfirmation(orderId) {
 
 async function initApp() {
     const urlParams = new URLSearchParams(window.location.search);
-    const lastBookingStr = localStorage.getItem('lastBooking');
+    // pay.html пише і в sessionStorage, і в localStorage
+    let lastBookingStr = sessionStorage.getItem('lastBooking') || localStorage.getItem('lastBooking');
 
-    // 🟢 1. ПОВЕРНЕННЯ ПІСЛЯ ОПЛАТИ — чекаємо вебхук WayForPay до ~60 с
-    if (urlParams.get('payment') === 'success') {
-        let isPaid = false;
-        
-        if (lastBookingStr) {
+    // 🟢 Повернення після оплати: paid=1 = вже підтверджено на pay.html (без другого прелоадера)
+    if (urlParams.get('paid') === '1' || urlParams.get('payment') === 'success') {
+        let isPaid = urlParams.get('paid') === '1';
+
+        if (!isPaid && lastBookingStr) {
             try {
                 const b = JSON.parse(lastBookingStr);
                 if (b.orderId) {
                     isPaid = await waitForPaymentConfirmation(b.orderId);
                 }
             } catch (e) { console.error("Помилка перевірки:", e); }
+        } else if (isPaid) {
+            const preloader = document.getElementById('preloader');
+            if (preloader) preloader.style.display = 'none';
         }
 
         if (isPaid) {
-            // ОПЛАТА 100% УСПІШНА
             document.getElementById('preloader').style.display = 'none';
             document.body.style.overflow = 'auto';
             document.documentElement.style.overflow = 'auto';
@@ -883,15 +917,16 @@ async function initApp() {
             const successWrap = document.querySelector('.success-wrap');
             if (successWrap) successWrap.classList.remove('fade-in');
 
+            if (lastBookingStr) {
+                try { localStorage.setItem('lastBooking', lastBookingStr); } catch (e) {}
+            }
+
             renderSuccessReceipt(); 
             showScreen('success'); 
 
-            // ==========================================
-            // 🚀 ГЕНЕРУЄМО І ВІДПРАВЛЯЄМО ЧЕК У ТЕЛЕГРАМ!
-            // ==========================================
             try {
                 const bInfo = JSON.parse(lastBookingStr);
-                if (!localStorage.getItem('receiptSent_' + bInfo.orderId)) {
+                if (bInfo && bInfo.orderId && !localStorage.getItem('receiptSent_' + bInfo.orderId)) {
                     setTimeout(() => {
                         Promise.all([
                             capturePremiumCard(bInfo),
@@ -909,13 +944,13 @@ async function initApp() {
                                 if (json && json.success) {
                                     localStorage.setItem('receiptSent_' + bInfo.orderId, 'true');
                                     localStorage.removeItem('lastBooking');
+                                    try { sessionStorage.removeItem('lastBooking'); } catch (e) {}
                                 }
                             }).catch(e => console.error('Помилка відправки чеку:', e));
                         });
                     }, 500);
                 }
             } catch(e) { console.error("Помилка скріншоту:", e); }
-            // ==========================================
             
             setTimeout(() => {
                 window.history.replaceState({}, document.title, window.location.pathname);
@@ -1860,15 +1895,17 @@ function renderSuccessReceipt() {
             ${b.pets === 'Так' ? `<div class="receipt-row"><span class="receipt-label">Тварини:</span> <span class="receipt-val">З твариною</span></div>` : ''}
             ${extraHtml}
             
-            <div class="receipt-total">
-                <span style="font-size:14px; font-weight:600;">${(b.amountKind === 'full' || Number(b.prepayment) >= Number(b.totalPrice)) ? 'Сплачено повністю' : 'Внесено аванс'}</span>
-                <span style="color: var(--accent);">${Number(b.prepayment || 0).toLocaleString('uk-UA')} грн</span>
-            </div>
-            ${(b.amountKind === 'full' || Number(b.prepayment) >= Number(b.totalPrice)) ? '' : `
-            <div class="receipt-row" style="margin-top:12px;">
-                <span class="receipt-label" style="font-size:13px; font-weight: 500;">Залишок при заселенні:</span> 
-                <span class="receipt-val" style="font-size:13px; font-weight: 700;">${(Number(b.totalPrice) - Number(b.prepayment || 0)).toLocaleString('uk-UA')} грн</span>
-            </div>`}
+            ${(() => {
+                const isFull = b.amountKind === 'full' || Number(b.prepayment) >= Number(b.totalPrice);
+                const paidAmt = Number(b.prepayment || 0);
+                const rest = Math.max(0, Number(b.totalPrice) - paidAmt);
+                return `
+            <div class="receipt-pay-block">
+                <div class="receipt-pay-label">${isFull ? 'Сплачено повністю' : 'Внесено аванс'}</div>
+                <div class="receipt-pay-amount">${paidAmt.toLocaleString('uk-UA')} грн</div>
+                ${isFull ? '' : `<div class="receipt-pay-rest">Залишок при заселенні: <strong>${rest.toLocaleString('uk-UA')} грн</strong></div>`}
+            </div>`;
+            })()}
         `;
     } catch(e) { 
         console.error("Помилка чеку:", e); 

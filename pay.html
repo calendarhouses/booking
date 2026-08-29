@@ -168,6 +168,29 @@
             text-decoration: none;
         }
         .home-link:hover { text-decoration: underline; }
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .retry-btn:hover { background: var(--accent-hover); }
+        .retry-btn.secondary {
+            margin-top: 10px;
+            background: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--border);
+        }
     </style>
 </head>
 <body>
@@ -186,14 +209,16 @@
 
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbx1RYoMJySplZ18Wv54PQjxzHnZqIb3Wsw63oG-PAOKMvuXEym8Y7aFS-L_pxvfX6o4DQ/exec";
-const PAYMENT_CONFIRM_MAX_ATTEMPTS = 30;
+const PAYMENT_CONFIRM_MAX_ATTEMPTS = 20;
 const PAYMENT_CONFIRM_DELAY_MS = 2000;
 
 const params = new URLSearchParams(window.location.search);
 const bookingId = params.get('id') || params.get('orderId') || '';
-const isReturnSuccess = params.get('payment') === 'success';
+const paymentParam = params.get('payment') || '';
+const isPaymentReturn = paymentParam === 'return' || paymentParam === 'success';
 
 const app = document.getElementById('app');
+let cachedBooking = null;
 
 function money(n) {
     return Math.round(Number(n) || 0).toLocaleString('uk-UA') + ' грн';
@@ -258,7 +283,7 @@ function submitWfpForm(pd, guestName, guestPhone) {
         clientLastName: lastName,
         clientPhone: guestPhone || '',
         language: 'UA',
-        returnUrl: pd.returnUrl || (window.location.origin + '/pay.html?payment=success&id=' + encodeURIComponent(bookingId))
+        returnUrl: pd.returnUrl || (window.location.origin + '/pay.html?payment=return&id=' + encodeURIComponent(bookingId))
     };
 
     Object.keys(paramsMap).forEach(function(key) {
@@ -418,6 +443,7 @@ async function handleSuccessReturn(id) {
     setHtml('<div class="state"><div class="loader"></div><p>Підтверджуємо оплату…</p></div>');
 
     let previousPaid = 0;
+    let preferredKind = '';
     try {
         const lb = JSON.parse(sessionStorage.getItem('lastBooking') || '{}');
         if (lb && lb.orderId === id && lb._paidBeforeCharge != null) {
@@ -425,30 +451,38 @@ async function handleSuccessReturn(id) {
         } else if (lb && lb.orderId === id && (lb.amountKind === 'prepay' || lb.amountKind === 'full')) {
             previousPaid = 0;
         }
+        if (lb && lb.orderId === id) preferredKind = lb.amountKind || '';
     } catch (e) {}
 
     const confirmed = await waitForPayment(id, previousPaid);
     if (!confirmed) {
-        setHtml(
-            '<div class="state"><h2>Перевіряємо оплату</h2>' +
-            '<p>Платіж може підтвердитись із невеликою затримкою. Якщо кошти списались — бронь буде підтверджена автоматично.</p>' +
-            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
-        );
+        renderPaymentFailed(id, preferredKind);
         return;
     }
 
-    // Перша оплата з сайту — показуємо преміум-чек на головній
+    goToSuccessPage(id, confirmed);
+}
+
+function goToSuccessPage(id, confirmed) {
     const lastBookingStr = sessionStorage.getItem('lastBooking');
     let isSiteFirstPay = false;
     try {
         const lb = JSON.parse(lastBookingStr || '{}');
         isSiteFirstPay = lb && lb.orderId === id && lb.source === 'Сайт' &&
             (lb.amountKind === 'prepay' || lb.amountKind === 'full' || !lb.amountKind);
+        if (lb && confirmed) {
+            if (confirmed.paidAmount != null) lb.paidAmount = confirmed.paidAmount;
+            if (lb.amountKind === 'full' || Number(confirmed.balance) === 0) {
+                lb.prepayment = Number(lb.totalPrice) || Number(confirmed.paidAmount) || lb.prepayment;
+            }
+            sessionStorage.setItem('lastBooking', JSON.stringify(lb));
+        }
     } catch (e) {}
 
     if (isSiteFirstPay && lastBookingStr) {
-        try { localStorage.setItem('lastBooking', lastBookingStr); } catch (e) {}
-        window.location.href = homeHref() + '?payment=success';
+        try { localStorage.setItem('lastBooking', sessionStorage.getItem('lastBooking')); } catch (e) {}
+        // paid=1 — головна вже НЕ чекає оплату повторно (без другого прелоадера)
+        window.location.href = homeHref() + '?paid=1';
         return;
     }
 
@@ -462,6 +496,64 @@ async function handleSuccessReturn(id) {
     );
 }
 
+function renderPaymentFailed(id, preferredKind) {
+    setHtml(
+        '<div class="state">' +
+            '<h2>Оплату не підтверджено</h2>' +
+            '<p>Платіж не завершився або ще не надійшов. Можете спробувати ще раз — ми створимо нове безпечне посилання на оплату.</p>' +
+            '<button type="button" class="retry-btn" id="retryPayBtn">Спробувати ще раз</button>' +
+            '<button type="button" class="retry-btn secondary" id="checkAgainBtn">Перевірити ще раз</button>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a>' +
+        '</div>'
+    );
+
+    document.getElementById('retryPayBtn').addEventListener('click', async function() {
+        setHtml('<div class="state"><div class="loader"></div><p>Готуємо нову оплату…</p></div>');
+        try {
+            const data = await fetchPaymentPage(id);
+            if (!data.success) {
+                setHtml('<div class="state"><h2>Бронювання не знайдено</h2><a class="home-link" href="' + homeHref() + '">На головну</a></div>');
+                return;
+            }
+            cachedBooking = data;
+            // Прибираємо payment= з URL, щоб не зациклити return-стан
+            try {
+                window.history.replaceState({}, document.title, 'pay.html?id=' + encodeURIComponent(id));
+            } catch (e) {}
+
+            let kind = preferredKind || '';
+            if (kind === 'remainder' && !data.canPayRemainder) kind = '';
+            if ((kind === 'prepay' || kind === 'full') && data.paidAmount > 0) kind = '';
+            if (!kind) {
+                if (data.canPayRemainder) kind = 'remainder';
+                else if (data.canPayPrepay) kind = 'prepay';
+                else if (data.canPayFull) kind = 'full';
+            }
+
+            if (!kind) {
+                renderChooser(data, 'Немає доступної суми для повторної оплати.');
+                return;
+            }
+
+            // Якщо є вибір (prepay vs full) — показуємо кнопки; інакше одразу charge
+            if (!data.canPayRemainder && data.canPayPrepay && data.canPayFull) {
+                renderChooser(data, 'Оберіть суму та спробуйте оплату ще раз.');
+                return;
+            }
+            await startCharge(kind, data);
+        } catch (e) {
+            setHtml(
+                '<div class="state"><h2>Помилка</h2><p>Не вдалося підготувати оплату. Спробуйте оновити сторінку.</p>' +
+                '<button type="button" class="retry-btn" onclick="location.href=\'pay.html?id=' + encodeURIComponent(id) + '\'">Спробувати ще раз</button></div>'
+            );
+        }
+    });
+
+    document.getElementById('checkAgainBtn').addEventListener('click', function() {
+        handleSuccessReturn(id);
+    });
+}
+
 async function init() {
     if (!bookingId) {
         setHtml(
@@ -471,7 +563,7 @@ async function init() {
         return;
     }
 
-    if (isReturnSuccess) {
+    if (isPaymentReturn) {
         await handleSuccessReturn(bookingId);
         return;
     }
@@ -486,7 +578,8 @@ async function init() {
             return;
         }
 
-        // Фіксуємо paidAmount до charge — для коректного poll після повернення
+        cachedBooking = data;
+
         try {
             const raw = sessionStorage.getItem('lastBooking');
             const lb = raw ? JSON.parse(raw) : { orderId: data.bookingId, source: 'Сайт' };
