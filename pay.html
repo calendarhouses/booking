@@ -216,6 +216,7 @@ const params = new URLSearchParams(window.location.search);
 const bookingId = params.get('id') || params.get('orderId') || '';
 const paymentParam = params.get('payment') || '';
 const isPaymentReturn = paymentParam === 'return' || paymentParam === 'success';
+const previewMode = (params.get('preview') || '').toLowerCase();
 
 const app = document.getElementById('app');
 let cachedBooking = null;
@@ -555,6 +556,28 @@ function renderPaymentFailed(id, preferredKind) {
 }
 
 async function init() {
+    // Прев’ю екранів без WayForPay: ?preview=ok | ok-full | fail
+    if (previewMode === 'ok' || previewMode === 'success') {
+        setHtml(
+            '<div class="state"><h2>Оплату отримано</h2>' +
+            '<p>Дякуємо! Платіж зараховано. Залишок: ' + money(3500) + '.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+    if (previewMode === 'ok-full' || previewMode === 'full') {
+        setHtml(
+            '<div class="state"><h2>Оплачено повністю</h2>' +
+            '<p>Дякуємо! Бронювання повністю оплачене.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+    if (previewMode === 'fail' || previewMode === 'error') {
+        renderPaymentFailed('B-PREVIEW', 'remainder');
+        return;
+    }
+
     if (!bookingId) {
         setHtml(
             '<div class="state"><h2>Немає номера броні</h2><p>Перевірте посилання на оплату.</p>' +
