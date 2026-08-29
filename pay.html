@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <title>BOSO | Оплата бронювання</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F7F5F2;
+            --white: #FFFFFF;
+            --accent: #556B2F;
+            --accent-light: rgba(85,107,47,0.08);
+            --accent-hover: #4B5D28;
+            --text: #1A1A1A;
+            --muted: #6B7280;
+            --border: #E5E1DC;
+            --success: #059669;
+            --danger: #DC2626;
+            --radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .wrap {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 28px 20px 48px;
+        }
+        .brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--accent);
+        }
+        .brand-sub {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 20px;
+        }
+        .meta {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .meta-row span:first-child { color: var(--muted); }
+        .meta-row span:last-child { font-weight: 600; text-align: right; }
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .pay-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            text-align: left;
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            border-radius: 14px;
+            padding: 16px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .pay-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+        .pay-btn:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+        .pay-btn-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .pay-btn-hint {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .pay-btn-amount {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+        .secure {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .state {
+            text-align: center;
+            padding: 28px 12px;
+        }
+        .state h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        .state p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .loader {
+            width: 36px; height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .alert {
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.45;
+            background: #FEF2F2;
+            color: #991B1B;
+            border: 1px solid #FECACA;
+        }
+        .home-link {
+            display: inline-block;
+            margin-top: 18px;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .home-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="brand">
+            <div class="brand-name">BOSO</div>
+            <div class="brand-sub">Оплата бронювання</div>
+        </div>
+        <div class="card" id="app">
+            <div class="state">
+                <div class="loader"></div>
+                <p>Завантажуємо дані бронювання…</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbx1RYoMJySplZ18Wv54PQjxzHnZqIb3Wsw63oG-PAOKMvuXEym8Y7aFS-L_pxvfX6o4DQ/exec";
+const PAYMENT_CONFIRM_MAX_ATTEMPTS = 30;
+const PAYMENT_CONFIRM_DELAY_MS = 2000;
+
+const params = new URLSearchParams(window.location.search);
+const bookingId = params.get('id') || params.get('orderId') || '';
+const isReturnSuccess = params.get('payment') === 'success';
+
+const app = document.getElementById('app');
+
+function money(n) {
+    return Math.round(Number(n) || 0).toLocaleString('uk-UA') + ' грн';
+}
+
+function formatDateUa(iso) {
+    if (!iso) return '—';
+    const p = String(iso).slice(0, 10).split('-');
+    if (p.length !== 3) return iso;
+    return p[2] + '.' + p[1] + '.' + p[0];
+}
+
+function setHtml(html) {
+    app.innerHTML = html;
+}
+
+function homeHref() {
+    return window.innerWidth < 768 ? 'mobile.html' : 'index.html';
+}
+
+async function fetchPaymentPage(id) {
+    const res = await fetch(API_URL + '?action=paymentPage&id=' + encodeURIComponent(id) + '&t=' + Date.now());
+    return res.json();
+}
+
+async function waitForPayment(id, previousPaid) {
+    const prev = Math.round(Number(previousPaid) || 0);
+    for (let i = 0; i < PAYMENT_CONFIRM_MAX_ATTEMPTS; i++) {
+        try {
+            const res = await fetch(API_URL + '?action=checkStatus&orderId=' + encodeURIComponent(id) + '&t=' + Date.now());
+            const data = await res.json();
+            const paid = Math.round(Number(data.paidAmount) || 0);
+            if (data.status === 'Підтверджено' && (paid > prev || data.balance === 0)) {
+                return data;
+            }
+            if (paid > prev) return data;
+        } catch (e) {}
+        await new Promise(r => setTimeout(r, PAYMENT_CONFIRM_DELAY_MS));
+    }
+    return null;
+}
+
+function submitWfpForm(pd, guestName, guestPhone) {
+    const parts = String(guestName || '').trim().split(/\s+/);
+    const firstName = parts[0] || 'Гість';
+    const lastName = parts.slice(1).join(' ') || 'BOSO';
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://secure.wayforpay.com/pay';
+    form.style.display = 'none';
+
+    const paramsMap = {
+        merchantAccount: pd.merchantAccount,
+        merchantDomainName: pd.merchantDomainName,
+        merchantSignature: pd.signature,
+        orderReference: pd.orderReference,
+        orderDate: pd.orderDate,
+        amount: pd.amount,
+        currency: pd.currency || 'UAH',
+        clientFirstName: firstName,
+        clientLastName: lastName,
+        clientPhone: guestPhone || '',
+        language: 'UA',
+        returnUrl: pd.returnUrl || (window.location.origin + '/pay.html?payment=success&id=' + encodeURIComponent(bookingId))
+    };
+
+    Object.keys(paramsMap).forEach(function(key) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = paramsMap[key];
+        form.appendChild(input);
+    });
+
+    const arrayParams = {
+        'productName[]': pd.productName,
+        'productPrice[]': pd.amount,
+        'productCount[]': pd.productCount || 1
+    };
+    Object.keys(arrayParams).forEach(function(key) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = arrayParams[key];
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+async function startCharge(amountKind, booking) {
+    const buttons = app.querySelectorAll('.pay-btn');
+    buttons.forEach(b => { b.disabled = true; });
+    setHtml('<div class="state"><div class="loader"></div><p>Переходимо до безпечної оплати…</p></div>');
+
+    try {
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'createWfpCharge',
+                bookingId: booking.bookingId,
+                amountKind: amountKind
+            })
+        });
+        const json = await res.json();
+        if (!json.success || !json.paymentData) {
+            const msg = ({
+                NOT_FOUND: 'Бронювання не знайдено',
+                CANCELLED: 'Бронювання скасовано',
+                NO_REMAINDER: 'Залишку до сплати немає',
+                ALREADY_PAID: 'Оплату вже отримано',
+                ZERO_AMOUNT: 'Сума оплати некоректна'
+            })[json.error] || 'Не вдалося створити оплату';
+            renderChooser(booking, msg);
+            return;
+        }
+
+        // Оновлюємо lastBooking під фактичну суму (для чека після повернення)
+        try {
+            const raw = sessionStorage.getItem('lastBooking');
+            const lb = raw ? JSON.parse(raw) : {};
+            lb.orderId = booking.bookingId;
+            lb._paidBeforeCharge = booking.paidAmount;
+            lb.prepayment = json.paymentData.amount;
+            lb.paidAmount = json.paymentData.amount;
+            lb.amountKind = amountKind;
+            lb.totalPrice = booking.totalPrice;
+            lb.cottage = booking.cottage;
+            lb.checkIn = booking.checkIn;
+            lb.checkOut = booking.checkOut;
+            if (!lb.source) lb.source = 'Сайт';
+            sessionStorage.setItem('lastBooking', JSON.stringify(lb));
+        } catch (e) {}
+
+        submitWfpForm(json.paymentData, booking.name, '');
+    } catch (e) {
+        renderChooser(booking, 'Помилка зʼєднання. Спробуйте ще раз.');
+    }
+}
+
+function renderChooser(booking, errorText) {
+    if (booking.cancelled) {
+        setHtml(
+            '<div class="state"><h2>Бронювання скасовано</h2><p>Онлайн-оплата недоступна для цієї броні.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+
+    if (booking.balance <= 0 && booking.paidAmount > 0) {
+        setHtml(
+            '<div class="state"><h2>Оплату отримано</h2><p>За цією бронею немає суми до сплати.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+
+    let actions = '';
+    if (booking.canPayRemainder) {
+        actions +=
+            '<button type="button" class="pay-btn" data-kind="remainder">' +
+            '<div><div class="pay-btn-title">Оплатити залишок</div>' +
+            '<div class="pay-btn-hint">Доплата онлайн через WayForPay</div></div>' +
+            '<div class="pay-btn-amount">' + money(booking.balance) + '</div></button>';
+    } else {
+        if (booking.canPayPrepay) {
+            actions +=
+                '<button type="button" class="pay-btn" data-kind="prepay">' +
+                '<div><div class="pay-btn-title">Передплата</div>' +
+                '<div class="pay-btn-hint">50% · решту можна сплатити пізніше</div></div>' +
+                '<div class="pay-btn-amount">' + money(booking.prepayAmount) + '</div></button>';
+        }
+        if (booking.canPayFull && booking.totalPrice !== booking.prepayAmount) {
+            actions +=
+                '<button type="button" class="pay-btn" data-kind="full">' +
+                '<div><div class="pay-btn-title">Повна оплата</div>' +
+                '<div class="pay-btn-hint">Уся сума бронювання одразу</div></div>' +
+                '<div class="pay-btn-amount">' + money(booking.totalPrice) + '</div></button>';
+        }
+    }
+
+    if (!actions) {
+        setHtml(
+            '<div class="state"><h2>Оплата недоступна</h2><p>За цією бронею немає доступної суми для онлайн-оплати.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+
+    setHtml(
+        (errorText ? '<div class="alert">' + errorText + '</div>' : '') +
+        '<div class="meta">' +
+            '<div class="meta-row"><span>Котедж</span><span>' + (booking.cottage || '—') + '</span></div>' +
+            '<div class="meta-row"><span>Заїзд</span><span>' + formatDateUa(booking.checkIn) + '</span></div>' +
+            '<div class="meta-row"><span>Виїзд</span><span>' + formatDateUa(booking.checkOut) + '</span></div>' +
+            '<div class="meta-row"><span>№ броні</span><span>' + booking.bookingId + '</span></div>' +
+            '<div class="meta-row"><span>Вартість</span><span>' + money(booking.totalPrice) + '</span></div>' +
+            (booking.paidAmount > 0
+                ? '<div class="meta-row"><span>Вже сплачено</span><span>' + money(booking.paidAmount) + '</span></div>' +
+                  '<div class="meta-row"><span>Залишок</span><span>' + money(booking.balance) + '</span></div>'
+                : '') +
+        '</div>' +
+        '<div class="section-title">Оплатити зараз</div>' +
+        actions +
+        '<div class="secure">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3 5 6v6c0 5 3.2 8.4 7 9 3.8-.6 7-4 7-9V6l-7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>' +
+            'Безпечна оплата WayForPay' +
+        '</div>'
+    );
+
+    app.querySelectorAll('.pay-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            startCharge(btn.getAttribute('data-kind'), booking);
+        });
+    });
+}
+
+async function handleSuccessReturn(id) {
+    setHtml('<div class="state"><div class="loader"></div><p>Підтверджуємо оплату…</p></div>');
+
+    let previousPaid = 0;
+    try {
+        const lb = JSON.parse(sessionStorage.getItem('lastBooking') || '{}');
+        if (lb && lb.orderId === id && lb._paidBeforeCharge != null) {
+            previousPaid = Number(lb._paidBeforeCharge) || 0;
+        } else if (lb && lb.orderId === id && (lb.amountKind === 'prepay' || lb.amountKind === 'full')) {
+            previousPaid = 0;
+        }
+    } catch (e) {}
+
+    const confirmed = await waitForPayment(id, previousPaid);
+    if (!confirmed) {
+        setHtml(
+            '<div class="state"><h2>Перевіряємо оплату</h2>' +
+            '<p>Платіж може підтвердитись із невеликою затримкою. Якщо кошти списались — бронь буде підтверджена автоматично.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+
+    // Перша оплата з сайту — показуємо преміум-чек на головній
+    const lastBookingStr = sessionStorage.getItem('lastBooking');
+    let isSiteFirstPay = false;
+    try {
+        const lb = JSON.parse(lastBookingStr || '{}');
+        isSiteFirstPay = lb && lb.orderId === id && lb.source === 'Сайт' &&
+            (lb.amountKind === 'prepay' || lb.amountKind === 'full' || !lb.amountKind);
+    } catch (e) {}
+
+    if (isSiteFirstPay && lastBookingStr) {
+        try { localStorage.setItem('lastBooking', lastBookingStr); } catch (e) {}
+        window.location.href = homeHref() + '?payment=success';
+        return;
+    }
+
+    const fullyPaid = Number(confirmed.balance) === 0;
+    setHtml(
+        '<div class="state"><h2>' + (fullyPaid ? 'Оплачено повністю' : 'Оплату отримано') + '</h2>' +
+        '<p>' + (fullyPaid
+            ? 'Дякуємо! Бронювання повністю оплачене.'
+            : 'Дякуємо! Платіж зараховано. Залишок: ' + money(confirmed.balance) + '.') +
+        '</p><a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+    );
+}
+
+async function init() {
+    if (!bookingId) {
+        setHtml(
+            '<div class="state"><h2>Немає номера броні</h2><p>Перевірте посилання на оплату.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+        return;
+    }
+
+    if (isReturnSuccess) {
+        await handleSuccessReturn(bookingId);
+        return;
+    }
+
+    try {
+        const data = await fetchPaymentPage(bookingId);
+        if (!data.success) {
+            setHtml(
+                '<div class="state"><h2>Бронювання не знайдено</h2><p>Перевірте посилання або зверніться до адміністратора.</p>' +
+                '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+            );
+            return;
+        }
+
+        // Фіксуємо paidAmount до charge — для коректного poll після повернення
+        try {
+            const raw = sessionStorage.getItem('lastBooking');
+            const lb = raw ? JSON.parse(raw) : { orderId: data.bookingId, source: 'Сайт' };
+            lb.orderId = data.bookingId;
+            lb._paidBeforeCharge = data.paidAmount;
+            lb.totalPrice = data.totalPrice;
+            lb.cottage = data.cottage;
+            lb.checkIn = data.checkIn;
+            lb.checkOut = data.checkOut;
+            if (!lb.source) lb.source = 'Сайт';
+            sessionStorage.setItem('lastBooking', JSON.stringify(lb));
+        } catch (e) {}
+
+        renderChooser(data);
+    } catch (e) {
+        setHtml(
+            '<div class="state"><h2>Помилка завантаження</h2><p>Спробуйте оновити сторінку.</p>' +
+            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
+        );
+    }
+}
+
+init();
+</script>
+</body>
+</html>

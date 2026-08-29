@@ -1365,6 +1365,10 @@ async function waitForPaymentConfirmation(orderId) {
                 setPreloaderPaymentStatus('');
                 return true;
             }
+            if (Number(data.paidAmount) > 0) {
+                setPreloaderPaymentStatus('');
+                return true;
+            }
         } catch (e) { console.error('Помилка перевірки оплати:', e); }
         if (i > 0 && i % 4 === 0) {
             setPreloaderPaymentStatus('Підтверджуємо оплату... зачекайте ще трохи');
@@ -2420,8 +2424,8 @@ function renderCheckout() {
                     <span style="font-size: 22px; font-weight: 800; color: var(--accent);">${calc.totalPrice.toLocaleString('uk-UA')} грн</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #FFF; padding: 14px; border-radius: 12px; border: 1px dashed var(--accent);">
-                    <span style="font-size: 14px; font-weight: 600; color: #4B5563;">Передплата (50%)<br><span style="font-size: 11px; font-weight: 400; color: #9CA3AF;">Для підтвердження броні</span></span>
-                    <span style="font-size: 18px; font-weight: 700; color: #1A1A1A;">${calc.prepayment.toLocaleString('uk-UA')} грн</span>
+                    <span style="font-size: 14px; font-weight: 600; color: #4B5563;">До сплати онлайн<br><span style="font-size: 11px; font-weight: 400; color: #9CA3AF;">На наступному кроці — передплата 50% або повна сума</span></span>
+                    <span style="font-size: 18px; font-weight: 700; color: #1A1A1A;">від ${calc.prepayment.toLocaleString('uk-UA')} грн</span>
                 </div>
             </div>
         </div>
@@ -2530,23 +2534,28 @@ async function submitBooking() {
             return;
         }
 
+        const orderId = json.orderId || (json.paymentData && json.paymentData.orderReference);
+        if (!orderId) {
+            toast('Помилка створення броні. Спробуйте ще раз.');
+            btn.disabled = false; btn.innerText = 'Забронювати';
+            return;
+        }
+
         const sessionData = {
-            orderId: json.paymentData ? json.paymentData.orderReference : ('BOSO-' + Date.now()),
+            orderId: orderId,
             cottage: bookingData.cottage,
             checkIn: bookingData.checkIn,
             checkOut: bookingData.checkOut,
             guests: bookingData.guests,
             pets: bookingData.pets,
             totalPrice: calc.totalPrice,
-            prepayment: json.paymentData ? json.paymentData.amount : 0,
+            prepayment: calc.prepayment,
             earlyTime: selectedEarlyTime,
             lateTime: selectedLateTime,
             dayGuests: extraDayGuests,
             hasVat: hasVat,
             hasUbd: hasUbd,
             hasCrib: hasCrib,
-            
-            // 🟢 ДОДАНО ДЛЯ ПРЕМІУМ-ЧЕКУ В ТГ:
             name: bookingData.name,
             phone: bookingData.phone,
             comment: bookingData.comment,
@@ -2558,70 +2567,15 @@ async function submitBooking() {
             earlyFee: calc.earlyFee,
             lateFee: calc.lateFee,
             discountAmount: calc.discountAmount,
-            paidAmount: json.paymentData ? json.paymentData.amount : 0,
-            status: "Підтверджено",
+            paidAmount: 0,
+            _paidBeforeCharge: 0,
+            status: "Очікує оплату",
             source: "Сайт"
         };
-        // Зберігаємо в браузер, щоб чек міг це прочитати після оплати
         sessionStorage.setItem('lastBooking', JSON.stringify(sessionData));
 
-        if (json.paymentData) {
-            const pd = json.paymentData;
-            
-            // Створюємо приховану форму
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.action = "https://secure.wayforpay.com/pay";
-            form.style.display = "none";
-            
-            // Базові параметри
-            const params = {
-                merchantAccount: pd.merchantAccount,
-                merchantDomainName: pd.merchantDomainName,
-                merchantSignature: pd.signature,
-                orderReference: pd.orderReference,
-                orderDate: pd.orderDate,
-                amount: pd.amount,
-                currency: pd.currency,
-                clientFirstName: firstName,
-                clientLastName: lastName,
-                clientPhone: bookingData.phone,
-                language: "UA",
-                returnUrl: window.location.origin + window.location.pathname + "?payment=success"
-            };
-
-            for (const key in params) {
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = key;
-                input.value = params[key];
-                form.appendChild(input);
-            }
-
-            // Масиви для товарів (специфічна вимога WayForPay)
-            const arrayParams = {
-                'productName[]': pd.productName,
-                'productPrice[]': pd.amount,
-                'productCount[]': pd.productCount
-            };
-            
-            for (const key in arrayParams) {
-                const input = document.createElement("input");
-                input.type = "hidden";
-                input.name = key;
-                input.value = arrayParams[key];
-                form.appendChild(input);
-            }
-            
-            document.body.appendChild(form);
-            form.submit(); // Перенаправляємо!
-            
-        } else {
-            // Якщо оплата не потрібна (сума 0)
-            document.getElementById('preloader').style.display = 'none';
-            renderSuccessReceipt();
-            showScreen('success');
-        }
+        // Вибір передплати / повної суми — на окремій сторінці оплати
+        window.location.href = 'pay.html?id=' + encodeURIComponent(orderId);
 
     } catch(e) {
         toast('Помилка відправки. Спробуйте ще раз.');
@@ -2761,13 +2715,14 @@ function renderSuccessReceipt() {
             ${extraHtml}
             
             <div class="receipt-total">
-                <span style="font-size:14px; font-weight:600;">Внесено аванс</span>
-                <span style="color: var(--accent);">${b.prepayment.toLocaleString('uk-UA')} грн</span>
+                <span style="font-size:14px; font-weight:600;">${(b.amountKind === 'full' || Number(b.prepayment) >= Number(b.totalPrice)) ? 'Сплачено повністю' : 'Внесено аванс'}</span>
+                <span style="color: var(--accent);">${Number(b.prepayment || 0).toLocaleString('uk-UA')} грн</span>
             </div>
+            ${(b.amountKind === 'full' || Number(b.prepayment) >= Number(b.totalPrice)) ? '' : `
             <div class="receipt-row" style="margin-top:12px;">
                 <span class="receipt-label" style="font-size:13px; font-weight: 500;">Залишок при заселенні:</span> 
-                <span class="receipt-val" style="font-size:13px; font-weight: 700;">${(b.totalPrice - b.prepayment).toLocaleString('uk-UA')} грн</span>
-            </div>
+                <span class="receipt-val" style="font-size:13px; font-weight: 700;">${(Number(b.totalPrice) - Number(b.prepayment || 0)).toLocaleString('uk-UA')} грн</span>
+            </div>`}
         `;
     } catch(e) { console.error("Помилка чеку:", e); }
 }
