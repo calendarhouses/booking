@@ -191,6 +191,133 @@
             color: var(--accent);
             border: 1.5px solid var(--border);
         }
+
+        /* Premium success (як на головній після бронювання) */
+        .success-wrap { text-align: center; padding: 8px 4px 12px; }
+        .success-icon-premium {
+            width: 72px; height: 72px;
+            margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: rgba(85,107,47,0.08);
+            color: var(--accent);
+        }
+        .success-icon-premium svg { width: 36px; height: 36px; stroke-width: 1.5; }
+        .success-wrap > h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+        .success-wrap > p {
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.55;
+            margin-bottom: 24px;
+        }
+        .success-receipt {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px 18px;
+            text-align: left;
+            margin-bottom: 22px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.04);
+        }
+        .receipt-header {
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 14px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .receipt-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .receipt-room {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .receipt-label { color: var(--muted); }
+        .receipt-val { font-weight: 600; color: var(--text); text-align: right; }
+        .receipt-pay-block {
+            margin-top: 16px;
+            padding: 16px 14px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #F7FAF3 0%, #F0F5EA 100%);
+            border: 1px solid rgba(85, 107, 47, 0.18);
+            text-align: center;
+        }
+        .receipt-pay-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+        .receipt-pay-amount {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.15;
+        }
+        .receipt-pay-rest {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(85, 107, 47, 0.25);
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .receipt-pay-rest strong { color: var(--text); font-weight: 700; }
+        .btn-tg {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; padding: 16px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            text-decoration: none;
+            transition: 0.3s;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(85, 107, 47, 0.25);
+        }
+        .btn-tg:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+        .btn-tg svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+        .btn-home-link {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 2px;
+        }
+        .btn-home-link:hover { color: var(--text); border-color: var(--text); }
     </style>
 </head>
 <body>
@@ -230,6 +357,88 @@ function formatDateUa(iso) {
     const p = String(iso).slice(0, 10).split('-');
     if (p.length !== 3) return iso;
     return p[2] + '.' + p[1] + '.' + p[0];
+}
+
+function formatLongDateUa(iso) {
+    if (!iso) return '—';
+    try {
+        const d = new Date(String(iso).slice(0, 10) + 'T12:00:00');
+        if (isNaN(d.getTime())) return formatDateUa(iso);
+        return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+    } catch (e) {
+        return formatDateUa(iso);
+    }
+}
+
+function guestWord(n) {
+    const v = Math.abs(Number(n) || 0) % 100;
+    const n1 = v % 10;
+    if (v > 10 && v < 20) return 'гостей';
+    if (n1 > 1 && n1 < 5) return 'гості';
+    if (n1 === 1) return 'гість';
+    return 'гостей';
+}
+
+const TG_CONCIERGE_HREF = 'tg://resolve?domain=bosohouses_bot&start=dzp4SnNlUkQyTw==';
+
+function renderPremiumSuccess(opts) {
+    const o = opts || {};
+    const fullyPaid = !!o.fullyPaid;
+    const totalPrice = Math.round(Number(o.totalPrice) || 0);
+    const paidAmount = Math.round(Number(o.paidAmount) || 0);
+    const balance = Math.round(Number(o.balance != null ? o.balance : Math.max(0, totalPrice - paidAmount)) || 0);
+    const amountKind = o.amountKind || '';
+    const justPaid = Math.round(Number(o.justPaidAmount != null ? o.justPaidAmount : paidAmount) || 0);
+
+    let payLabel = 'Оплачено';
+    if (fullyPaid || amountKind === 'full' || balance <= 0) payLabel = 'Сплачено повністю';
+    else if (amountKind === 'remainder') payLabel = 'Оплачено залишок';
+    else if (amountKind === 'prepay') payLabel = 'Внесено аванс';
+
+    const title = (fullyPaid || balance <= 0) ? 'Оплачено повністю' : 'Оплату отримано';
+    const subtitle = (fullyPaid || balance <= 0)
+        ? 'Дякуємо! Бронювання повністю оплачене. Деталі нижче.'
+        : 'Дякуємо! Платіж зараховано. Деталі нижче.';
+
+    const guests = o.guests != null && o.guests !== '' ? o.guests : null;
+    const bookingIdLabel = o.bookingId || '';
+
+    setHtml(
+        '<div class="success-wrap">' +
+            '<div class="success-icon-premium"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>' +
+            '<h2>' + title + '</h2>' +
+            '<p>' + subtitle + '</p>' +
+            '<div class="success-receipt">' +
+                '<div class="receipt-header">' +
+                    '<div class="receipt-title">Бронь котеджу</div>' +
+                    '<div class="receipt-room">' + (o.cottage || '—') + '</div>' +
+                '</div>' +
+                '<div class="receipt-row"><span class="receipt-label">Заїзд:</span><span class="receipt-val">' + formatLongDateUa(o.checkIn) + '</span></div>' +
+                '<div class="receipt-row"><span class="receipt-label">Виїзд:</span><span class="receipt-val">' + formatLongDateUa(o.checkOut) + '</span></div>' +
+                (guests != null
+                    ? '<div class="receipt-row"><span class="receipt-label">Гості:</span><span class="receipt-val">' + guests + ' ' + guestWord(guests) + '</span></div>'
+                    : '') +
+                (bookingIdLabel
+                    ? '<div class="receipt-row"><span class="receipt-label">№ броні:</span><span class="receipt-val">' + bookingIdLabel + '</span></div>'
+                    : '') +
+                (totalPrice > 0
+                    ? '<div class="receipt-row"><span class="receipt-label">Вартість:</span><span class="receipt-val">' + money(totalPrice) + '</span></div>'
+                    : '') +
+                '<div class="receipt-pay-block">' +
+                    '<div class="receipt-pay-label">' + payLabel + '</div>' +
+                    '<div class="receipt-pay-amount">' + money(justPaid > 0 ? justPaid : paidAmount) + '</div>' +
+                    (balance > 0
+                        ? '<div class="receipt-pay-rest">Залишок при заселенні: <strong>' + money(balance) + '</strong></div>'
+                        : '') +
+                '</div>' +
+            '</div>' +
+            '<a href="' + TG_CONCIERGE_HREF + '" class="btn-tg">' +
+                '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.11.03-1.84 1.18-5.18 3.44-.49.33-.93.49-1.33.48-.44-.01-1.28-.24-1.91-.44-.77-.24-1.38-.37-1.32-.78.03-.22.34-.44.93-.68 3.63-1.58 6.06-2.63 7.28-3.13 3.47-1.42 4.18-1.67 4.65-1.68.1 0 .33.02.45.1.1.06.13.14.14.21-.01.04-.01.12-.02.21z"/></svg>' +
+                'Телеграм Консьєрж' +
+            '</a>' +
+            '<a href="' + homeHref() + '" class="btn-home-link">Забронювати ще один котедж</a>' +
+        '</div>'
+    );
 }
 
 function setHtml(html) {
@@ -373,10 +582,19 @@ function renderChooser(booking, errorText) {
     }
 
     if (booking.balance <= 0 && booking.paidAmount > 0) {
-        setHtml(
-            '<div class="state"><h2>Оплату отримано</h2><p>За цією бронею немає суми до сплати.</p>' +
-            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
-        );
+        renderPremiumSuccess({
+            fullyPaid: true,
+            bookingId: booking.bookingId,
+            cottage: booking.cottage,
+            checkIn: booking.checkIn,
+            checkOut: booking.checkOut,
+            guests: booking.guests,
+            totalPrice: booking.totalPrice,
+            paidAmount: booking.paidAmount,
+            balance: 0,
+            amountKind: 'full',
+            justPaidAmount: booking.paidAmount
+        });
         return;
     }
 
@@ -455,6 +673,14 @@ async function handleSuccessReturn(id) {
         if (lb && lb.orderId === id) preferredKind = lb.amountKind || '';
     } catch (e) {}
 
+    // Після редіректу з WFP сторінка нова — підтягнемо деталі броні для чека
+    if (!cachedBooking) {
+        try {
+            const page = await fetchPaymentPage(id);
+            if (page && page.success) cachedBooking = page;
+        } catch (e) {}
+    }
+
     const confirmed = await waitForPayment(id, previousPaid);
     if (!confirmed) {
         renderPaymentFailed(id, preferredKind);
@@ -467,10 +693,16 @@ async function handleSuccessReturn(id) {
 function goToSuccessPage(id, confirmed) {
     const lastBookingStr = sessionStorage.getItem('lastBooking');
     let isSiteFirstPay = false;
+    let amountKind = '';
+    let previousPaid = 0;
     try {
         const lb = JSON.parse(lastBookingStr || '{}');
         isSiteFirstPay = lb && lb.orderId === id && lb.source === 'Сайт' &&
             (lb.amountKind === 'prepay' || lb.amountKind === 'full' || !lb.amountKind);
+        if (lb && lb.orderId === id) {
+            amountKind = lb.amountKind || '';
+            previousPaid = Number(lb._paidBeforeCharge) || 0;
+        }
         if (lb && confirmed) {
             if (confirmed.paidAmount != null) lb.paidAmount = confirmed.paidAmount;
             if (lb.amountKind === 'full' || Number(confirmed.balance) === 0) {
@@ -487,14 +719,25 @@ function goToSuccessPage(id, confirmed) {
         return;
     }
 
-    const fullyPaid = Number(confirmed.balance) === 0;
-    setHtml(
-        '<div class="state"><h2>' + (fullyPaid ? 'Оплачено повністю' : 'Оплату отримано') + '</h2>' +
-        '<p>' + (fullyPaid
-            ? 'Дякуємо! Бронювання повністю оплачене.'
-            : 'Дякуємо! Платіж зараховано. Залишок: ' + money(confirmed.balance) + '.') +
-        '</p><a class="home-link" href="' + homeHref() + '">На головну</a></div>'
-    );
+    const b = cachedBooking || {};
+    const paidAmount = Math.round(Number(confirmed.paidAmount != null ? confirmed.paidAmount : b.paidAmount) || 0);
+    const totalPrice = Math.round(Number(confirmed.totalPrice != null ? confirmed.totalPrice : b.totalPrice) || 0);
+    const balance = Math.round(Number(confirmed.balance != null ? confirmed.balance : Math.max(0, totalPrice - paidAmount)) || 0);
+    const justPaid = Math.max(0, paidAmount - previousPaid) || paidAmount;
+
+    renderPremiumSuccess({
+        fullyPaid: balance <= 0,
+        bookingId: id || b.bookingId,
+        cottage: confirmed.cottage || b.cottage,
+        checkIn: confirmed.checkIn || b.checkIn,
+        checkOut: confirmed.checkOut || b.checkOut,
+        guests: confirmed.guests != null ? confirmed.guests : b.guests,
+        totalPrice: totalPrice,
+        paidAmount: paidAmount,
+        balance: balance,
+        amountKind: amountKind,
+        justPaidAmount: justPaid
+    });
 }
 
 function renderPaymentFailed(id, preferredKind) {
@@ -558,19 +801,35 @@ function renderPaymentFailed(id, preferredKind) {
 async function init() {
     // Прев’ю екранів без WayForPay: ?preview=ok | ok-full | fail
     if (previewMode === 'ok' || previewMode === 'success') {
-        setHtml(
-            '<div class="state"><h2>Оплату отримано</h2>' +
-            '<p>Дякуємо! Платіж зараховано. Залишок: ' + money(3500) + '.</p>' +
-            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
-        );
+        renderPremiumSuccess({
+            fullyPaid: false,
+            bookingId: 'B-123',
+            cottage: 'JUNIOR 1',
+            checkIn: '2026-08-10',
+            checkOut: '2026-08-13',
+            guests: 2,
+            totalPrice: 7000,
+            paidAmount: 3500,
+            balance: 3500,
+            amountKind: 'prepay',
+            justPaidAmount: 3500
+        });
         return;
     }
     if (previewMode === 'ok-full' || previewMode === 'full') {
-        setHtml(
-            '<div class="state"><h2>Оплачено повністю</h2>' +
-            '<p>Дякуємо! Бронювання повністю оплачене.</p>' +
-            '<a class="home-link" href="' + homeHref() + '">На головну</a></div>'
-        );
+        renderPremiumSuccess({
+            fullyPaid: true,
+            bookingId: 'B-123',
+            cottage: 'JUNIOR 1',
+            checkIn: '2026-08-10',
+            checkOut: '2026-08-13',
+            guests: 2,
+            totalPrice: 7000,
+            paidAmount: 7000,
+            balance: 0,
+            amountKind: 'full',
+            justPaidAmount: 7000
+        });
         return;
     }
     if (previewMode === 'fail' || previewMode === 'error') {
