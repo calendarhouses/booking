@@ -366,15 +366,15 @@ function renderChooser(booking, errorText) {
             actions +=
                 '<button type="button" class="pay-btn" data-kind="prepay">' +
                 '<div><div class="pay-btn-title">Передплата</div>' +
-                '<div class="pay-btn-hint">50% · решту можна сплатити пізніше</div></div>' +
+                '<div class="pay-btn-hint">50% · решту можна сплатити пізніше' + (booking.testMode ? ' · тест' : '') + '</div></div>' +
                 '<div class="pay-btn-amount">' + money(booking.prepayAmount) + '</div></button>';
         }
-        if (booking.canPayFull && booking.totalPrice !== booking.prepayAmount) {
+        if (booking.canPayFull && Number(booking.fullAmount || booking.totalPrice) !== Number(booking.prepayAmount)) {
             actions +=
                 '<button type="button" class="pay-btn" data-kind="full">' +
                 '<div><div class="pay-btn-title">Повна оплата</div>' +
-                '<div class="pay-btn-hint">Уся сума бронювання одразу</div></div>' +
-                '<div class="pay-btn-amount">' + money(booking.totalPrice) + '</div></button>';
+                '<div class="pay-btn-hint">Уся сума бронювання одразу' + (booking.testMode ? ' · тест' : '') + '</div></div>' +
+                '<div class="pay-btn-amount">' + money(booking.fullAmount != null ? booking.fullAmount : booking.totalPrice) + '</div></button>';
         }
     }
 
