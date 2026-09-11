@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
     <script>if(window.innerWidth < 768) window.location.href = 'mobile.html' + window.location.search;</script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="additional-services.js?v=1"></script>
+    <script src="additional-services.js?v=2"></script>
     <title>BOSO | Бронювання котеджів</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -3160,16 +3160,37 @@ async function capturePremiumCard(b) {
         basePrice = Math.max(0, total + discAmt - feeSum);
     }
 
-    let cleanComment = rawComment.replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
-                                 .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
-                                 .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
-                                 .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
-                                 .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
-                                 .replace(/🕒 Пізній виїзд: до \d{2}:\d{2}(\s*\|\s*)?/g, '')
-                                 .replace(/Коментар гостя:/gi, '')
-                                 .replace(/^\|\s*/, '')
-                                 .replace(/\|\s*$/, '')
-                                 .trim();
+    let cleanComment = (typeof BosoServices !== 'undefined' && BosoServices.getGuestVisibleComment)
+        ? BosoServices.getGuestVisibleComment(rawComment)
+        : String(rawComment || '')
+            .replace(/🛎️#\d+(?:⏳)?:\s*[^|\n]+/g, '')
+            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳)?:\s*[^|\n]+/g, ' ')
+            .replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
+            .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
+            .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
+            .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
+            .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/🕒 Пізній виїзд: до \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/Коментар гостя:/gi, '')
+            .replace(/^\|\s*/, '')
+            .replace(/\|\s*$/, '')
+            .replace(/^[|\s]+|[|\s]+$/g, '')
+            .trim();|let cleanComment = (typeof BosoServices !== 'undefined' && BosoServices.getGuestVisibleComment)
+        ? BosoServices.getGuestVisibleComment(rawComment)
+        : String(rawComment || '')
+            .replace(/🛎️#\d+(?:⏳)?:\s*[^|\n]+/g, '')
+            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳)?:\s*[^|\n]+/g, ' ')
+            .replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
+            .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
+            .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
+            .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
+            .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/🕒 Пізній виїзд: до \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/Коментар гостя:/gi, '')
+            .replace(/^\|\s*/, '')
+            .replace(/\|\s*$/, '')
+            .replace(/^[|\s]+|[|\s]+$/g, '')
+            .trim();
 
     let extraHtml = '';
     const rowStyle = `display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; font-size: 15px; color: #4B5563;`;
@@ -3353,14 +3374,37 @@ async function captureCleaningCard(b) {
     let matchLate = rawComment.match(/🕒 Пізній виїзд: до (\d{2}:\d{2})/);
     let lateTime = matchLate ? matchLate[1] : null;
 
-    let cleanComment = rawComment.replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
-                                 .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
-                                 .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
-                                 .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
-                                 .replace(/🕒 Пізній виїзд: до \d{2}:\d{2}(\s*\|\s*)?/g, '')
-                                 .replace(/Коментар гостя:/gi, '')
-                                 .replace(/^[|\s]+|[|\s]+$/g, '')
-                                 .trim();
+    let cleanComment = (typeof BosoServices !== 'undefined' && BosoServices.getGuestVisibleComment)
+        ? BosoServices.getGuestVisibleComment(rawComment)
+        : String(rawComment || '')
+            .replace(/🛎️#\d+(?:⏳)?:\s*[^|\n]+/g, '')
+            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳)?:\s*[^|\n]+/g, ' ')
+            .replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
+            .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
+            .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
+            .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
+            .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/🕒 Пізній виїзд: до \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/Коментар гостя:/gi, '')
+            .replace(/^\|\s*/, '')
+            .replace(/\|\s*$/, '')
+            .replace(/^[|\s]+|[|\s]+$/g, '')
+            .trim();|let cleanComment = (typeof BosoServices !== 'undefined' && BosoServices.getGuestVisibleComment)
+        ? BosoServices.getGuestVisibleComment(rawComment)
+        : String(rawComment || '')
+            .replace(/🛎️#\d+(?:⏳)?:\s*[^|\n]+/g, '')
+            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳)?:\s*[^|\n]+/g, ' ')
+            .replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
+            .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
+            .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
+            .replace(/🇺🇦 УБД: Так\s*(\|\s*)?/g, '')
+            .replace(/🕒 Ранній заїзд: з \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/🕒 Пізній виїзд: до \d{2}:\d{2}(\s*\|\s*)?/g, '')
+            .replace(/Коментар гостя:/gi, '')
+            .replace(/^\|\s*/, '')
+            .replace(/\|\s*$/, '')
+            .replace(/^[|\s]+|[|\s]+$/g, '')
+            .trim();
 
     let extraHtml = '';
     const rowStyle = `display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; font-size: 15px; color: #4B5563;`;
