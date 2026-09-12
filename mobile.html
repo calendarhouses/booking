@@ -1710,7 +1710,7 @@ async function submitBooking() {
     let sysComment = [];
     // 🟢 Токени динамічних послуг (pets/crib/dayGuests/chan)
     if (typeof BosoServices !== 'undefined') {
-        BosoServices.buildServiceCommentTokens(selectedServices).forEach(t => sysComment.push(t));
+        BosoServices.buildServiceCommentTokens(selectedServices, customServicesList).forEach(t => sysComment.push(t));
     }
     const ubdNights = (selectedCheckIn && selectedCheckOut)
         ? Math.round((selectedCheckOut - selectedCheckIn) / 86400000) : 0;
@@ -2315,8 +2315,8 @@ async function capturePremiumCard(b) {
     let cleanComment = (typeof BosoServices !== 'undefined' && BosoServices.getGuestVisibleComment)
         ? BosoServices.getGuestVisibleComment(rawComment)
         : String(rawComment || '')
-            .replace(/🛎️#\d+(?:⏳)?:\s*[^|\n]+/g, '')
-            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳)?:\s*[^|\n]+/g, ' ')
+            .replace(/🛎️#\d+(?:⏳|✓)?:\s*[^|\n]+/g, '')
+            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳|✓)?:\s*[^|\n]+/g, ' ')
             .replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
             .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
             .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
@@ -2518,8 +2518,8 @@ async function captureCleaningCard(b) {
     let cleanComment = (typeof BosoServices !== 'undefined' && BosoServices.getGuestVisibleComment)
         ? BosoServices.getGuestVisibleComment(rawComment)
         : String(rawComment || '')
-            .replace(/🛎️#\d+(?:⏳)?:\s*[^|\n]+/g, '')
-            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳)?:\s*[^|\n]+/g, ' ')
+            .replace(/🛎️#\d+(?:⏳|✓)?:\s*[^|\n]+/g, '')
+            .replace(/(?:^|[|\s\n])(?:[A-Za-z])?#\d+(?:⏳|✓)?:\s*[^|\n]+/g, ' ')
             .replace(/👥 Денні гості[^|]+(\|\s*)?/g, '')
             .replace(/🛏️ Дитяче ліжечко: Так\s*(\|\s*)?/g, '')
             .replace(/♨️ Чан: Так\s*(\|\s*)?/g, '')
