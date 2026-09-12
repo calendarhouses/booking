@@ -779,6 +779,7 @@ let currentCabinId = null; let selectedCheckIn = null; let selectedCheckOut = nu
 let guestCount = 2; let extraDayGuests = 0; let hasPets = false; let hasCrib = false; let hasVat = false; let hasUbd = false; let calBase = new Date(); calBase.setDate(1);
 let customServicesList = [];
 let selectedServices = {};
+let serviceDays = {};
 const CRIB_FEE = 500;
 
 // ─── ХЕЛПЕРИ ДЛЯ ІКОНОК ───
@@ -1150,6 +1151,7 @@ function showDetail(cabinId) {
     hasUbd = false;
     // 🟢 Скидаємо вибір динамічних послуг
     selectedServices = {};
+    serviceDays = {};
     if (document.getElementById('ubdNo')) document.getElementById('ubdNo').classList.add('active');
     if (document.getElementById('ubdYes')) document.getElementById('ubdYes').classList.remove('active');
     updateUbdVisibility();
@@ -1403,6 +1405,11 @@ function updateProceedBtn() {
 }
 
 // ─── ДИНАМІЧНІ ДОДАТКОВІ ПОСЛУГИ ──────────────────────────────────────────
+function bookingNightsForServices() {
+    if (!selectedCheckIn || !selectedCheckOut) return 1;
+    return Math.max(1, Math.round((selectedCheckOut - selectedCheckIn) / 86400000));
+}
+
 function renderPublicCustomServices() {
     const mount = document.getElementById('publicCustomServicesMount');
     if (!mount) return;
@@ -1413,15 +1420,48 @@ function renderPublicCustomServices() {
         : customServicesList.filter(s => s.active !== false);
 
     if (!services.length) { mount.innerHTML = ''; return; }
+    const nightsCap = bookingNightsForServices();
 
     let html = '';
     services.forEach(function(service) {
         const id = String(service.id);
         const qty = Number(selectedServices[id] || 0);
         const isOnSite = typeof BosoServices !== 'undefined' && BosoServices.serviceIsOnSite(service);
+        const isRental = typeof BosoServices !== 'undefined' && BosoServices.serviceIsRentalDay(service);
         const inputType = typeof BosoServices !== 'undefined' ? BosoServices.serviceInputType(service) : (service.inputType === 'counter' ? 'counter' : 'toggle');
         const priceHint = typeof BosoServices !== 'undefined' ? BosoServices.formatServicePriceHint(service) : (service.description || '');
         const subLabel = isOnSite ? 'Оплата на місці' : priceHint;
+        const maxQ = service.maxQuantity || 20;
+        const maxD = Math.max(1, Math.min(Number(service.maxDays) || 14, nightsCap));
+        const days = qty > 0 && typeof BosoServices !== 'undefined' ? BosoServices.getServiceDays(serviceDays, id) : 0;
+        if (isRental && qty > 0 && days > maxD) serviceDays[id] = maxD;
+
+        if (isRental) {
+            const feeDays = qty > 0 ? Math.min(maxD, days || 1) : 1;
+            const fee = qty > 0 ? BosoServices.calculateServiceFee(service, qty, { serviceDays: serviceDays, rentalDays: feeDays }) : 0;
+            html += '<div style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">';
+            html += '<div class="guests-label">' + (service.name || '') + '</div>';
+            if (subLabel) html += '<div class="guests-sub" style="font-size:11px; color:var(--muted); margin-top:2px;">' + subLabel + '</div>';
+            html += '<div class="guests-row" style="margin-top:12px;padding-top:0;border:none;">';
+            html += '<div class="guests-label" style="font-size:13px;font-weight:500;">Кількість</div>';
+            html += '<div class="counter-wrap">';
+            html += '<button class="cnt-btn" onclick="changeSvcQty(' + id + ',-1)"' + (qty <= 0 ? ' disabled' : '') + '>−</button>';
+            html += '<span class="cnt-val">' + qty + '</span>';
+            html += '<button class="cnt-btn" onclick="changeSvcQty(' + id + ',1)"' + (qty >= maxQ ? ' disabled' : '') + '>+</button>';
+            html += '</div></div>';
+            html += '<div class="guests-row" style="margin-top:10px;padding-top:0;border:none;' + (qty <= 0 ? 'opacity:0.4;pointer-events:none;' : '') + '">';
+            html += '<div class="guests-label" style="font-size:13px;font-weight:500;">Діб прокату</div>';
+            html += '<div class="counter-wrap">';
+            html += '<button class="cnt-btn" onclick="changeSvcDays(' + id + ',-1)"' + (qty <= 0 || feeDays <= 1 ? ' disabled' : '') + '>−</button>';
+            html += '<span class="cnt-val">' + (qty > 0 ? feeDays : '—') + '</span>';
+            html += '<button class="cnt-btn" onclick="changeSvcDays(' + id + ',1)"' + (qty <= 0 || feeDays >= maxD ? ' disabled' : '') + '>+</button>';
+            html += '</div></div>';
+            if (qty > 0) {
+                html += '<div style="margin-top:10px;font-size:14px;font-weight:700;">= ' + fee.toLocaleString('uk-UA') + ' ₴ <span style="font-weight:500;color:var(--muted);">(' + BosoServices.formatQtyDaysLabel(qty, feeDays) + ')</span></div>';
+            }
+            html += '</div>';
+            return;
+        }
 
         html += '<div class="guests-row" style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 16px;">';
         html += '<div>';
@@ -1430,7 +1470,6 @@ function renderPublicCustomServices() {
         html += '</div>';
 
         if (inputType === 'counter') {
-            const maxQ = service.maxQuantity || 20;
             html += '<div class="counter-wrap">';
             html += '<button class="cnt-btn" onclick="changeSvcQty(' + id + ',-1)"' + (qty <= 0 ? ' disabled' : '') + '>−</button>';
             html += '<span class="cnt-val" id="svc-qty-' + id + '">' + qty + '</span>';
@@ -1455,8 +1494,30 @@ function changeSvcQty(id, dir) {
     const maxQ = svc ? (svc.maxQuantity || 20) : 20;
     const cur = Number(selectedServices[svcId] || 0);
     const next = Math.max(0, Math.min(maxQ, cur + dir));
-    if (next === 0) delete selectedServices[svcId];
-    else selectedServices[svcId] = next;
+    if (next === 0) {
+        delete selectedServices[svcId];
+        delete serviceDays[svcId];
+    } else {
+        selectedServices[svcId] = next;
+        if (svc && typeof BosoServices !== 'undefined' && BosoServices.serviceIsRentalDay(svc) && !serviceDays[svcId]) {
+            serviceDays[svcId] = 1;
+        }
+    }
+    renderPublicCustomServices();
+    const checkout = document.getElementById('drawer-step-checkout');
+    if (checkout && checkout.classList.contains('active')) renderCheckout();
+    else updateProceedBtn();
+}
+
+function changeSvcDays(id, dir) {
+    playClick();
+    const svcId = String(id);
+    if (!selectedServices[svcId]) return;
+    const svc = customServicesList.find(s => String(s.id) === svcId);
+    const nightsCap = bookingNightsForServices();
+    const maxD = Math.max(1, Math.min(Number(svc && svc.maxDays) || 14, nightsCap));
+    const cur = typeof BosoServices !== 'undefined' ? BosoServices.getServiceDays(serviceDays, svcId) : 1;
+    serviceDays[svcId] = Math.max(1, Math.min(maxD, cur + dir));
     renderPublicCustomServices();
     const checkout = document.getElementById('drawer-step-checkout');
     if (checkout && checkout.classList.contains('active')) renderCheckout();
@@ -1467,7 +1528,10 @@ function setSvcToggle(id, val) {
     playClick();
     const svcId = String(id);
     if (val) selectedServices[svcId] = 1;
-    else delete selectedServices[svcId];
+    else {
+        delete selectedServices[svcId];
+        delete serviceDays[svcId];
+    }
     renderPublicCustomServices();
     const checkout = document.getElementById('drawer-step-checkout');
     if (checkout && checkout.classList.contains('active')) renderCheckout();
@@ -1634,7 +1698,7 @@ function renderCheckout() {
 
     // 🟢 Динамічні рядки послуг (pets, crib, dayGuests, chan onSite, тощо)
     if (typeof BosoServices !== 'undefined' && customServicesList.length) {
-        const _checkoutLines = BosoServices.buildServiceLines(customServicesList, selectedServices, { nights: nights, adults: guestCount, children: 0 });
+        const _checkoutLines = BosoServices.buildServiceLines(customServicesList, selectedServices, { nights: nights, adults: guestCount, children: 0, serviceDays: serviceDays });
         _checkoutLines.forEach(function(line) {
             if (line.onSite) {
                 rows += `<div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: var(--accent);">
@@ -1642,7 +1706,7 @@ function renderCheckout() {
                     <span style="font-weight: 600;">Оплата на місці</span>
                 </div>`;
             } else if (line.fee > 0) {
-                const qtyNote = line.quantity > 1 ? ` (${line.quantity}×)` : '';
+                const qtyNote = line.label ? ` (${line.label})` : (line.quantity > 1 ? ` (${line.quantity}×)` : '');
                 rows += `<div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #4B5563;">
                     <span>${line.name}${qtyNote}</span>
                     <span style="font-weight: 600; color: #1A1A1A;">+${line.fee.toLocaleString('uk-UA')} грн</span>
@@ -1710,7 +1774,7 @@ async function submitBooking() {
     let sysComment = [];
     // 🟢 Токени динамічних послуг (pets/crib/dayGuests/chan)
     if (typeof BosoServices !== 'undefined') {
-        BosoServices.buildServiceCommentTokens(selectedServices, customServicesList).forEach(t => sysComment.push(t));
+        BosoServices.buildServiceCommentTokens(selectedServices, customServicesList, {}, serviceDays).forEach(t => sysComment.push(t));
     }
     const ubdNights = (selectedCheckIn && selectedCheckOut)
         ? Math.round((selectedCheckOut - selectedCheckIn) / 86400000) : 0;
@@ -1802,7 +1866,7 @@ function calcTotal(nights) {
     // 🟢 Розрахунок динамічних послуг (pets/dayGuests/crib/chan)
     let petFee = 0, dayGuestFee = 0, cribFee = 0;
     if (typeof BosoServices !== 'undefined' && customServicesList.length) {
-        const _svcLines = BosoServices.buildServiceLines(customServicesList, selectedServices, { nights: nights, adults: guestCount, children: 0 });
+        const _svcLines = BosoServices.buildServiceLines(customServicesList, selectedServices, { nights: nights, adults: guestCount, children: 0, serviceDays: serviceDays });
         _svcLines.forEach(function(line) {
             if (line.onSite) return;
             if (line.kind === 'pets') petFee += line.fee;
