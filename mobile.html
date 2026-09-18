@@ -774,7 +774,7 @@ function getSitePrepaymentAmount(half) {
 const initialFetchPromise = fetch(API_URL + '?action=initData&t=' + Date.now()).then(res => res.json()).catch(() => null);
 
 // ─── STATE ───
-let roomsList = []; let discountsList = []; let customPrices = {}; let restrictions = {}; let closedDates = {}; let bookingHorizon = { enabled: false, lastDate: '' }; let allBookings = [];
+let roomsList = []; let discountsList = []; let customPrices = {}; let restrictions = {}; let closedDates = {}; let earlyPrepOpened = {}; let bookingHorizon = { enabled: false, lastDate: '' }; let allBookings = [];
 let currentCabinId = null; let selectedCheckIn = null; let selectedCheckOut = null;
 let guestCount = 2; let extraDayGuests = 0; let hasPets = false; let hasCrib = false; let hasVat = false; let hasUbd = false; let calBase = new Date(); calBase.setDate(1);
 let customServicesList = [];
@@ -943,6 +943,7 @@ async function initApp() {
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;
+        if (sd.earlyPrepOpened) earlyPrepOpened = sd.earlyPrepOpened;
         if (sd.bookingHorizon) bookingHorizon = normalizeBookingHorizon(sd.bookingHorizon);
         customServicesList = (typeof BosoServices !== 'undefined')
             ? BosoServices.ensureDefaultCustomServices(sd.customServicesList || [])
@@ -2062,6 +2063,10 @@ function getRestrictionMinNights(roomId, dateObj) {
 
 /** День перед раннім заїздом — авто-закритий (підготовка номера). */
 function isDateAutoClosedByEarly(roomId, dateObj) {
+    const ds = dateStr(dateObj);
+    const rid = String(roomId);
+    if (earlyPrepOpened[roomId] && earlyPrepOpened[roomId][ds]) return false;
+    if (earlyPrepOpened[rid] && earlyPrepOpened[rid][ds]) return false;
     const room = roomsList.find(r => r.id == roomId || String(r.id) === String(roomId));
     if (!room) return false;
     const ranges = getBookedRanges(room.name || '');
@@ -2156,6 +2161,7 @@ async function refreshLiveData() {
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;
+        if (sd.earlyPrepOpened) earlyPrepOpened = sd.earlyPrepOpened;
         if (sd.bookingHorizon) bookingHorizon = normalizeBookingHorizon(sd.bookingHorizon);
         customServicesList = (typeof BosoServices !== 'undefined')
             ? BosoServices.ensureDefaultCustomServices(sd.customServicesList || [])

@@ -1276,6 +1276,7 @@ let discountsList = [];
 let customPrices = {};
 let restrictions = {}; // { roomId: { "YYYY-MM-DD": minNights } }
 let closedDates = {}; // { roomId: { "YYYY-MM-DD": true } }
+let earlyPrepOpened = {}; // адмін відкрив авто-закриття перед раннім заїздом
 let bookingHorizon = { enabled: false, lastDate: '' };
 let allBookings = [];
 let currentCabinId = null;
@@ -1458,6 +1459,7 @@ async function init() {
             if (sd.customPrices) customPrices = sd.customPrices;
             if (sd.restrictions) restrictions = sd.restrictions;
             if (sd.closedDates) closedDates = sd.closedDates;
+            if (sd.earlyPrepOpened) earlyPrepOpened = sd.earlyPrepOpened;
             if (sd.bookingHorizon) bookingHorizon = normalizeBookingHorizon(sd.bookingHorizon);
             customServicesList = (typeof BosoServices !== 'undefined')
                 ? BosoServices.ensureDefaultCustomServices(sd.customServicesList || [])
@@ -2900,6 +2902,10 @@ function getRestrictionMinNights(roomId, dateObj) {
 
 /** День перед раннім заїздом — авто-закритий (підготовка номера). */
 function isDateAutoClosedByEarly(roomId, dateObj) {
+    const ds = dateStr(dateObj);
+    const rid = String(roomId);
+    if (earlyPrepOpened[roomId] && earlyPrepOpened[roomId][ds]) return false;
+    if (earlyPrepOpened[rid] && earlyPrepOpened[rid][ds]) return false;
     const room = roomsList.find(r => r.id == roomId || String(r.id) === String(roomId));
     if (!room) return false;
     const ranges = getBookedRanges(room.name || '');
@@ -2997,6 +3003,7 @@ async function refreshLiveData() {
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;
+        if (sd.earlyPrepOpened) earlyPrepOpened = sd.earlyPrepOpened;
         if (sd.bookingHorizon) bookingHorizon = normalizeBookingHorizon(sd.bookingHorizon);
         customServicesList = (typeof BosoServices !== 'undefined')
             ? BosoServices.ensureDefaultCustomServices(sd.customServicesList || [])
