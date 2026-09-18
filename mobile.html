@@ -2060,11 +2060,34 @@ function getRestrictionMinNights(roomId, dateObj) {
     return 0;
 }
 
+/** День перед раннім заїздом — авто-закритий (підготовка номера). */
+function isDateAutoClosedByEarly(roomId, dateObj) {
+    const room = roomsList.find(r => r.id == roomId || String(r.id) === String(roomId));
+    if (!room) return false;
+    const ranges = getBookedRanges(room.name || '');
+    const next = new Date(dateObj);
+    next.setDate(next.getDate() + 1);
+    next.setHours(0, 0, 0, 0);
+    const nextT = next.getTime();
+    return ranges.some(r => r.hasEarly && r.start.getTime() === nextT);
+}
+
+/** День пізнього виїзду — зайнятий до ранку наступного дня. */
+function isDateAutoClosedByLate(roomId, dateObj) {
+    const room = roomsList.find(r => r.id == roomId || String(r.id) === String(roomId));
+    if (!room) return false;
+    const ranges = getBookedRanges(room.name || '');
+    const t = dateObj.getTime();
+    return ranges.some(r => r.hasLate && r.end.getTime() === t);
+}
+
 function isDateClosed(roomId, dateObj) {
     const ds = dateStr(dateObj);
     const rid = String(roomId);
     if (closedDates[roomId] && closedDates[roomId][ds]) return true;
     if (closedDates[rid] && closedDates[rid][ds]) return true;
+    if (isDateAutoClosedByEarly(roomId, dateObj)) return true;
+    if (isDateAutoClosedByLate(roomId, dateObj)) return true;
     return false;
 }
 
