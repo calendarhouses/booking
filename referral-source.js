@@ -1,7 +1,13 @@
 /**
  * Реферальна атрибуція для гостьового сайту (Threads / Instagram).
- * Посилання: ?ref=threads | ?ref=instagram (також utm_source=...).
- * Канонічні значення в базі: "Threads" | "Instagram" | "Сайт".
+ *
+ * Красиві посилання:
+ *   https://boso.com.ua/threads
+ *   https://boso.com.ua/instagram
+ *   короткі: /t  /ig
+ *
+ * Також працює: ?ref=threads | ?ref=instagram | ?utm_source=...
+ * Канон у базі: "Threads" | "Instagram" | "Сайт".
  */
 (function (global) {
   var STORAGE_KEY = 'boso_ref_source';
@@ -10,6 +16,7 @@
   var REF_MAP = {
     threads: 'Threads',
     thread: 'Threads',
+    t: 'Threads',
     instagram: 'Instagram',
     insta: 'Instagram',
     ig: 'Instagram'
@@ -18,10 +25,7 @@
   function normalizeRefToken(raw) {
     var t = String(raw || '').trim().toLowerCase();
     if (!t) return '';
-    if (REF_MAP[t]) return REF_MAP[t];
-    if (t === 'threads') return 'Threads';
-    if (t === 'instagram') return 'Instagram';
-    return '';
+    return REF_MAP[t] || '';
   }
 
   function canonicalizeStored(source) {
@@ -33,8 +37,24 @@
   function readUrlRef() {
     try {
       var params = new URLSearchParams(window.location.search || '');
-      var ref = params.get('ref') || params.get('utm_source') || '';
+      var ref = params.get('ref') || params.get('utm_source') || params.get('from') || '';
       return normalizeRefToken(ref);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /** /threads, /instagram, /t, /ig (також з .html) */
+  function readPathRef() {
+    try {
+      var path = String(window.location.pathname || '').toLowerCase();
+      var parts = path.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) {
+        var seg = parts[i].replace(/\.html?$/, '');
+        var hit = normalizeRefToken(seg);
+        if (hit) return hit;
+      }
+      return '';
     } catch (e) {
       return '';
     }
@@ -71,18 +91,19 @@
   function cleanRefFromUrl() {
     try {
       var u = new URL(window.location.href);
-      var had = u.searchParams.has('ref') || u.searchParams.has('utm_source');
+      var had = u.searchParams.has('ref') || u.searchParams.has('utm_source') || u.searchParams.has('from');
       if (!had) return;
       u.searchParams.delete('ref');
       u.searchParams.delete('utm_source');
+      u.searchParams.delete('from');
       var next = u.pathname + (u.search || '') + (u.hash || '');
       window.history.replaceState({}, document.title, next);
     } catch (e) {}
   }
 
-  /** Зчитати ref з URL (якщо є) і зберегти; повернути поточну атрибуцію. */
+  /** Зчитати ref з URL/шляху і зберегти; повернути поточну атрибуцію. */
   function captureFromUrl() {
-    var fromUrl = readUrlRef();
+    var fromUrl = readUrlRef() || readPathRef();
     if (fromUrl) {
       saveAttribution(fromUrl);
       cleanRefFromUrl();
@@ -101,14 +122,26 @@
     return s === 'Сайт' || s === 'Threads' || s === 'Instagram';
   }
 
+  /** Редірект з /threads|/instagram на головну (desktop/mobile). */
+  function goHomeAfterCapture(explicitSource) {
+    if (explicitSource) saveAttribution(explicitSource);
+    else captureFromUrl();
+    var isMobile = false;
+    try { isMobile = window.innerWidth < 768; } catch (e) {}
+    var target = isMobile ? '../mobile.html' : '../';
+    try { window.location.replace(target); } catch (e2) {
+      window.location.href = target;
+    }
+  }
+
   global.BosoReferral = {
     captureFromUrl: captureFromUrl,
     getBookingSource: getBookingSource,
     isGuestWebSource: isGuestWebSource,
     saveAttribution: saveAttribution,
-    loadAttribution: loadAttribution
+    loadAttribution: loadAttribution,
+    goHomeAfterCapture: goHomeAfterCapture
   };
 
-  // Ранній capture при підключенні скрипта
   try { captureFromUrl(); } catch (e0) {}
 })(typeof window !== 'undefined' ? window : this);
