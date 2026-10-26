@@ -18,6 +18,7 @@
     <script>if(window.innerWidth>=768) window.location.href='index.html' + window.location.search;</script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="additional-services.js?v=2"></script>
+    <script src="referral-source.js?v=1"></script>
     <script>window.history.replaceState(null, document.title, '/' + window.location.search);</script>
     <title>BOSO | Бронювання котеджів</title>
     
@@ -1815,7 +1816,7 @@ async function submitBooking() {
     const bData = {
         checkIn: dateStr(selectedCheckIn), checkOut: dateStr(selectedCheckOut), cottage: room?.name || '',
         name: `${firstName} ${lastName}`.trim(), phone: '+380' + phone.replace(/\D/g,''), guests: guestCount,
-        pets: _legacyFields.pets, status: 'Очікує оплату', totalPrice: calc.totalPrice, paidAmount: 0, source: 'Сайт', comment: comment,
+        pets: _legacyFields.pets, status: 'Очікує оплату', totalPrice: calc.totalPrice, paidAmount: 0, source: (typeof BosoReferral !== 'undefined' ? BosoReferral.getBookingSource() : 'Сайт'), comment: comment,
         cribFee: calc.cribFee || 0, dayGuestFee: calc.dayGuestFee || 0, petFee: calc.petFee || 0,
         earlyFee: calc.earlyFee || 0, lateFee: calc.lateFee || 0, extraGuestFee: calc.extraGuestFee || 0, basePrice: calc.basePrice || 0
     };
@@ -1846,7 +1847,7 @@ async function submitBooking() {
             basePrice: calc.basePrice, extraGuestFee: calc.extraGuestFee,
             petFee: calc.petFee, dayGuestFee: calc.dayGuestFee, cribFee: calc.cribFee,
             earlyFee: calc.earlyFee, lateFee: calc.lateFee, discountAmount: calc.discountAmount,
-            paidAmount: 0, _paidBeforeCharge: 0, status: "Очікує оплату", source: "Сайт"
+            paidAmount: 0, _paidBeforeCharge: 0, status: "Очікує оплату", source: bData.source || 'Сайт'
         }));
         // Для pay.html (читає sessionStorage) і мобільного чека (localStorage)
         try { sessionStorage.setItem('lastBooking', localStorage.getItem('lastBooking')); } catch (e) {}
