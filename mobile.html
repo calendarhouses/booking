@@ -1877,16 +1877,16 @@ function calcTotal(nights) {
         });
     }
     
-    // Розумний підбір знижки (тепер працює 100%)
+    // Розумний підбір знижки (період дії + виключення дат)
     let discountPercent = 0;
+    const ciIso = selectedCheckIn ? `${selectedCheckIn.getFullYear()}-${String(selectedCheckIn.getMonth()+1).padStart(2,'0')}-${String(selectedCheckIn.getDate()).padStart(2,'0')}` : '';
     if (typeof discountsList !== 'undefined') {
         discountsList.forEach(d => {
-            const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0; 
+            const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0;
             const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
-            
+            if (nights < condNights) return;
+
             let appliesToRoom = false;
-            
-            // 🟢 МАГІЯ: Перевіряємо всі можливі варіанти запису в базу (нові і старі)
             if (d.roomsIds && d.roomsIds.length > 0) {
                 appliesToRoom = d.roomsIds.includes("all") || d.roomsIds.includes(String(currentCabinId));
             } else if (d.rooms) {
@@ -1894,12 +1894,28 @@ function calcTotal(nights) {
                 let cName = String(room.name).toLowerCase();
                 appliesToRoom = rText.includes("всі") || rText.includes("все") || rText.includes(cName) || rText.includes("не обрано");
             } else {
-                appliesToRoom = true; // Якщо нічого не вказано - застосовуємо до всіх
+                appliesToRoom = true;
+            }
+            if (!appliesToRoom) return;
+
+            if (d.periodMode === 'range' && d.periodStart && d.periodEnd) {
+                const ps = String(d.periodStart).substring(0, 10);
+                const pe = String(d.periodEnd).substring(0, 10);
+                if (ciIso < ps || ciIso > pe) return;
+            }
+            if (d.excludeMode === 'range' && d.excludeStart && d.excludeEnd && selectedCheckIn) {
+                const es = String(d.excludeStart).substring(0, 10);
+                const ee = String(d.excludeEnd).substring(0, 10);
+                let blocked = false;
+                for (let i = 0; i < nights; i++) {
+                    const nd = new Date(selectedCheckIn); nd.setDate(nd.getDate() + i);
+                    const ns = `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}-${String(nd.getDate()).padStart(2,'0')}`;
+                    if (ns >= es && ns <= ee) { blocked = true; break; }
+                }
+                if (blocked) return;
             }
 
-            if (nights >= condNights && appliesToRoom && pct > discountPercent) {
-                discountPercent = pct;
-            }
+            if (pct > discountPercent) discountPercent = pct;
         });
     }
     

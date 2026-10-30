@@ -2718,20 +2718,35 @@ function calcTotal(nights) {
         });
     }
 
-    // Розумний підбір знижки (як в адмінці)
+    // Розумний підбір знижки (період дії + виключення дат)
     let discountPercent = 0;
+    const ciIso = selectedCheckIn ? `${selectedCheckIn.getFullYear()}-${String(selectedCheckIn.getMonth()+1).padStart(2,'0')}-${String(selectedCheckIn.getDate()).padStart(2,'0')}` : '';
+    const coIso = selectedCheckOut ? `${selectedCheckOut.getFullYear()}-${String(selectedCheckOut.getMonth()+1).padStart(2,'0')}-${String(selectedCheckOut.getDate()).padStart(2,'0')}` : '';
     discountsList.forEach(d => {
         const condNights = parseInt(String(d.condition).replace(/\D/g,'')) || 0;
         const pct = parseInt(String(d.discount).replace(/\D/g,'')) / 100;
-        
-        // 🟢 МАГІЯ: Розумна перевірка прив'язки до номеру (підтримуємо і нові, і старі записи з бази)
-        const appliesToRoom = 
-            (d.roomsIds && (d.roomsIds.includes("all") || d.roomsIds.includes(String(currentCabinId)))) || 
+        if (nights < condNights) return;
+        const appliesToRoom =
+            (d.roomsIds && (d.roomsIds.includes("all") || d.roomsIds.includes(String(currentCabinId)))) ||
             (!d.roomsIds && String(d.rooms).includes("Всі"));
-        
-        if (nights >= condNights && appliesToRoom && pct > discountPercent) {
-            discountPercent = pct;
+        if (!appliesToRoom) return;
+        if (d.periodMode === 'range' && d.periodStart && d.periodEnd) {
+            const ps = String(d.periodStart).substring(0, 10);
+            const pe = String(d.periodEnd).substring(0, 10);
+            if (ciIso < ps || ciIso > pe) return;
         }
+        if (d.excludeMode === 'range' && d.excludeStart && d.excludeEnd) {
+            const es = String(d.excludeStart).substring(0, 10);
+            const ee = String(d.excludeEnd).substring(0, 10);
+            let blocked = false;
+            for (let i = 0; i < nights; i++) {
+                const nd = new Date(selectedCheckIn); nd.setDate(nd.getDate() + i);
+                const ns = `${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}-${String(nd.getDate()).padStart(2,'0')}`;
+                if (ns >= es && ns <= ee) { blocked = true; break; }
+            }
+            if (blocked) return;
+        }
+        if (pct > discountPercent) discountPercent = pct;
     });
 
     // Знижка УБД (лише 1 ніч)
