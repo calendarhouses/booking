@@ -1274,6 +1274,7 @@ function getSitePrepaymentAmount(half) {
 // ─── STATE ─────────────────────────────────────────────────────────────────
 let roomsList = [];
 let discountsList = [];
+let extraGuestWaivers = [];
 let customPrices = {};
 let restrictions = {}; // { roomId: { "YYYY-MM-DD": minNights } }
 let closedDates = {}; // { roomId: { "YYYY-MM-DD": true } }
@@ -1457,6 +1458,7 @@ async function init() {
 
             if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
             if (sd.discountsList) discountsList = sd.discountsList;
+            if (Array.isArray(sd.extraGuestWaivers)) extraGuestWaivers = sd.extraGuestWaivers;
             if (sd.customPrices) customPrices = sd.customPrices;
             if (sd.restrictions) restrictions = sd.restrictions;
             if (sd.closedDates) closedDates = sd.closedDates;
@@ -2701,10 +2703,23 @@ function calcTotal(nights) {
         base += getDayPrice(room, d);
     }
 
-    // Розрахунок додаткових гостей
+    // Розрахунок додаткових гостей (з періодами без доплати)
     const extraGuests = Math.max(0, guestCount - room.capacity);
     const extraPrice = room.extraGuestPrice !== undefined ? room.extraGuestPrice : 2500;
-    const extraGuestFee = extraGuests * extraPrice * nights;
+    let extraGuestFee = 0;
+    if (extraGuests > 0) {
+        for (let i = 0; i < nights; i++) {
+            const d = new Date(selectedCheckIn); d.setDate(d.getDate() + i);
+            const ns = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            const waived = (extraGuestWaivers || []).some(w => {
+                const rooms = w.roomsIds || [];
+                const ok = !rooms.length || rooms.includes('all') || rooms.map(String).includes(String(room.id));
+                if (!ok) return false;
+                return ns >= String(w.start||'').substring(0,10) && ns <= String(w.end||'').substring(0,10);
+            });
+            if (!waived) extraGuestFee += extraGuests * extraPrice;
+        }
+    }
     
     // 🟢 Розрахунок динамічних послуг (pets/dayGuests/crib/chan)
     let petFee = 0, dayGuestFee = 0, cribFee = 0;
@@ -3016,6 +3031,7 @@ async function refreshLiveData() {
         const sd = data.settings || {};
         if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
         if (sd.discountsList) discountsList = sd.discountsList;
+        if (Array.isArray(sd.extraGuestWaivers)) extraGuestWaivers = sd.extraGuestWaivers;
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;

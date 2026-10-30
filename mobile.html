@@ -775,7 +775,7 @@ function getSitePrepaymentAmount(half) {
 const initialFetchPromise = fetch(API_URL + '?action=initData&t=' + Date.now()).then(res => res.json()).catch(() => null);
 
 // ─── STATE ───
-let roomsList = []; let discountsList = []; let customPrices = {}; let restrictions = {}; let closedDates = {}; let earlyPrepOpened = {}; let bookingHorizon = { enabled: false, lastDate: '' }; let allBookings = [];
+let roomsList = []; let discountsList = []; let extraGuestWaivers = []; let customPrices = {}; let restrictions = {}; let closedDates = {}; let earlyPrepOpened = {}; let bookingHorizon = { enabled: false, lastDate: '' }; let allBookings = [];
 let currentCabinId = null; let selectedCheckIn = null; let selectedCheckOut = null;
 let guestCount = 2; let extraDayGuests = 0; let hasPets = false; let hasCrib = false; let hasVat = false; let hasUbd = false; let calBase = new Date(); calBase.setDate(1);
 let customServicesList = [];
@@ -941,6 +941,7 @@ async function initApp() {
         const sd = data.settings || {};
         if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
         if (sd.discountsList) discountsList = sd.discountsList;
+        if (Array.isArray(sd.extraGuestWaivers)) extraGuestWaivers = sd.extraGuestWaivers;
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;
@@ -1864,7 +1865,20 @@ function calcTotal(nights) {
     }
     const extraGuests = Math.max(0, guestCount - (room.capacity || 2));
     const extraPrice = room.extraGuestPrice !== undefined ? room.extraGuestPrice : 2500;
-    const extraGuestFee = extraGuests * extraPrice * nights;
+    let extraGuestFee = 0;
+    if (extraGuests > 0) {
+        for (let i = 0; i < nights; i++) {
+            const d = new Date(selectedCheckIn); d.setDate(d.getDate() + i);
+            const ns = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            const waived = (extraGuestWaivers || []).some(w => {
+                const rooms = w.roomsIds || [];
+                const ok = !rooms.length || rooms.includes('all') || rooms.map(String).includes(String(room.id));
+                if (!ok) return false;
+                return ns >= String(w.start||'').substring(0,10) && ns <= String(w.end||'').substring(0,10);
+            });
+            if (!waived) extraGuestFee += extraGuests * extraPrice;
+        }
+    }
     // 🟢 Розрахунок динамічних послуг (pets/dayGuests/crib/chan)
     let petFee = 0, dayGuestFee = 0, cribFee = 0;
     if (typeof BosoServices !== 'undefined' && customServicesList.length) {
@@ -2175,6 +2189,7 @@ async function refreshLiveData() {
         const sd = data.settings || {};
         if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
         if (sd.discountsList) discountsList = sd.discountsList;
+        if (Array.isArray(sd.extraGuestWaivers)) extraGuestWaivers = sd.extraGuestWaivers;
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;
