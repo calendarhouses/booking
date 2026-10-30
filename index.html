@@ -1275,6 +1275,7 @@ function getSitePrepaymentAmount(half) {
 let roomsList = [];
 let discountsList = [];
 let extraGuestWaivers = [];
+let peakStayRules = [];
 let customPrices = {};
 let restrictions = {}; // { roomId: { "YYYY-MM-DD": minNights } }
 let closedDates = {}; // { roomId: { "YYYY-MM-DD": true } }
@@ -1459,6 +1460,7 @@ async function init() {
             if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
             if (sd.discountsList) discountsList = sd.discountsList;
             if (Array.isArray(sd.extraGuestWaivers)) extraGuestWaivers = sd.extraGuestWaivers;
+            if (Array.isArray(sd.peakStayRules)) peakStayRules = sd.peakStayRules;
             if (sd.customPrices) customPrices = sd.customPrices;
             if (sd.restrictions) restrictions = sd.restrictions;
             if (sd.closedDates) closedDates = sd.closedDates;
@@ -2697,11 +2699,12 @@ function calcTotal(nights) {
     const room = roomsList.find(r => r.id == currentCabinId);
     if (!room || !selectedCheckIn) return { basePrice:0, extraGuestFee:0, petFee:0, discountAmount:0, discountPercent:0, totalPrice:0, prepayment:0 };
 
-    let base = 0;
-    for (let i = 0; i < nights; i++) {
-        const d = new Date(selectedCheckIn); d.setDate(d.getDate() + i);
-        base += getDayPrice(room, d);
+    let co = selectedCheckOut;
+    if (!co && selectedCheckIn) {
+        co = new Date(selectedCheckIn);
+        co.setDate(co.getDate() + nights);
     }
+    let base = calcStayBasePrice(room, selectedCheckIn, co);
 
     // Розрахунок додаткових гостей (з періодами без доплати)
     const extraGuests = Math.max(0, guestCount - room.capacity);
@@ -2823,6 +2826,47 @@ function calcTotal(nights) {
         if (!price || price === 0) price = 4500; 
         
         return price;
+    }
+
+    function findPeakStayRuleForNight(roomId, dateIso) {
+        const ds = String(dateIso || '').substring(0, 10);
+        const rid = String(roomId);
+        return (peakStayRules || []).find(r => {
+            const rooms = r.roomsIds || [];
+            const okRoom = !rooms.length || rooms.includes('all') || rooms.map(String).includes(rid);
+            if (!okRoom) return false;
+            return ds >= String(r.start || '').substring(0, 10) && ds <= String(r.end || '').substring(0, 10);
+        }) || null;
+    }
+
+    function calcStayBasePrice(room, checkIn, checkOut) {
+        if (!room || !checkIn || !checkOut) return 0;
+        const start = checkIn instanceof Date ? new Date(checkIn) : new Date(String(checkIn).substring(0, 10) + 'T12:00:00');
+        const end = checkOut instanceof Date ? new Date(checkOut) : new Date(String(checkOut).substring(0, 10) + 'T12:00:00');
+        start.setHours(12,0,0,0); end.setHours(12,0,0,0);
+        if (isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) return 0;
+        let total = 0;
+        const peakBuckets = {};
+        for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+            const night = new Date(d);
+            const iso = dateStr(night);
+            const rule = findPeakStayRuleForNight(room.id, iso);
+            if (rule) {
+                const key = String(rule.id);
+                if (!peakBuckets[key]) peakBuckets[key] = { rule, nights: [] };
+                peakBuckets[key].nights.push(night);
+            } else {
+                total += getDayPrice(room, night);
+            }
+        }
+        Object.keys(peakBuckets).forEach(key => {
+            const { rule, nights } = peakBuckets[key];
+            const maxPeak = Math.max(0, parseInt(rule.maxPeakNights, 10) || 0);
+            const peakPrice = Number(rule.peakPrice) || 0;
+            const overflowPrice = Number(rule.overflowPrice) || 0;
+            nights.forEach((_, idx) => { total += idx < maxPeak ? peakPrice : overflowPrice; });
+        });
+        return total;
     }
 
    // --- ФОРМУВАННЯ ЧЕКУ ---
@@ -3032,6 +3076,7 @@ async function refreshLiveData() {
         if (sd.roomsList) roomsList = sd.roomsList.filter(r => r.active);
         if (sd.discountsList) discountsList = sd.discountsList;
         if (Array.isArray(sd.extraGuestWaivers)) extraGuestWaivers = sd.extraGuestWaivers;
+        if (Array.isArray(sd.peakStayRules)) peakStayRules = sd.peakStayRules;
         if (sd.customPrices) customPrices = sd.customPrices;
         if (sd.restrictions) restrictions = sd.restrictions;
         if (sd.closedDates) closedDates = sd.closedDates;
