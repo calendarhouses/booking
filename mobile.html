@@ -1621,7 +1621,7 @@ function syncGuestCapacityHint() {
     const extra = getRoomExtraGuestPrice(room);
     if (sub) {
         if (max > base) {
-            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного додаткового`;
+            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного`;
         } else {
             sub.textContent = `З ночівлею • до ${max} гостей`;
         }

@@ -147,8 +147,8 @@
             border: 1px solid var(--border);
             box-shadow: 0 16px 40px rgba(18, 26, 18, 0.05);
             
-            /* Фіксована панорама як раніше (+трохи під рядок про гостей) */
-            height: 500px;
+            /* Фіксована панорама як раніше (+під рядок «за кожного додаткового») */
+            height: 520px;
             
             opacity: 0;
             transform: translateX(-120px);
@@ -211,13 +211,12 @@
         /* ── ІНФОРМАЦІЯ ТА НОВІ ФІЧІ ── */
         .cabin-body { 
             width: 45%; 
-            padding: 32px 40px;
+            padding: 28px 36px;
             display: flex; 
             flex-direction: column; 
             text-align: left;
             min-width: 0;
             box-sizing: border-box;
-            overflow: hidden;
         }
         .cabin-name {
             font-family: 'Inter', sans-serif; 
@@ -300,7 +299,7 @@
             .cabin-card, .cabin-card:nth-child(even) { flex-direction: column; height: auto; }
             .slider-wrap, .cabin-body { width: 100%; }
             .slider-wrap { height: 320px; }
-            .cabin-body { padding: 32px 24px; overflow: visible; }
+            .cabin-body { padding: 32px 24px; }
             .cabin-footer-block { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
             .price-hint { white-space: normal; }
             .btn-book { width: 100%; text-align: center; }
@@ -2383,7 +2382,7 @@ function syncGuestCapacityHint() {
     const extra = getRoomExtraGuestPrice(room);
     if (sub) {
         if (max > base) {
-            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного додаткового`;
+            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного`;
         } else {
             sub.textContent = `З ночівлею • до ${max} гостей`;
         }
