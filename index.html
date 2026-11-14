@@ -249,12 +249,39 @@
 
         .cabin-footer-block {
             background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 20px;
-            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; margin-top: 16px; 
+            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px;
         }
-        .price-info { display: flex; flex-direction: column; }
+        .cabin-footer-block .btn-book { flex-shrink: 0; align-self: center; }
+        .price-info { display: flex; flex-direction: column; min-width: 0; }
         .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
         .price-val { font-family: 'Inter', sans-serif; font-size: 15px; color: #4B5563; font-weight: 500; }
         .price-val strong { font-family: 'Inter', sans-serif; font-size: 24px; color: #1A1A1A; font-weight: 700; }
+        .price-hint {
+            margin-top: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #6B7280;
+            max-width: 34ch;
+        }
+        .price-hint strong { color: #3A4F35; font-weight: 700; }
+        .cabin-meta-item--cap { background: #F3F6EC; border-color: rgba(58, 79, 53, 0.18); color: #3A4F35; }
+        .guest-cap-hint {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: #F3F6EC;
+            border: 1px solid rgba(58, 79, 53, 0.14);
+            font-size: 12px;
+            line-height: 1.45;
+            color: #3F5222;
+        }
+        .guest-cap-hint.is-extra {
+            background: #FFFBEB;
+            border-color: #FDE68A;
+            color: #92400E;
+        }
 
         .btn-book {
             background: #3A4F35; color: #fff; border: none; border-radius: 14px;
@@ -389,8 +416,10 @@
             background: rgba(247,245,242,0.95); backdrop-filter: blur(12px); border-top: 1px solid var(--border);
             padding: 24px 48px; display: flex; align-items: center; justify-content: space-between; z-index: 50;
         }
-        .sticky-price { font-size: 14px; color: var(--muted); }
+        .sticky-price { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; }
         .sticky-price strong { font-size: 24px; color: var(--text); font-weight: 700; }
+        .sticky-price-hint { margin-top: 2px; font-size: 12px; line-height: 1.35; color: #6B7280; }
+        .sticky-price-hint:empty { display: none; }
         /* ── ПРЕМІУМ КАРТА ── */
         .map-wrapper {
             position: relative;
@@ -1073,7 +1102,7 @@
             </div> 
             
             <div class="sticky-cta">
-                <div class="sticky-price">від <strong id="ctaPrice">—</strong> грн / ніч</div>
+                <div class="sticky-price">від <strong id="ctaPrice">—</strong> грн / ніч<span class="sticky-price-hint" id="ctaPriceHint"></span></div>
                 <button class="btn-proceed" onclick="goToStep('calendar')" style="width: auto; padding: 14px 32px;">Обрати дати</button>
             </div>
         </div>
@@ -1102,7 +1131,7 @@
                     <div class="guests-row">
                         <div>
                             <div class="guests-label">Дорослі</div>
-                            <div class="guests-sub" style="font-size:12px; color:var(--muted); margin-top:2px;">З ночівлею</div>
+                            <div class="guests-sub" id="guestCapacitySub" style="font-size:12px; color:var(--muted); margin-top:2px;">З ночівлею</div>
                         </div>
                         <div class="counter-wrap">
                             <button class="cnt-btn" id="guestMinus" onclick="changeGuests(-1)">−</button>
@@ -1110,6 +1139,7 @@
                             <button class="cnt-btn" id="guestPlus" onclick="changeGuests(1)">+</button>
                         </div>
                     </div>
+                    <div class="guest-cap-hint" id="guestCapHint" aria-live="polite"></div>
 
                     <!-- 🟢 ДИНАМІЧНІ ДОДАТКОВІ ПОСЛУГИ (pets/dayGuests/crib/chan) -->
                     <div id="publicCustomServicesMount"></div>
@@ -1710,9 +1740,9 @@ function renderCabinList() {
                 ${getCabinFeaturesHTML(r.name)}
                 
                 <div class="cabin-meta">
-                    <div class="cabin-meta-item">
+                    <div class="cabin-meta-item cabin-meta-item--cap">
                         <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
-                        До ${r.maxCapacity || r.capacity} гостей
+                        ${formatRoomCapacityChip(r)}
                     </div>
                     <div class="cabin-meta-item">
                         <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75"/></svg>
@@ -1724,6 +1754,7 @@ function renderCabinList() {
                     <div class="price-info">
                         <span class="price-label">Вартість</span>
                         <span class="price-val">від <strong>${minPrice.toLocaleString('uk-UA')}</strong> грн / ніч</span>
+                        <span class="price-hint">${formatRoomPriceHint(r)}</span>
                     </div>
                     <button class="btn-book" onclick="showDetail(${r.id})">Забронювати</button>
                 </div>
@@ -1817,6 +1848,7 @@ function showDetail(cabinId) {
     document.getElementById('guestCount').innerText = guestCount;
     // 🟢 Рендеримо динамічні послуги для обраного котеджу
     renderPublicCustomServices();
+    syncGuestCapacityHint();
 
     // Слайдер (Рендеримо фотографії поточного котеджу)
     const ds = document.getElementById('detailSlider');
@@ -1842,13 +1874,20 @@ function showDetail(cabinId) {
     if (elPrice) {
         elPrice.innerText = getRoomFromPrice(room).toLocaleString('uk-UA');
     }
+    const ctaHint = document.getElementById('ctaPriceHint');
+    if (ctaHint) {
+        const base = getRoomBaseCapacity(room);
+        const max = getRoomMaxCapacity(room);
+        ctaHint.textContent = max > base ? `за ${base} гостей · до ${max}` : `за ${base} гостей`;
+    }
     
     const elMeta = document.getElementById('detailMeta');
     if(elMeta) {
         elMeta.innerHTML = `
-            <div class="detail-meta-item">До ${room.maxCapacity || room.capacity} гостей</div>
+            <div class="detail-meta-item">${formatRoomCapacityChip(room)}</div>
             <div class="detail-meta-item">Вільний: <strong style="color:var(--accent);margin-left:4px;">${getNextFreeDate(room.name)}</strong></div>`;
     }
+    syncGuestCapacityHint();
 
     renderAmenities(cfg.amenities);
 
@@ -2029,6 +2068,7 @@ function renderCalendar() {
         if(btnPlus) btnPlus.disabled = guestCount >= (r.maxCapacity || r.capacity);
         if(btnMinus) btnMinus.disabled = guestCount <= 1;
         if(cntVal) cntVal.innerText = guestCount;
+        syncGuestCapacityHint();
     }
 }
 
@@ -2297,8 +2337,67 @@ function changeGuests(dir) {
     if(cntVal) cntVal.innerText = guestCount;
     if(btnPlus) btnPlus.disabled = guestCount >= max;
     if(btnMinus) btnMinus.disabled = guestCount <= 1;
+    syncGuestCapacityHint();
     
     updateProceedBtn();
+}
+
+function getRoomBaseCapacity(room) {
+    return Math.max(1, parseInt(room && room.capacity, 10) || 2);
+}
+function getRoomMaxCapacity(room) {
+    const base = getRoomBaseCapacity(room);
+    return Math.max(base, parseInt(room && room.maxCapacity, 10) || base);
+}
+function getRoomExtraGuestPrice(room) {
+    return room && room.extraGuestPrice !== undefined ? Number(room.extraGuestPrice) : 2500;
+}
+function formatRoomCapacityChip(room) {
+    const base = getRoomBaseCapacity(room);
+    const max = getRoomMaxCapacity(room);
+    if (max <= base) return `До ${max} гостей`;
+    return `${base} у ціні · до ${max}`;
+}
+function formatRoomPriceHint(room) {
+    const base = getRoomBaseCapacity(room);
+    const max = getRoomMaxCapacity(room);
+    const extra = getRoomExtraGuestPrice(room);
+    if (max <= base) return `ціна за ${base} ${guestWord(base)}`;
+    return `ціна за <strong>${base} ${guestWord(base)}</strong> · +${extra.toLocaleString('uk-UA')} ₴/ніч за кожного додаткового`;
+}
+function syncGuestCapacityHint() {
+    const room = roomsList.find(r => r.id == currentCabinId);
+    const sub = document.getElementById('guestCapacitySub');
+    const hint = document.getElementById('guestCapHint');
+    if (!room) {
+        if (sub) sub.textContent = 'З ночівлею';
+        if (hint) { hint.style.display = 'none'; hint.textContent = ''; }
+        return;
+    }
+    const base = getRoomBaseCapacity(room);
+    const max = getRoomMaxCapacity(room);
+    const extra = getRoomExtraGuestPrice(room);
+    if (sub) {
+        sub.textContent = max > base
+            ? `З ночівлею · у ціні до ${base}, далі +${extra.toLocaleString('uk-UA')} ₴/ніч`
+            : `З ночівлею · до ${max} гостей`;
+    }
+    if (!hint) return;
+    if (max <= base) {
+        hint.style.display = 'none';
+        hint.textContent = '';
+        hint.classList.remove('is-extra');
+        return;
+    }
+    hint.style.display = '';
+    const over = Math.max(0, guestCount - base);
+    if (over > 0) {
+        hint.classList.add('is-extra');
+        hint.innerHTML = `Зараз: <strong>+${over} ${guestWord(over)}</strong> понад базових ${base} · <strong>+${(over * extra).toLocaleString('uk-UA')} ₴ / ніч</strong>`;
+    } else {
+        hint.classList.remove('is-extra');
+        hint.innerHTML = `Базова ціна включає <strong>${base} ${guestWord(base)}</strong>. Гості ${base + 1}–${max}: <strong>+${extra.toLocaleString('uk-UA')} ₴ / ніч</strong> кожен.`;
+    }
 }
 
     function changeDayGuests(dir) {
