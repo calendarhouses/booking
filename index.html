@@ -140,17 +140,15 @@
         /* ── ПРЕМІУМ КАРТКА (Анімація та Шаховий порядок) ── */
         .cabin-card {
             display: flex;
-            flex-direction: row;
-            align-items: stretch;
+            flex-direction: row; 
             background: var(--white);
             border-radius: 32px;
             overflow: hidden;
             border: 1px solid var(--border);
             box-shadow: 0 16px 40px rgba(18, 26, 18, 0.05);
             
-            /* Мін. висота панорами; росте, якщо блок ціни стає вищим */
-            min-height: 480px;
-            height: auto;
+            /* Фіксована панорама як раніше (+трохи під рядок про гостей) */
+            height: 500px;
             
             opacity: 0;
             transform: translateX(-120px);
@@ -176,8 +174,7 @@
         .slider-wrap { 
             position: relative; 
             width: 55%; 
-            min-height: 480px;
-            align-self: stretch;
+            height: 100%;
             overflow: hidden; 
             background: #E5E1DC; 
             cursor: pointer; 
@@ -220,6 +217,7 @@
             text-align: left;
             min-width: 0;
             box-sizing: border-box;
+            overflow: hidden;
         }
         .cabin-name {
             font-family: 'Inter', sans-serif; 
@@ -254,20 +252,22 @@
 
         .cabin-footer-block {
             background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 20px;
-            padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 16px;
+            padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px;
             flex-shrink: 0;
         }
-        .cabin-footer-block .btn-book { flex-shrink: 0; align-self: center; }
+        .cabin-footer-block .btn-book { flex-shrink: 0; align-self: center; padding: 12px 22px; }
         .price-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-        .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
-        .price-val { font-family: 'Inter', sans-serif; font-size: 14px; color: #4B5563; font-weight: 500; line-height: 1.35; }
+        .price-label { font-family: 'Inter', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 2px; }
+        .price-val { font-family: 'Inter', sans-serif; font-size: 14px; color: #4B5563; font-weight: 500; line-height: 1.3; }
         .price-val strong { font-family: 'Inter', sans-serif; font-size: 22px; color: #1A1A1A; font-weight: 700; }
+        .price-val .price-for { white-space: nowrap; }
         .price-hint {
-            margin-top: 4px;
+            margin-top: 3px;
             font-family: 'Inter', sans-serif;
             font-size: 12px;
-            line-height: 1.35;
+            line-height: 1.3;
             color: #6B7280;
+            white-space: nowrap;
         }
         .price-hint strong { color: #3A4F35; font-weight: 700; }
         .cabin-meta-item--cap { background: #F3F6EC; border-color: rgba(58, 79, 53, 0.18); color: #3A4F35; }
@@ -301,8 +301,9 @@
             .cabin-card, .cabin-card:nth-child(even) { flex-direction: column; height: auto; }
             .slider-wrap, .cabin-body { width: 100%; }
             .slider-wrap { height: 320px; }
-            .cabin-body { padding: 32px 24px; }
+            .cabin-body { padding: 32px 24px; overflow: visible; }
             .cabin-footer-block { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; }
+            .price-hint { white-space: normal; }
             .btn-book { width: 100%; text-align: center; }
         }
         
@@ -1758,7 +1759,7 @@ function renderCabinList() {
                 <div class="cabin-footer-block">
                     <div class="price-info">
                         <span class="price-label">Вартість</span>
-                        <span class="price-val">від <strong>${minPrice.toLocaleString('uk-UA')}</strong> грн / ніч за ${getRoomBaseCapacity(r)} гостей</span>
+                        <span class="price-val">від <strong>${minPrice.toLocaleString('uk-UA')}</strong> грн / ніч <span class="price-for">за ${getRoomBaseCapacity(r)} гостей</span></span>
                         <span class="price-hint">${formatRoomPriceHint(r)}</span>
                     </div>
                     <button class="btn-book" onclick="showDetail(${r.id})">Забронювати</button>
