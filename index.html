@@ -267,7 +267,6 @@
             font-size: 12px;
             line-height: 1.3;
             color: #6B7280;
-            white-space: nowrap;
         }
         .price-hint strong { color: #3A4F35; font-weight: 700; }
         .cabin-meta-item--cap { background: #F3F6EC; border-color: rgba(58, 79, 53, 0.18); color: #3A4F35; }
@@ -2368,7 +2367,7 @@ function formatRoomPriceHint(room) {
     const max = getRoomMaxCapacity(room);
     const extra = getRoomExtraGuestPrice(room);
     if (max <= base) return '';
-    return `+${extra.toLocaleString('uk-UA')} ₴/ніч за кожного`;
+    return `+${extra.toLocaleString('uk-UA')} ₴/ніч за кожного додаткового`;
 }
 function syncGuestCapacityHint() {
     const room = roomsList.find(r => r.id == currentCabinId);
@@ -2384,7 +2383,7 @@ function syncGuestCapacityHint() {
     const extra = getRoomExtraGuestPrice(room);
     if (sub) {
         if (max > base) {
-            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного`;
+            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного додаткового`;
         } else {
             sub.textContent = `З ночівлею • до ${max} гостей`;
         }
