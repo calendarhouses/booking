@@ -140,15 +140,17 @@
         /* ── ПРЕМІУМ КАРТКА (Анімація та Шаховий порядок) ── */
         .cabin-card {
             display: flex;
-            flex-direction: row; 
+            flex-direction: row;
+            align-items: stretch;
             background: var(--white);
             border-radius: 32px;
             overflow: hidden;
             border: 1px solid var(--border);
             box-shadow: 0 16px 40px rgba(18, 26, 18, 0.05);
             
-            /* ЖОРСТКО ФІКСУЄМО ВИСОТУ: Тепер картки широкі і панорамні */
-            height: 480px; 
+            /* Мін. висота панорами; росте, якщо блок ціни стає вищим */
+            min-height: 480px;
+            height: auto;
             
             opacity: 0;
             transform: translateX(-120px);
@@ -174,7 +176,8 @@
         .slider-wrap { 
             position: relative; 
             width: 55%; 
-            height: 100%; /* Тепер він чітко 480px у висоту */
+            min-height: 480px;
+            align-self: stretch;
             overflow: hidden; 
             background: #E5E1DC; 
             cursor: pointer; 
@@ -211,10 +214,12 @@
         /* ── ІНФОРМАЦІЯ ТА НОВІ ФІЧІ ── */
         .cabin-body { 
             width: 45%; 
-            padding: 36px 48px; /* Оптимізували відступи під фіксовану висоту */
+            padding: 32px 40px;
             display: flex; 
             flex-direction: column; 
-            text-align: left; 
+            text-align: left;
+            min-width: 0;
+            box-sizing: border-box;
         }
         .cabin-name {
             font-family: 'Inter', sans-serif; 
@@ -249,20 +254,20 @@
 
         .cabin-footer-block {
             background: #F8FAF7; border: 1px solid rgba(85, 107, 47, 0.15); border-radius: 20px;
-            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px;
+            padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 16px;
+            flex-shrink: 0;
         }
         .cabin-footer-block .btn-book { flex-shrink: 0; align-self: center; }
-        .price-info { display: flex; flex-direction: column; min-width: 0; }
+        .price-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
         .price-label { font-family: 'Inter', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #6B7280; margin-bottom: 4px; }
-        .price-val { font-family: 'Inter', sans-serif; font-size: 15px; color: #4B5563; font-weight: 500; }
-        .price-val strong { font-family: 'Inter', sans-serif; font-size: 24px; color: #1A1A1A; font-weight: 700; }
+        .price-val { font-family: 'Inter', sans-serif; font-size: 14px; color: #4B5563; font-weight: 500; line-height: 1.35; }
+        .price-val strong { font-family: 'Inter', sans-serif; font-size: 22px; color: #1A1A1A; font-weight: 700; }
         .price-hint {
-            margin-top: 6px;
+            margin-top: 4px;
             font-family: 'Inter', sans-serif;
             font-size: 12px;
-            line-height: 1.4;
+            line-height: 1.35;
             color: #6B7280;
-            max-width: 34ch;
         }
         .price-hint strong { color: #3A4F35; font-weight: 700; }
         .cabin-meta-item--cap { background: #F3F6EC; border-color: rgba(58, 79, 53, 0.18); color: #3A4F35; }
@@ -910,9 +915,9 @@
 
         /* ── ГОСТІ ТА ТВАРИНИ ── */
         .guests-block { background: var(--white); border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
-        .guests-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+        .guests-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; gap: 12px; }
         .guests-label { font-size: 15px; font-weight: 600; color: var(--text); }
-        .guests-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .guests-sub { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
         .counter-wrap { display: flex; align-items: center; gap: 16px; }
         .cnt-btn { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; color: var(--text); }
         .cnt-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
@@ -2362,7 +2367,7 @@ function formatRoomPriceHint(room) {
     const max = getRoomMaxCapacity(room);
     const extra = getRoomExtraGuestPrice(room);
     if (max <= base) return '';
-    return `+${extra.toLocaleString('uk-UA')} ₴/ніч за кожного додаткового`;
+    return `+${extra.toLocaleString('uk-UA')} ₴/ніч за кожного`;
 }
 function syncGuestCapacityHint() {
     const room = roomsList.find(r => r.id == currentCabinId);
@@ -2377,9 +2382,11 @@ function syncGuestCapacityHint() {
     const max = getRoomMaxCapacity(room);
     const extra = getRoomExtraGuestPrice(room);
     if (sub) {
-        sub.textContent = max > base
-            ? `З ночівлею · базова ціна до ${base}, далі +${extra.toLocaleString('uk-UA')} ₴/ніч`
-            : `З ночівлею · до ${max} гостей`;
+        if (max > base) {
+            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного`;
+        } else {
+            sub.textContent = `З ночівлею • до ${max} гостей`;
+        }
     }
     if (!hint) return;
     if (max <= base) {

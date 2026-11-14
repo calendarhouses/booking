@@ -1604,7 +1604,7 @@ function formatRoomPriceHint(room) {
     const max = getRoomMaxCapacity(room);
     const extra = getRoomExtraGuestPrice(room);
     if (max <= base) return '';
-    return `+${extra.toLocaleString('uk-UA')} ₴/ніч за кожного додаткового`;
+    return `+${extra.toLocaleString('uk-UA')} ₴/ніч за кожного`;
 }
 function syncGuestCapacityHint() {
     const room = roomsList.find(r => r.id == currentCabinId);
@@ -1619,9 +1619,11 @@ function syncGuestCapacityHint() {
     const max = getRoomMaxCapacity(room);
     const extra = getRoomExtraGuestPrice(room);
     if (sub) {
-        sub.textContent = max > base
-            ? `З ночівлею · базова ціна до ${base}, далі +${extra.toLocaleString('uk-UA')} ₴/ніч`
-            : `З ночівлею · до ${max} гостей`;
+        if (max > base) {
+            sub.innerHTML = `З ночівлею • базова ціна до ${base} гостей<br>далі +${extra.toLocaleString('uk-UA')}₴/ніч за кожного`;
+        } else {
+            sub.textContent = `З ночівлею • до ${max} гостей`;
+        }
     }
     if (!hint) return;
     if (max <= base) {
