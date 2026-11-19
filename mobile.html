@@ -39,6 +39,7 @@
             --wood: #DEB887;
             --radius: 24px; /* Більші закруглення для мобілок */
             --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
@@ -95,8 +96,121 @@
 
         /* ── КОНТЕЙНЕР КАРТОК (MOBILE) ── */
         .page-wrap { padding: 0 16px calc(60px + var(--safe-bottom)); }
-        #cabinsContainer { position: relative; z-index: 2; background: var(--bg); padding-top: 40px; display: flex; flex-direction: column; gap: 32px; }
+        #cabinsContainer { position: relative; z-index: 2; background: var(--bg); padding-top: 16px; display: flex; flex-direction: column; gap: 32px; }
         .screen { display: none; } .screen.active { display: block; }
+
+        /* Brand header — як в АЖ У НЕБІ: fixed зверху під час скролу списку */
+        .public-mobile-brand {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 50;
+            padding: calc(10px + var(--safe-top)) 12px 10px;
+            background: rgba(247, 245, 242, 0.96);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(229, 225, 220, 0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.45s ease;
+        }
+        body.ready .public-mobile-brand {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .public-mobile-brand__inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .public-mobile-brand__logo {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            flex-shrink: 0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .public-mobile-brand__text { min-width: 0; flex: 1 1 auto; }
+        .public-mobile-brand__title {
+            margin: 0;
+            font-size: clamp(15px, 4.6vw, 20px);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .public-mobile-brand__actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .public-mobile-brand__action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #3A4F35;
+            background: linear-gradient(180deg, #ffffff 0%, #f3f6ec 100%);
+            border: 1px solid rgba(58, 79, 53, 0.16);
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.9) inset,
+              0 6px 16px rgba(18, 26, 18, 0.07);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+            padding: 0;
+            font: inherit;
+        }
+        .public-mobile-brand__action svg {
+            width: 18px; height: 18px;
+            stroke: currentColor; fill: none; stroke-width: 2.25;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .public-mobile-brand__action:active { transform: scale(0.94); }
+        .public-mobile-brand__info-wrap { position: relative; }
+        .public-mobile-brand__info-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 196px;
+            padding: 8px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(58, 79, 53, 0.14);
+            box-shadow: 0 12px 28px rgba(18, 26, 18, 0.14);
+            z-index: 60;
+        }
+        .public-mobile-brand__info-wrap.open .public-mobile-brand__info-menu { display: block; }
+        .public-mobile-brand__info-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        .public-mobile-brand__info-menu a:active { background: #F3F6EC; }
+        .public-mobile-brand__info-menu svg {
+            width: 18px; height: 18px; flex-shrink: 0;
+            fill: #2AABEE; stroke: none;
+        }
+        .public-mobile-list-body {
+            padding-top: calc(10px + var(--safe-top) + 10px + 44px + 12px);
+        }
 
         .cabin-card {
             display: flex; flex-direction: column; background: var(--white); border-radius: var(--radius);
@@ -477,6 +591,9 @@
         /* 🚀 ХОВАЄМО ПАНЕЛІ ДО КІНЦЯ АНІМАЦІЇ */
         .sticky-cta, .bottom-nav { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
         body.ready .sticky-cta, body.ready .bottom-nav { opacity: 1; pointer-events: auto; }
+        body.ready #screen-list.screen.active .public-mobile-list-body {
+            padding-top: calc(10px + var(--safe-top) + 10px + 44px + 12px);
+        }
     </style>
 </head>
 <body>
@@ -494,6 +611,37 @@
 </div>
 
 <div id="screen-list" class="screen active">
+    <header class="public-mobile-brand" id="publicMobileBrand">
+        <div class="public-mobile-brand__inner">
+            <img class="public-mobile-brand__logo" src="/icons/icon-192.png" alt="BOSO" width="44" height="44">
+            <div class="public-mobile-brand__text">
+                <h1 class="public-mobile-brand__title">BOSO</h1>
+            </div>
+            <div class="public-mobile-brand__actions">
+                <a class="public-mobile-brand__action" href="tel:+380672099463" aria-label="Зателефонувати" onclick="playClick && playClick()">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </a>
+                <a class="public-mobile-brand__action" href="https://t.me/+380672099463" target="_blank" rel="noopener noreferrer" aria-label="Написати в чат" onclick="playClick && playClick()">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </a>
+                <a class="public-mobile-brand__action" href="https://maps.app.goo.gl/qi22qhUQdB223LJy7" target="_blank" rel="noopener noreferrer" aria-label="Відкрити локацію" onclick="playClick && playClick()">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </a>
+                <div class="public-mobile-brand__info-wrap" id="brandInfoWrap">
+                    <button type="button" class="public-mobile-brand__action" id="brandInfoBtn" aria-label="Інфо" aria-expanded="false" aria-haspopup="true" onclick="toggleBrandInfoMenu(event)">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    </button>
+                    <div class="public-mobile-brand__info-menu" id="brandInfoMenu" role="menu">
+                        <a href="https://t.me/bosohouses_bot" target="_blank" rel="noopener noreferrer" role="menuitem" onclick="if(typeof playClick==='function')playClick(); closeBrandInfoMenu();">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                            Telegram-бот BOSO
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
     <div id="introOverlay" class="intro-overlay">
         <svg class="zoom-svg" width="100%" height="100%">
             <defs>
@@ -513,9 +661,10 @@
         </svg>
     </div>
 
-    <!-- 🚀 ФЕЙКОВУ КАРТИНКУ clean-hero ВИДАЛЕНО! Одразу йдуть котеджі -->
-    <div class="page-wrap" id="cabinsContainer">
-        <!-- Контент генерується через JS -->
+    <div class="public-mobile-list-body">
+        <div class="page-wrap" id="cabinsContainer">
+            <!-- Контент генерується через JS -->
+        </div>
     </div>
 </div>
 
@@ -788,6 +937,28 @@
 <div id="toast"></div>
 
 <script>
+function closeBrandInfoMenu() {
+    const wrap = document.getElementById('brandInfoWrap');
+    const btn = document.getElementById('brandInfoBtn');
+    if (wrap) wrap.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+function toggleBrandInfoMenu(e) {
+    if (e) e.stopPropagation();
+    if (typeof playClick === 'function') playClick();
+    const wrap = document.getElementById('brandInfoWrap');
+    const btn = document.getElementById('brandInfoBtn');
+    if (!wrap || !btn) return;
+    const open = !wrap.classList.contains('open');
+    wrap.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('brandInfoWrap');
+    if (!wrap || !wrap.classList.contains('open')) return;
+    if (!wrap.contains(e.target)) closeBrandInfoMenu();
+});
+
 // 🚀 РАННІЙ СТАРТ
 const API_URL = "https://script.google.com/macros/s/AKfycbx1RYoMJySplZ18Wv54PQjxzHnZqIb3Wsw63oG-PAOKMvuXEym8Y7aFS-L_pxvfX6o4DQ/exec";
 // 🧪 ТЕСТ: 1 грн передплата (0 = вимкнено, знову 50%)
