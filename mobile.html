@@ -109,13 +109,6 @@
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid rgba(229, 225, 220, 0.9);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.45s ease;
-        }
-        body.ready .public-mobile-brand {
-            opacity: 1;
-            pointer-events: auto;
         }
         .public-mobile-brand__inner {
             display: flex;
@@ -643,9 +636,6 @@
         /* 🚀 ХОВАЄМО ПАНЕЛІ ДО КІНЦЯ АНІМАЦІЇ */
         .sticky-cta, .bottom-nav { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
         body.ready .sticky-cta, body.ready .bottom-nav { opacity: 1; pointer-events: auto; }
-        body.ready #screen-list.screen.active .public-mobile-list-body {
-            padding-top: calc(10px + var(--safe-top) + 10px + 44px + 12px);
-        }
     </style>
 </head>
 <body>
