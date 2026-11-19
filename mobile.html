@@ -159,8 +159,8 @@
             border-radius: 12px;
             text-decoration: none;
             color: #3A4F35;
-            background: linear-gradient(180deg, #ffffff 0%, #f3f6ec 100%);
-            border: 1px solid rgba(58, 79, 53, 0.16);
+            background: linear-gradient(180deg, #ffffff 0%, #f3f7f4 100%);
+            border: 1px solid rgba(58, 79, 53, 0.14);
             box-shadow:
               0 1px 0 rgba(255, 255, 255, 0.9) inset,
               0 6px 16px rgba(18, 26, 18, 0.07);
@@ -171,42 +171,93 @@
             font: inherit;
         }
         .public-mobile-brand__action svg {
-            width: 18px; height: 18px;
-            stroke: currentColor; fill: none; stroke-width: 2.25;
-            stroke-linecap: round; stroke-linejoin: round;
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
+        }
+        .public-mobile-brand__action:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #eef5f0 100%);
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.95) inset,
+              0 8px 20px rgba(18, 26, 18, 0.1);
         }
         .public-mobile-brand__action:active { transform: scale(0.94); }
         .public-mobile-brand__info-wrap { position: relative; }
+        .public-mobile-brand__info-wrap.open .public-mobile-brand__action {
+            background: linear-gradient(180deg, #ffffff 0%, #e8f0e9 100%);
+            border-color: rgba(58, 79, 53, 0.28);
+        }
         .public-mobile-brand__info-menu {
             display: none;
             position: absolute;
-            top: calc(100% + 8px);
+            top: calc(100% + 10px);
             right: 0;
-            min-width: 196px;
-            padding: 8px;
-            border-radius: 14px;
+            width: max-content;
+            min-width: 220px;
+            padding: 6px;
+            border-radius: 16px;
             background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(58, 79, 53, 0.14);
-            box-shadow: 0 12px 28px rgba(18, 26, 18, 0.14);
+            border: 1px solid rgba(58, 79, 53, 0.12);
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.95) inset,
+              0 18px 40px rgba(18, 26, 18, 0.16);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             z-index: 60;
         }
         .public-mobile-brand__info-wrap.open .public-mobile-brand__info-menu { display: block; }
-        .public-mobile-brand__info-menu a {
+        .public-mobile-brand__info-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 12px;
-            border-radius: 10px;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
             text-decoration: none;
             color: var(--text);
-            font-size: 13px;
-            font-weight: 600;
-            line-height: 1.25;
+            white-space: nowrap;
+            background: linear-gradient(180deg, #F7FAF8 0%, #F1F6F2 100%);
+            border: 1px solid rgba(58, 79, 53, 0.08);
         }
-        .public-mobile-brand__info-menu a:active { background: #F3F6EC; }
-        .public-mobile-brand__info-menu svg {
-            width: 18px; height: 18px; flex-shrink: 0;
-            fill: #2AABEE; stroke: none;
+        .public-mobile-brand__info-item:active {
+            transform: scale(0.98);
+            background: #EAF2EC;
+        }
+        .public-mobile-brand__info-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #2AABEE 0%, #229ED9 100%);
+            box-shadow: 0 6px 14px rgba(34, 158, 217, 0.28);
+        }
+        .public-mobile-brand__info-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: #fff;
+            stroke: none;
+        }
+        .public-mobile-brand__info-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .public-mobile-brand__info-copy strong {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: #1A1A1A;
+            line-height: 1.2;
+        }
+        .public-mobile-brand__info-copy span {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+            line-height: 1.2;
         }
         .public-mobile-list-body {
             padding-top: calc(10px + var(--safe-top) + 10px + 44px + 12px);
@@ -619,22 +670,27 @@
             </div>
             <div class="public-mobile-brand__actions">
                 <a class="public-mobile-brand__action" href="tel:+380672305727" aria-label="Зателефонувати" onclick="playClick && playClick()">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 </a>
                 <a class="public-mobile-brand__action" href="https://t.me/bogdantkach" target="_blank" rel="noopener noreferrer" aria-label="Написати в чат" onclick="playClick && playClick()">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
                 </a>
                 <a class="public-mobile-brand__action" href="https://maps.app.goo.gl/LsoCisLKdRAqJS31A" target="_blank" rel="noopener noreferrer" aria-label="Відкрити локацію" onclick="playClick && playClick()">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
                 </a>
                 <div class="public-mobile-brand__info-wrap" id="brandInfoWrap">
                     <button type="button" class="public-mobile-brand__action" id="brandInfoBtn" aria-label="Інфо" aria-expanded="false" aria-haspopup="true" onclick="toggleBrandInfoMenu(event)">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
                     </button>
                     <div class="public-mobile-brand__info-menu" id="brandInfoMenu" role="menu">
-                        <a href="https://t.me/bosohouses_bot" target="_blank" rel="noopener noreferrer" role="menuitem" onclick="if(typeof playClick==='function')playClick(); closeBrandInfoMenu();">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                            Telegram-бот BOSO
+                        <a class="public-mobile-brand__info-item" href="https://t.me/bosohouses_bot" target="_blank" rel="noopener noreferrer" role="menuitem" onclick="if(typeof playClick==='function')playClick(); closeBrandInfoMenu();">
+                            <span class="public-mobile-brand__info-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                            </span>
+                            <span class="public-mobile-brand__info-copy">
+                                <strong>Telegram-бот</strong>
+                                <span>@bosohouses_bot</span>
+                            </span>
                         </a>
                     </div>
                 </div>
